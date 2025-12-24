@@ -38,9 +38,13 @@ const PartnersPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await partnersApi.list(searchTerm ? { search: searchTerm } : undefined);
-      setPartners(response.data.data || []);
+      // API returns { data: [...] }, so response.data is { data: [...] }
+      // Therefore response.data.data is the array
+      const partnersData = response.data?.data || response.data || [];
+      setPartners(Array.isArray(partnersData) ? partnersData : []);
     } catch (error) {
       console.error('Failed to fetch partners:', error);
+      setPartners([]);
     } finally {
       setLoading(false);
     }
@@ -180,7 +184,14 @@ const PartnersPage: React.FC = () => {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {partners.map((partner) => (
+                {partners.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                      目前沒有合作商資料
+                    </td>
+                  </tr>
+                ) : (
+                  partners.map((partner) => (
                   <tr key={partner.id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-5">
                       <div className="w-20 h-12 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 shadow-inner">
@@ -213,7 +224,8 @@ const PartnersPage: React.FC = () => {
                       </button>
                     </td>
                   </tr>
-                ))}
+                  ))
+                )}
               </tbody>
             </table>
           </div>
