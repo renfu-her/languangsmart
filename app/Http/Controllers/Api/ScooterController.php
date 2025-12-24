@@ -24,7 +24,7 @@ class ScooterController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Scooter::with('partner');
+        $query = Scooter::query();
 
         // Filter by status
         if ($request->has('status')) {
@@ -146,7 +146,7 @@ class ScooterController extends Controller
 
         return response()->json([
             'message' => 'Scooter updated successfully',
-            'data' => new ScooterResource($scooter->load('partner')),
+            'data' => new ScooterResource($scooter->load('store')),
         ]);
     }
 
@@ -193,7 +193,7 @@ class ScooterController extends Controller
 
         return response()->json([
             'message' => 'Photo uploaded successfully',
-            'data' => new ScooterResource($scooter->load('partner')),
+            'data' => new ScooterResource($scooter->load('store')),
         ]);
     }
 }

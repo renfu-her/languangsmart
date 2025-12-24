@@ -52,9 +52,14 @@ const ScootersPage: React.FC = () => {
       if (statusFilter) params.status = statusFilter;
       if (searchTerm) params.search = searchTerm;
       const response = await scootersApi.list(Object.keys(params).length > 0 ? params : undefined);
-      setScooters(response.data || []);
+      // API returns { data: [...] }, api.get() returns the whole JSON object
+      // So response.data is the array
+      const scootersData = response.data || [];
+      console.log('Fetched scooters:', scootersData); // Debug log
+      setScooters(Array.isArray(scootersData) ? scootersData : []);
     } catch (error) {
       console.error('Failed to fetch scooters:', error);
+      setScooters([]);
     } finally {
       setLoading(false);
     }
@@ -284,54 +289,62 @@ const ScootersPage: React.FC = () => {
                   <th className="px-6 py-5">機車型號</th>
                   <th className="px-6 py-5">車款類型</th>
                   <th className="px-6 py-5">顏色</th>
-                  <th className="px-6 py-5">所屬合作商</th>
+                  <th className="px-6 py-5">所屬商店</th>
                   <th className="px-6 py-5">狀態</th>
                   <th className="px-6 py-5 text-center">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {scooters.map((scooter) => (
-                  <tr key={scooter.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 group transition-colors">
-                    <td className="px-6 py-5 font-black text-gray-900 dark:text-gray-100">{scooter.plate_number}</td>
-                    <td className="px-6 py-5 text-gray-700 dark:text-gray-300 font-bold">{scooter.model}</td>
-                    <td className="px-6 py-5">
-                      <span className={`px-2 py-1 rounded-lg text-[10px] font-black border ${
-                        scooter.type === '白牌' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
-                        scooter.type === '電輔車' ? 'bg-orange-50 text-orange-600 border-orange-100' :
-                        'bg-green-50 text-green-600 border-green-100'
-                      }`}>
-                        {scooter.type}
-                      </span>
-                    </td>
-                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.color || '-'}</td>
-                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.store?.name || '-'}</td>
-                    <td className="px-6 py-5">
-                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm ${
-                         scooter.status === '待出租' ? 'bg-green-100 text-green-700' :
-                         scooter.status === '出租中' ? 'bg-blue-100 text-blue-700' :
-                         'bg-orange-100 text-orange-700'
-                       }`}>
-                         {scooter.status}
-                       </span>
-                    </td>
-                    <td className="px-6 py-5 text-center">
-                      <div className="flex items-center justify-center space-x-2">
-                        <button 
-                          onClick={() => handleOpenModal(scooter)}
-                          className="p-2 hover:bg-orange-50 rounded-xl text-gray-400 hover:text-orange-600 transition-all"
-                        >
-                          <Edit size={16} />
-                        </button>
-                        <button 
-                          onClick={() => handleDelete(scooter.id)}
-                          className="p-2 hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-600 transition-all"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+                {scooters.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                      目前沒有機車資料
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  scooters.map((scooter) => (
+                    <tr key={scooter.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 group transition-colors">
+                      <td className="px-6 py-5 font-black text-gray-900 dark:text-gray-100">{scooter.plate_number}</td>
+                      <td className="px-6 py-5 text-gray-700 dark:text-gray-300 font-bold">{scooter.model}</td>
+                      <td className="px-6 py-5">
+                        <span className={`px-2 py-1 rounded-lg text-[10px] font-black border ${
+                          scooter.type === '白牌' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
+                          scooter.type === '電輔車' ? 'bg-orange-50 text-orange-600 border-orange-100' :
+                          'bg-green-50 text-green-600 border-green-100'
+                        }`}>
+                          {scooter.type}
+                        </span>
+                      </td>
+                      <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.color || '-'}</td>
+                      <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.store?.name || '-'}</td>
+                      <td className="px-6 py-5">
+                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm ${
+                           scooter.status === '待出租' ? 'bg-green-100 text-green-700' :
+                           scooter.status === '出租中' ? 'bg-blue-100 text-blue-700' :
+                           'bg-orange-100 text-orange-700'
+                         }`}>
+                           {scooter.status}
+                         </span>
+                      </td>
+                      <td className="px-6 py-5 text-center">
+                        <div className="flex items-center justify-center space-x-2">
+                          <button 
+                            onClick={() => handleOpenModal(scooter)}
+                            className="p-2 hover:bg-orange-50 rounded-xl text-gray-400 hover:text-orange-600 transition-all"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(scooter.id)}
+                            className="p-2 hover:bg-red-50 rounded-xl text-gray-400 hover:text-red-600 transition-all"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
