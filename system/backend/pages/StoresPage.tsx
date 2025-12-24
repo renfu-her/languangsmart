@@ -100,9 +100,18 @@ const StoresPage: React.FC = () => {
       }
       handleCloseModal();
       fetchStores();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save store:', error);
-      alert('儲存失敗，請檢查輸入資料');
+      // 顯示具體的驗證錯誤訊息
+      if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const errorMessages = Object.values(errors).flat().join('\n');
+        alert(`儲存失敗：\n${errorMessages}`);
+      } else if (error?.response?.data?.message) {
+        alert(`儲存失敗：${error.response.data.message}`);
+      } else {
+        alert('儲存失敗，請檢查輸入資料');
+      }
     }
   };
 

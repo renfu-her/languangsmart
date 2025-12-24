@@ -38,7 +38,14 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'API request failed');
+        // 創建一個包含完整錯誤資訊的錯誤物件
+        const error: any = new Error(data.message || 'API request failed');
+        error.response = {
+          status: response.status,
+          statusText: response.statusText,
+          data: data,
+        };
+        throw error;
       }
 
       return data;

@@ -141,9 +141,38 @@ const ScootersPage: React.FC = () => {
       }
       handleCloseModal();
       fetchScooters();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to save scooter:', error);
-      alert('儲存失敗，請檢查輸入資料');
+      // 顯示具體的驗證錯誤訊息
+      if (error?.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const errorMessages = Object.entries(errors).map(([field, messages]: [string, any]) => {
+          const translatedMessages = messages.map((msg: string) => {
+            // 翻譯常見的驗證錯誤訊息
+            if (msg.includes('already been taken')) {
+              if (field === 'plate_number') return '此車牌號碼已被使用';
+              return `${field} 已被使用`;
+            }
+            if (msg.includes('required')) {
+              if (field === 'store_id') return '請選擇所屬商店';
+              if (field === 'plate_number') return '請輸入車牌號碼';
+              if (field === 'model') return '請輸入機車型號';
+              return `${field} 為必填欄位`;
+            }
+            if (msg.includes('does not exist')) {
+              if (field === 'store_id') return '所選擇的商店不存在';
+              return `${field} 不存在`;
+            }
+            return msg;
+          });
+          return translatedMessages.join(', ');
+        }).join('\n');
+        alert(`儲存失敗：\n${errorMessages}`);
+      } else if (error?.response?.data?.message) {
+        alert(`儲存失敗：${error.response.data.message}`);
+      } else {
+        alert('儲存失敗，請檢查輸入資料');
+      }
     }
   };
 

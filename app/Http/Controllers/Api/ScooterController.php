@@ -74,11 +74,21 @@ class ScooterController extends Controller
             'type' => 'required|in:白牌,綠牌,電輔車',
             'color' => 'nullable|string|max:50',
             'status' => 'required|in:待出租,出租中,保養中',
+        ], [
+            'store_id.required' => '請選擇所屬商店',
+            'store_id.exists' => '所選擇的商店不存在',
+            'plate_number.required' => '請輸入車牌號碼',
+            'plate_number.unique' => '此車牌號碼已被使用',
+            'model.required' => '請輸入機車型號',
+            'type.required' => '請選擇車款類型',
+            'type.in' => '車款類型必須為：白牌、綠牌或電輔車',
+            'status.required' => '請選擇狀態',
+            'status.in' => '狀態必須為：待出租、出租中或保養中',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation error',
+                'message' => '驗證錯誤',
                 'errors' => $validator->errors(),
             ], 422);
         }
@@ -113,11 +123,21 @@ class ScooterController extends Controller
             'type' => 'required|in:白牌,綠牌,電輔車',
             'color' => 'nullable|string|max:50',
             'status' => 'required|in:待出租,出租中,保養中',
+        ], [
+            'store_id.required' => '請選擇所屬商店',
+            'store_id.exists' => '所選擇的商店不存在',
+            'plate_number.required' => '請輸入車牌號碼',
+            'plate_number.unique' => '此車牌號碼已被使用',
+            'model.required' => '請輸入機車型號',
+            'type.required' => '請選擇車款類型',
+            'type.in' => '車款類型必須為：白牌、綠牌或電輔車',
+            'status.required' => '請選擇狀態',
+            'status.in' => '狀態必須為：待出租、出租中或保養中',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
-                'message' => 'Validation error',
+                'message' => '驗證錯誤',
                 'errors' => $validator->errors(),
             ], 422);
         }
