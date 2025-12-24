@@ -53,7 +53,7 @@ const FinesPage: React.FC = () => {
       if (paymentStatusFilter) params.payment_status = paymentStatusFilter;
       if (searchTerm) params.search = searchTerm;
       const response = await finesApi.list(Object.keys(params).length > 0 ? params : undefined);
-      setFines(response.data.data || []);
+      setFines(response.data || []);
     } catch (error) {
       console.error('Failed to fetch fines:', error);
     } finally {
@@ -64,7 +64,7 @@ const FinesPage: React.FC = () => {
   const fetchScooters = async () => {
     try {
       const response = await scootersApi.list();
-      setScooters(response.data.data || []);
+      setScooters(response.data || []);
     } catch (error) {
       console.error('Failed to fetch scooters:', error);
     }
@@ -136,8 +136,11 @@ const FinesPage: React.FC = () => {
         }
       } else {
         const response = await finesApi.create(data);
-        if (photoFile && response.data.data) {
-          await finesApi.uploadPhoto(response.data.data.id, photoFile);
+        if (photoFile) {
+          const fineId = editingFine ? editingFine.id : (response.data?.data?.id || response.data?.id);
+          if (fineId) {
+            await finesApi.uploadPhoto(fineId, photoFile);
+          }
         }
       }
       handleCloseModal();
@@ -175,11 +178,11 @@ const FinesPage: React.FC = () => {
   const paidCount = fines.filter(f => f.payment_status === '已處理').length;
 
   return (
-    <div className="p-6">
+    <div className="p-6 dark:text-gray-100">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">罰單管理</h1>
-          <p className="text-sm text-gray-500 mt-1">追蹤租賃期間產生的交通罰鍰與繳費狀態</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">罰單管理</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">追蹤租賃期間產生的交通罰鍰與繳費狀態</p>
         </div>
         <button 
           onClick={() => handleOpenModal()}
@@ -190,8 +193,8 @@ const FinesPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-5 bg-gray-50/30 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div className="p-5 bg-gray-50/30 dark:bg-gray-800/50 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-gray-100 dark:border-gray-700">
           <div className="flex space-x-2 w-full sm:w-auto overflow-x-auto pb-1 sm:pb-0">
             <button
               onClick={() => setPaymentStatusFilter('')}
@@ -229,7 +232,7 @@ const FinesPage: React.FC = () => {
             <input 
               type="text" 
               placeholder="搜尋車牌、承租人..." 
-              className={inputClasses.replace('shadow-sm', '') + ' pl-11 shadow-none'}
+              className={inputClasses.replace('shadow-sm', '').replace('bg-white', 'bg-white dark:bg-gray-700').replace('text-gray-', 'dark:text-gray-300 text-gray-').replace('border-gray-200', 'border-gray-200 dark:border-gray-600') + ' pl-11 shadow-none'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -244,7 +247,7 @@ const FinesPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-gray-50/50 border-b border-gray-200 text-gray-600 font-bold uppercase tracking-wider text-[11px]">
+              <thead className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="px-6 py-5">車牌號碼</th>
                   <th className="px-6 py-5">承租人</th>
@@ -257,13 +260,13 @@ const FinesPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {fines.map((fine) => (
-                  <tr key={fine.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-6 py-5 font-black text-gray-900 text-base tracking-tight">
+                  <tr key={fine.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="px-6 py-5 font-black text-gray-900 dark:text-gray-100 text-base tracking-tight">
                       {fine.scooter?.plate_number || '-'}
                     </td>
-                    <td className="px-6 py-5 text-gray-800 font-bold">{fine.tenant}</td>
-                    <td className="px-6 py-5 text-gray-500 font-medium">{fine.violation_date}</td>
-                    <td className="px-6 py-5 text-gray-500 font-medium italic">{fine.violation_type}</td>
+                    <td className="px-6 py-5 text-gray-800 dark:text-gray-200 font-bold">{fine.tenant}</td>
+                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{fine.violation_date}</td>
+                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium italic">{fine.violation_type}</td>
                     <td className="px-6 py-5 font-black text-red-600 text-base">${fine.fine_amount.toLocaleString()}</td>
                     <td className="px-6 py-5">
                       <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm ${
@@ -294,9 +297,9 @@ const FinesPage: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseModal} />
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl relative animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-800">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-xl relative animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                 {editingFine ? '編輯違規罰單' : '登記違規罰單'}
               </h2>
               <button onClick={handleCloseModal} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
@@ -389,9 +392,9 @@ const FinesPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end space-x-3 rounded-b-3xl">
-              <button onClick={handleCloseModal} className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:bg-white transition-all">取消</button>
-              <button onClick={handleSubmit} className="px-10 py-2.5 bg-gray-900 rounded-xl text-sm font-black text-white hover:bg-black shadow-lg active:scale-95 transition-all">
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-end space-x-3 rounded-b-3xl">
+              <button onClick={handleCloseModal} className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 transition-all">取消</button>
+              <button onClick={handleSubmit} className="px-10 py-2.5 bg-gray-900 dark:bg-gray-700 rounded-xl text-sm font-black text-white hover:bg-black dark:hover:bg-gray-600 shadow-lg active:scale-95 transition-all">
                 {editingFine ? '確認更新' : '確認登記'}
               </button>
             </div>

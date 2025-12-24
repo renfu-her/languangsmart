@@ -1,14 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { ChevronDown, ChevronRight, User, Menu } from 'lucide-react';
+import { ChevronDown, ChevronRight, User, Menu, Sun, Moon } from 'lucide-react';
 import { NAV_ITEMS } from '../constants';
 import AIChatAssistant from './AIChatAssistant';
 
-const SidebarItem: React.FC<{ item: any; isOpenByDefault?: boolean; sidebarOpen: boolean }> = ({ 
+const SidebarItem: React.FC<{ item: any; isOpenByDefault?: boolean; sidebarOpen: boolean; theme: 'light' | 'dark' }> = ({ 
   item, 
   isOpenByDefault = false,
-  sidebarOpen 
+  sidebarOpen,
+  theme
 }) => {
   const [isOpen, setIsOpen] = useState(isOpenByDefault);
   const location = useLocation();
@@ -25,7 +26,9 @@ const SidebarItem: React.FC<{ item: any; isOpenByDefault?: boolean; sidebarOpen:
 
   const content = (
     <div className={`flex items-center transition-all duration-300 ${sidebarOpen ? 'space-x-3 px-4' : 'justify-center px-0'} py-3 rounded-xl ${
-      location.pathname === item.path ? 'bg-orange-100 text-orange-600 font-bold' : 'text-gray-600 hover:bg-gray-100'
+      location.pathname === item.path 
+        ? theme === 'dark' ? 'bg-orange-900/30 text-orange-400 font-bold' : 'bg-orange-100 text-orange-600 font-bold'
+        : theme === 'dark' ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
     }`}>
       <div className="flex-shrink-0">{item.icon}</div>
       {sidebarOpen && <span className="text-sm whitespace-nowrap animate-in fade-in duration-300">{item.title}</span>}
@@ -45,7 +48,9 @@ const SidebarItem: React.FC<{ item: any; isOpenByDefault?: boolean; sidebarOpen:
       <button
         onClick={() => sidebarOpen && setIsOpen(!isOpen)}
         className={`w-full flex items-center transition-all duration-300 ${sidebarOpen ? 'justify-between px-4' : 'justify-center px-0'} py-3 rounded-xl ${
-          isActive ? 'text-gray-900 font-medium' : 'text-gray-600 hover:bg-gray-100'
+          isActive 
+            ? theme === 'dark' ? 'text-gray-100 font-medium' : 'text-gray-900 font-medium'
+            : theme === 'dark' ? 'text-gray-300 hover:bg-gray-700' : 'text-gray-600 hover:bg-gray-100'
         }`}
         title={!sidebarOpen ? item.title : ''}
       >
@@ -64,7 +69,9 @@ const SidebarItem: React.FC<{ item: any; isOpenByDefault?: boolean; sidebarOpen:
               key={child.path}
               to={child.path}
               className={`block px-4 py-2 text-xs rounded-lg transition-colors ${
-                location.pathname === child.path ? 'text-orange-600 bg-orange-50 font-bold' : 'text-gray-500 hover:text-gray-800'
+                location.pathname === child.path 
+                  ? theme === 'dark' ? 'text-orange-400 bg-orange-900/20 font-bold' : 'text-orange-600 bg-orange-50 font-bold'
+                  : theme === 'dark' ? 'text-gray-400 hover:text-gray-200' : 'text-gray-500 hover:text-gray-800'
               }`}
             >
               {child.name}
@@ -78,17 +85,34 @@ const SidebarItem: React.FC<{ item: any; isOpenByDefault?: boolean; sidebarOpen:
 
 const DashboardLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
+    const saved = localStorage.getItem('theme');
+    return (saved as 'light' | 'dark') || 'light';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => prev === 'light' ? 'dark' : 'light');
+  };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
-      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} bg-white border-r border-gray-200 transition-all duration-300 flex flex-col z-30 shadow-sm`}>
+    <div className={`flex h-screen overflow-hidden ${theme === 'dark' ? 'dark bg-gray-900' : 'bg-gray-50'}`}>
+      <aside className={`${sidebarOpen ? 'w-64' : 'w-20'} ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'} border-r transition-all duration-300 flex flex-col z-30 shadow-sm`}>
         {/* Logo 區域 */}
         <div className={`p-4 flex items-center transition-all duration-300 ${sidebarOpen ? 'space-x-3' : 'justify-center'}`}>
           <div className="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-orange-100 flex-shrink-0">
             蘭
           </div>
           {sidebarOpen && (
-            <span className="text-lg font-black text-gray-800 whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300">
+            <span className={`text-lg font-black whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
               蘭光租賃
             </span>
           )}
@@ -101,21 +125,22 @@ const DashboardLayout: React.FC = () => {
               key={idx} 
               item={item} 
               isOpenByDefault={idx === 0} 
-              sidebarOpen={sidebarOpen} 
+              sidebarOpen={sidebarOpen}
+              theme={theme}
             />
           ))}
         </nav>
 
         {/* 使用者資訊區域 */}
-        <div className="p-4 border-t border-gray-50 bg-gray-50/30">
+        <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700 bg-gray-800/50' : 'border-gray-50 bg-gray-50/30'}`}>
           <div className={`flex items-center transition-all duration-300 ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-2`}>
-            <div className="w-9 h-9 rounded-xl bg-white border border-gray-100 shadow-sm flex items-center justify-center flex-shrink-0 text-gray-400">
+            <div className={`w-9 h-9 rounded-xl ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-100'} border shadow-sm flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
               <User size={18} />
             </div>
             {sidebarOpen && (
               <div className="flex-1 overflow-hidden animate-in fade-in duration-300">
-                <p className="text-xs font-black text-gray-800 truncate">管理員 Admin</p>
-                <button className="text-[10px] text-red-400 font-bold hover:text-red-600 transition-colors uppercase tracking-tighter">Sign Out</button>
+                <p className={`text-xs font-black truncate ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>管理員 Admin</p>
+                <button className={`text-[10px] font-bold hover:text-red-600 transition-colors uppercase tracking-tighter ${theme === 'dark' ? 'text-red-500' : 'text-red-400'}`}>Sign Out</button>
               </div>
             )}
           </div>
@@ -123,21 +148,32 @@ const DashboardLayout: React.FC = () => {
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
-        <header className="h-16 bg-white border-b border-gray-100 flex items-center justify-between px-6 z-20">
+        <header className={`h-16 ${theme === 'dark' ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-100'} border-b flex items-center justify-between px-6 z-20`}>
           <button 
             onClick={() => setSidebarOpen(!sidebarOpen)} 
-            className="p-2.5 hover:bg-gray-50 rounded-xl text-gray-400 hover:text-orange-600 transition-all active:scale-90"
+            className={`p-2.5 rounded-xl transition-all active:scale-90 ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300 hover:text-orange-400' : 'hover:bg-gray-50 text-gray-400 hover:text-orange-600'}`}
           >
             <Menu size={20} />
           </button>
           <div className="flex items-center space-x-4">
-             <div className="bg-orange-50 text-orange-600 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border border-orange-100 shadow-sm shadow-orange-50">
+            <button
+              onClick={toggleTheme}
+              className={`p-2.5 rounded-xl transition-all ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-50 text-gray-600'}`}
+              title={theme === 'dark' ? '切換為淺色模式' : '切換為深色模式'}
+            >
+              {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+             <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${
+               theme === 'dark' 
+                 ? 'bg-orange-900/30 text-orange-400 border-orange-800' 
+                 : 'bg-orange-50 text-orange-600 border-orange-100 shadow-orange-50'
+             }`}>
                Version 1.0.4 PRO
              </div>
           </div>
         </header>
 
-        <div className="flex-1 overflow-y-auto bg-[#fafafa]">
+        <div className={`flex-1 overflow-y-auto ${theme === 'dark' ? 'bg-gray-900' : 'bg-[#fafafa]'}`}>
           <Outlet />
         </div>
 

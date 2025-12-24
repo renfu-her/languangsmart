@@ -6,11 +6,11 @@ const BannersPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="p-6">
+    <div className="p-6 dark:text-gray-100">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">首頁輪播圖管理</h1>
-          <p className="text-sm text-gray-500 mt-1">管理官網首頁大型看板與活動促銷圖</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">首頁輪播圖管理</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">管理官網首頁大型看板與活動促銷圖</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
@@ -23,7 +23,7 @@ const BannersPage: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden group">
+          <div key={i} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden group">
             <div className="aspect-[16/9] relative bg-gray-100">
               <img 
                 src={`https://picsum.photos/seed/${i + 100}/800/450`} 
@@ -47,10 +47,10 @@ const BannersPage: React.FC = () => {
             </div>
             <div className="p-4 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-bold text-gray-800">2025 新年特惠活動 - {i}</h3>
-                <p className="text-xs text-gray-400 mt-1">建立日期: 2025-01-0{i}</p>
+                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">2025 新年特惠活動 - {i}</h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">建立日期: 2025-01-0{i}</p>
               </div>
-              <button className="text-gray-300 hover:text-gray-500 cursor-move">
+              <button className="text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 cursor-move">
                 <Move size={20} />
               </button>
             </div>
@@ -59,7 +59,7 @@ const BannersPage: React.FC = () => {
 
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="border-2 border-dashed border-gray-200 rounded-xl flex flex-col items-center justify-center p-8 bg-white hover:bg-gray-50 hover:border-orange-300 transition-all text-gray-400 hover:text-orange-500"
+          className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-orange-300 dark:hover:border-orange-600 transition-all text-gray-400 dark:text-gray-500 hover:text-orange-500 dark:hover:text-orange-400"
         >
           <Plus size={32} className="mb-2" />
           <span className="text-sm font-medium">點擊上傳新橫幅</span>
@@ -69,32 +69,32 @@ const BannersPage: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-800">上傳首頁看板</h2>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg relative animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">上傳首頁看板</h2>
+              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 dark:text-gray-500">
                 <XIcon size={20} />
               </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">標題 / 描述</label>
-                <input type="text" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500" placeholder="例如：夏季租車 8 折優惠" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">標題 / 描述</label>
+                <input type="text" className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500" placeholder="例如：夏季租車 8 折優惠" />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">連結 URL (點擊圖片跳轉)</label>
-                <input type="text" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500" placeholder="https://..." />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">連結 URL (點擊圖片跳轉)</label>
+                <input type="text" className="w-full border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-orange-500" placeholder="https://..." />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">看板圖片 (建議 1920x1080)</label>
-                <div className="border-2 border-dashed border-gray-200 rounded-xl p-10 text-center bg-gray-50 flex flex-col items-center">
-                  <ImageIcon size={32} className="text-gray-400 mb-2" />
-                  <p className="text-xs text-gray-500">點擊上傳檔案</p>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">看板圖片 (建議 1920x1080)</label>
+                <div className="border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-xl p-10 text-center bg-gray-50 dark:bg-gray-700/50 flex flex-col items-center">
+                  <ImageIcon size={32} className="text-gray-400 dark:text-gray-500 mb-2" />
+                  <p className="text-xs text-gray-500 dark:text-gray-400">點擊上傳檔案</p>
                 </div>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3 rounded-b-2xl">
-              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-600">取消</button>
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-end space-x-3 rounded-b-2xl">
+              <button onClick={() => setIsModalOpen(false)} className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400">取消</button>
               <button className="px-6 py-2 bg-orange-600 text-white text-sm font-bold rounded-lg shadow-md">確認發佈</button>
             </div>
           </div>

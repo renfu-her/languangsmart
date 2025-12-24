@@ -1,0 +1,33 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('accessories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->enum('category', ['防護', '配件', '雨具', '其他']);
+            $table->integer('stock')->default(0);
+            $table->decimal('rent_price', 10, 2)->default(0);
+            $table->enum('status', ['充足', '低庫存', '缺貨'])->default('充足');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+        Schema::dropIfExists('accessories');
+    }
+};
+

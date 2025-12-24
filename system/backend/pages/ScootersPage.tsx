@@ -52,7 +52,7 @@ const ScootersPage: React.FC = () => {
       if (statusFilter) params.status = statusFilter;
       if (searchTerm) params.search = searchTerm;
       const response = await scootersApi.list(Object.keys(params).length > 0 ? params : undefined);
-      setScooters(response.data.data || []);
+      setScooters(response.data || []);
     } catch (error) {
       console.error('Failed to fetch scooters:', error);
     } finally {
@@ -63,7 +63,7 @@ const ScootersPage: React.FC = () => {
   const fetchPartners = async () => {
     try {
       const response = await partnersApi.list();
-      setPartners(response.data.data || []);
+      setPartners(response.data || []);
     } catch (error) {
       console.error('Failed to fetch partners:', error);
     }
@@ -132,8 +132,11 @@ const ScootersPage: React.FC = () => {
         }
       } else {
         const response = await scootersApi.create(data);
-        if (photoFile && response.data.data) {
-          await scootersApi.uploadPhoto(response.data.data.id, photoFile);
+        if (photoFile) {
+          const scooterId = editingScooter ? editingScooter.id : (response.data?.data?.id || response.data?.id);
+          if (scooterId) {
+            await scootersApi.uploadPhoto(scooterId, photoFile);
+          }
         }
       }
       handleCloseModal();
@@ -175,11 +178,11 @@ const ScootersPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 dark:text-gray-100">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">機車管理</h1>
-          <p className="text-sm text-gray-500 mt-1">管理車隊清單、保養狀態與車型分類</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">機車管理</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">管理車隊清單、保養狀態與車型分類</p>
         </div>
         <button 
           onClick={() => handleOpenModal()}
@@ -190,8 +193,8 @@ const ScootersPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-5 bg-gray-50/30 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-100">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div className="p-5 bg-gray-50/30 dark:bg-gray-800/50 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-gray-100 dark:border-gray-700">
            <div className="flex items-center space-x-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
              <button 
                onClick={() => setStatusFilter('')}
@@ -231,7 +234,7 @@ const ScootersPage: React.FC = () => {
             <input 
               type="text" 
               placeholder="搜尋車牌、型號..." 
-              className="w-full pl-11 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 shadow-sm"
+              className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200 shadow-sm"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -246,7 +249,7 @@ const ScootersPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-gray-50/50 border-b border-gray-200 text-gray-600 font-bold uppercase tracking-wider text-[11px]">
+              <thead className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="px-6 py-5">車牌號碼</th>
                   <th className="px-6 py-5">機車型號</th>
@@ -259,9 +262,9 @@ const ScootersPage: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {scooters.map((scooter) => (
-                  <tr key={scooter.id} className="hover:bg-gray-50/50 group transition-colors">
-                    <td className="px-6 py-5 font-black text-gray-900">{scooter.plate_number}</td>
-                    <td className="px-6 py-5 text-gray-700 font-bold">{scooter.model}</td>
+                  <tr key={scooter.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 group transition-colors">
+                    <td className="px-6 py-5 font-black text-gray-900 dark:text-gray-100">{scooter.plate_number}</td>
+                    <td className="px-6 py-5 text-gray-700 dark:text-gray-300 font-bold">{scooter.model}</td>
                     <td className="px-6 py-5">
                       <span className={`px-2 py-1 rounded-lg text-[10px] font-black border ${
                         scooter.type === '白牌' ? 'bg-blue-50 text-blue-600 border-blue-100' : 
@@ -271,8 +274,8 @@ const ScootersPage: React.FC = () => {
                         {scooter.type}
                       </span>
                     </td>
-                    <td className="px-6 py-5 text-gray-500 font-medium">{scooter.color || '-'}</td>
-                    <td className="px-6 py-5 text-gray-500 font-medium">{scooter.partner?.name || '-'}</td>
+                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.color || '-'}</td>
+                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.partner?.name || '-'}</td>
                     <td className="px-6 py-5">
                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm ${
                          scooter.status === '待出租' ? 'bg-green-100 text-green-700' :
@@ -309,9 +312,9 @@ const ScootersPage: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseModal} />
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-3xl relative animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-800">新增機車設備</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-3xl relative animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">新增機車設備</h2>
               <button onClick={handleCloseModal} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
                  <X size={20} />
               </button>
@@ -418,9 +421,9 @@ const ScootersPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-100 bg-gray-50 flex justify-end space-x-3 rounded-b-2xl">
-              <button onClick={handleCloseModal} className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:bg-white hover:text-gray-700 transition-all">取消</button>
-              <button onClick={handleSubmit} className="px-10 py-2.5 bg-gray-900 rounded-xl text-sm font-black text-white hover:bg-black shadow-lg active:scale-95 transition-all">
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex justify-end space-x-3 rounded-b-2xl">
+              <button onClick={handleCloseModal} className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 hover:text-gray-700 dark:hover:text-gray-200 transition-all">取消</button>
+              <button onClick={handleSubmit} className="px-10 py-2.5 bg-gray-900 dark:bg-gray-700 rounded-xl text-sm font-black text-white hover:bg-black dark:hover:bg-gray-600 shadow-lg active:scale-95 transition-all">
                 {editingScooter ? '確認更新' : '完成建立'}
               </button>
             </div>

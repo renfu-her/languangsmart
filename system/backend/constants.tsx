@@ -27,7 +27,7 @@ export const NAV_ITEMS = [
     ]
   },
   { 
-    title: '合作商管理', 
+    title: '商店管理', 
     icon: <Users size={20} />, 
     path: '/partners'
   }

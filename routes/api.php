@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\ScooterController;
 use App\Http\Controllers\Api\FineController;
+use App\Http\Controllers\Api\AccessoryController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -50,4 +51,14 @@ Route::prefix('fines')->group(function () {
     Route::put('/{fine}', [FineController::class, 'update']);
     Route::delete('/{fine}', [FineController::class, 'destroy']);
     Route::post('/{fine}/upload-photo', [FineController::class, 'uploadPhoto']);
+});
+
+// Accessories API
+Route::prefix('accessories')->group(function () {
+    Route::get('/', [AccessoryController::class, 'index']);
+    Route::get('/statistics', [AccessoryController::class, 'statistics']);
+    Route::post('/', [AccessoryController::class, 'store']);
+    Route::get('/{accessory}', [AccessoryController::class, 'show']);
+    Route::put('/{accessory}', [AccessoryController::class, 'update']);
+    Route::delete('/{accessory}', [AccessoryController::class, 'destroy']);
 });

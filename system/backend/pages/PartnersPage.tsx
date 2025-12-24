@@ -38,10 +38,9 @@ const PartnersPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await partnersApi.list(searchTerm ? { search: searchTerm } : undefined);
-      // API returns { data: [...] }, so response.data is { data: [...] }
-      // Therefore response.data.data is the array
-      const partnersData = response.data?.data || response.data || [];
-      setPartners(Array.isArray(partnersData) ? partnersData : []);
+      // API returns { data: [...] }, api.get() returns the whole JSON object
+      // So response.data is the array
+      setPartners(response.data || []);
     } catch (error) {
       console.error('Failed to fetch partners:', error);
       setPartners([]);
@@ -99,8 +98,11 @@ const PartnersPage: React.FC = () => {
         }
       } else {
         const response = await partnersApi.create(formData);
-        if (photoFile && response.data.data) {
-          await partnersApi.uploadPhoto(response.data.data.id, photoFile);
+        if (photoFile) {
+          const partnerId = editingPartner ? editingPartner.id : (response.data?.data?.id || response.data?.id);
+          if (partnerId) {
+            await partnersApi.uploadPhoto(partnerId, photoFile);
+          }
         }
       }
       handleCloseModal();
@@ -135,29 +137,29 @@ const PartnersPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 dark:text-gray-100">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">合作商管理</h1>
-          <p className="text-sm text-gray-500 mt-1">管理各租賃門市與合作店家資訊</p>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">商店管理</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">管理各租賃門市與合作店家資訊</p>
         </div>
         <button 
           onClick={() => handleOpenModal()}
           className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2.5 rounded-xl flex items-center space-x-2 transition-all shadow-sm active:scale-95 font-bold"
         >
           <Plus size={18} />
-          <span>新增合作商</span>
+          <span>新增商店</span>
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-gray-100 bg-gray-50/30 flex justify-between items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-800/50 flex justify-between items-center">
           <div className="relative w-full max-w-sm">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input 
               type="text" 
-              placeholder="搜尋合作商名稱、地址或統編..." 
-              className={inputClasses.replace('shadow-sm', '') + ' pl-11 shadow-none'}
+              placeholder="搜尋商店名稱、地址或統編..." 
+              className={inputClasses.replace('shadow-sm', '').replace('bg-white', 'bg-white dark:bg-gray-700').replace('text-gray-', 'dark:text-gray-300 text-gray-') + ' pl-11 shadow-none border-gray-200 dark:border-gray-600'}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
             />
@@ -172,13 +174,13 @@ const PartnersPage: React.FC = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-gray-50/50 border-b border-gray-200 text-gray-600 font-bold uppercase tracking-wider text-[11px]">
+              <thead className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold uppercase tracking-wider text-[11px]">
                 <tr>
                   <th className="px-6 py-5">店面照片</th>
-                  <th className="px-6 py-5">合作商名稱</th>
-                  <th className="px-6 py-5">合作商地址</th>
+                  <th className="px-6 py-5">商店名稱</th>
+                  <th className="px-6 py-5">商店地址</th>
                   <th className="px-6 py-5">聯絡電話</th>
-                  <th className="px-6 py-5">合作商統編</th>
+                  <th className="px-6 py-5">商店統編</th>
                   <th className="px-6 py-5">商店主管</th>
                   <th className="px-6 py-5 text-right">操作</th>
                 </tr>
@@ -192,7 +194,7 @@ const PartnersPage: React.FC = () => {
                   </tr>
                 ) : (
                   partners.map((partner) => (
-                  <tr key={partner.id} className="hover:bg-gray-50/50 transition-colors">
+                  <tr key={partner.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-5">
                       <div className="w-20 h-12 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 shadow-inner">
                         {partner.photo_path ? (
@@ -204,11 +206,11 @@ const PartnersPage: React.FC = () => {
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-5 font-black text-gray-900 text-base">{partner.name}</td>
-                    <td className="px-6 py-5 text-gray-500 font-medium">{partner.address || '-'}</td>
-                    <td className="px-6 py-5 text-gray-500 font-medium tracking-wide">{partner.phone || '-'}</td>
-                    <td className="px-6 py-5 text-gray-500 font-bold">{partner.tax_id || '-'}</td>
-                    <td className="px-6 py-5 text-gray-500 font-black">{partner.manager}</td>
+                    <td className="px-6 py-5 font-black text-gray-900 dark:text-gray-100 text-base">{partner.name}</td>
+                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{partner.address || '-'}</td>
+                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium tracking-wide">{partner.phone || '-'}</td>
+                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-bold">{partner.tax_id || '-'}</td>
+                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-black">{partner.manager}</td>
                     <td className="px-6 py-5 text-right space-x-2">
                       <button 
                         onClick={() => handleOpenModal(partner)}
@@ -236,10 +238,10 @@ const PartnersPage: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseModal} />
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-gray-100 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-800">
-                {editingPartner ? '編輯合作商' : '建立合作商'}
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                {editingPartner ? '編輯商店' : '建立商店'}
               </h2>
               <button onClick={handleCloseModal} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
                 <X size={20} />
@@ -248,12 +250,12 @@ const PartnersPage: React.FC = () => {
             <div className="p-8 space-y-6">
               <div className="grid grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center">
-                    <Building size={14} className="mr-1.5" /> 合作商名稱 <span className="text-red-500 ml-1">*</span>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider flex items-center">
+                    <Building size={14} className="mr-1.5" /> 商店名稱 <span className="text-red-500 ml-1">*</span>
                   </label>
                   <input 
                     type="text" 
-                    className={inputClasses} 
+                    className={inputClasses.replace('bg-white', 'bg-white dark:bg-gray-700').replace('text-gray-', 'dark:text-gray-300 text-gray-').replace('border-gray-200', 'border-gray-200 dark:border-gray-600')} 
                     required 
                     placeholder="例如：琉球總店"
                     value={formData.name}
@@ -262,11 +264,11 @@ const PartnersPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center">
-                    <MapPin size={14} className="mr-1.5" /> 合作商地址
+                    <MapPin size={14} className="mr-1.5" /> 商店地址
                   </label>
                   <input 
                     type="text" 
-                    className={inputClasses} 
+                    className={inputClasses.replace('bg-white', 'bg-white dark:bg-gray-700').replace('text-gray-', 'dark:text-gray-300 text-gray-').replace('border-gray-200', 'border-gray-200 dark:border-gray-600')} 
                     placeholder="完整的店址"
                     value={formData.address}
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
@@ -286,11 +288,11 @@ const PartnersPage: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
-                    合作商統編
+                    商店統編
                   </label>
                   <input 
                     type="text" 
-                    className={inputClasses} 
+                    className={inputClasses.replace('bg-white', 'bg-white dark:bg-gray-700').replace('text-gray-', 'dark:text-gray-300 text-gray-').replace('border-gray-200', 'border-gray-200 dark:border-gray-600')} 
                     placeholder="8位數字統編"
                     value={formData.tax_id}
                     onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
@@ -302,7 +304,7 @@ const PartnersPage: React.FC = () => {
                   </label>
                   <input 
                     type="text" 
-                    className={inputClasses} 
+                    className={inputClasses.replace('bg-white', 'bg-white dark:bg-gray-700').replace('text-gray-', 'dark:text-gray-300 text-gray-').replace('border-gray-200', 'border-gray-200 dark:border-gray-600')} 
                     required
                     value={formData.manager}
                     onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
@@ -331,9 +333,9 @@ const PartnersPage: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex justify-end space-x-3 rounded-b-3xl">
-              <button onClick={handleCloseModal} className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:bg-white transition-all">取消</button>
-              <button onClick={handleSubmit} className="px-10 py-2.5 bg-gray-900 rounded-xl text-sm font-black text-white hover:bg-black shadow-lg active:scale-95 transition-all">
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-end space-x-3 rounded-b-3xl">
+              <button onClick={handleCloseModal} className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 transition-all">取消</button>
+              <button onClick={handleSubmit} className="px-10 py-2.5 bg-gray-900 dark:bg-gray-700 rounded-xl text-sm font-black text-white hover:bg-black dark:hover:bg-gray-600 shadow-lg active:scale-95 transition-all">
                 {editingPartner ? '確認更新' : '確認建立'}
               </button>
             </div>

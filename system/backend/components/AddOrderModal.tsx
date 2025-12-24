@@ -50,7 +50,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
     remark: '',
   });
 
-  const inputClasses = "w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400";
+  const inputClasses = "w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200";
 
   useEffect(() => {
     if (isOpen) {
@@ -83,7 +83,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
   const fetchAvailableScooters = async () => {
     try {
       const response = await scootersApi.available();
-      setAvailableScooters(response.data.data || []);
+      setAvailableScooters(response.data || []);
     } catch (error) {
       console.error('Failed to fetch available scooters:', error);
     }
@@ -92,7 +92,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
   const fetchPartners = async () => {
     try {
       const response = await partnersApi.list();
-      setPartners(response.data.data || []);
+      setPartners(response.data || []);
     } catch (error) {
       console.error('Failed to fetch partners:', error);
     }
@@ -183,12 +183,12 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative animate-in fade-in zoom-in duration-200">
-        <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-white sticky top-0 z-10">
-          <h2 className="text-xl font-bold text-gray-800 flex items-center">
+      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative animate-in fade-in zoom-in duration-200">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800 sticky top-0 z-10">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
             新增租借訂單
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-colors">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 dark:text-gray-500 transition-colors">
             <X size={20} />
           </button>
         </div>
@@ -218,7 +218,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
               </button>
             </div>
             {aiRecommendation && (
-              <div className="mt-3 p-3 bg-white/60 rounded-xl text-xs text-orange-800 border border-orange-100 italic leading-relaxed">
+              <div className="mt-3 p-3 bg-white/60 dark:bg-gray-700/60 rounded-xl text-xs text-orange-800 dark:text-orange-300 border border-orange-100 dark:border-orange-800 italic leading-relaxed">
                 <span className="font-bold mr-1">AI 建議：</span>{aiRecommendation}
               </div>
             )}
@@ -227,7 +227,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-5">
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">合作商選擇</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">合作商選擇</label>
                 <select 
                   className={inputClasses}
                   value={formData.partner_id}
@@ -242,7 +242,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">承租人資訊 <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">承租人資訊 <span className="text-red-500">*</span></label>
                 <input 
                   type="text" 
                   className={inputClasses} 
@@ -316,7 +316,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">航運公司</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">航運公司</label>
                 <select 
                   className={inputClasses}
                   value={formData.shipping_company}
@@ -332,7 +332,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">船班時間（來）</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">船班時間（來）</label>
                   <input 
                     type="datetime-local" 
                     className={inputClasses}
@@ -341,7 +341,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">船班時間（回）</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">船班時間（回）</label>
                   <input 
                     type="datetime-local" 
                     className={inputClasses}
@@ -352,7 +352,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">付款方式</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">付款方式</label>
                 <select 
                   className={inputClasses}
                   value={formData.payment_method}
@@ -379,7 +379,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">備註</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">備註</label>
                 <textarea 
                   className={inputClasses}
                   rows={3}
@@ -392,11 +392,11 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
 
             <div className="space-y-5">
               <div className="relative">
-                <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
                   租借機車選取 <span className="text-orange-600 ml-1 font-black">*</span>
                 </label>
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" size={18} />
                   <input 
                     type="text" 
                     placeholder="輸入車牌號搜尋..." 
@@ -409,7 +409,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
                     onFocus={() => setShowPlateDropdown(true)}
                   />
                   {showPlateDropdown && filteredScooters.length > 0 && (
-                    <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-100 rounded-2xl shadow-xl z-20 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl z-20 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
                       {filteredScooters.map(s => (
                         <div 
                           key={s.id}
@@ -423,7 +423,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
                           }}
                         >
                           <div>
-                            <span className="text-sm font-bold text-gray-900">{s.plate_number}</span>
+                            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{s.plate_number}</span>
                             <span className="ml-2 px-1.5 py-0.5 bg-gray-100 text-[10px] rounded font-bold text-gray-500">{s.type}</span>
                           </div>
                           <span className="text-xs text-gray-400">{s.model}</span>
@@ -465,7 +465,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
         <div className="p-6 border-t border-gray-100 bg-gray-50/50 flex items-center justify-end space-x-4 sticky bottom-0 z-10">
           <button 
             onClick={onClose} 
-            className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 hover:bg-white transition-all"
+            className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-700 transition-all"
             disabled={isSubmitting}
           >
             取消
@@ -473,7 +473,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
           <button 
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="px-10 py-2.5 bg-gray-900 rounded-xl text-sm font-black text-white hover:bg-black shadow-lg transition-all disabled:opacity-50 flex items-center"
+            className="px-10 py-2.5 bg-gray-900 dark:bg-gray-700 rounded-xl text-sm font-black text-white hover:bg-black dark:hover:bg-gray-600 shadow-lg transition-all disabled:opacity-50 flex items-center"
           >
             {isSubmitting ? (
               <>
