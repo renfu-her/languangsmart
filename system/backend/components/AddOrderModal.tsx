@@ -1,7 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Search, Calendar, Clock, Phone, FileText, Sparkles, Loader2 } from 'lucide-react';
 import { ordersApi, scootersApi, partnersApi } from '../lib/api';
 import { getSmartRecommendation } from '../lib/gemini';
+import Flatpickr from 'react-flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
+import flatpickr from 'flatpickr';
+import { Chinese } from 'flatpickr/dist/l10n/zh-tw.js';
 
 interface AddOrderModalProps {
   isOpen: boolean;
@@ -51,6 +55,21 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
   });
 
   const inputClasses = "w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200";
+
+  // Flatpickr 設定
+  const dateOptions = {
+    locale: Chinese,
+    dateFormat: 'Y-m-d',
+    allowInput: true,
+  };
+
+  const datetimeOptions = {
+    locale: Chinese,
+    dateFormat: 'Y-m-d H:i',
+    enableTime: true,
+    time_24hr: true,
+    allowInput: true,
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -178,6 +197,29 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
     s.plate_number.toLowerCase().includes(searchPlate.toLowerCase())
   );
 
+  // 計算選中機車按型號分組的統計
+  const modelStats = React.useMemo(() => {
+    const stats: Record<string, { count: number; scooters: Scooter[] }> = {};
+    selectedScooters.forEach(scooter => {
+      if (!stats[scooter.model]) {
+        stats[scooter.model] = { count: 0, scooters: [] };
+      }
+      stats[scooter.model].count++;
+      stats[scooter.model].scooters.push(scooter);
+    });
+    return stats;
+  }, [selectedScooters]);
+
+  // 按車牌號排序選中的機車
+  const sortedSelectedScooters = React.useMemo(() => {
+    return [...selectedScooters].sort((a, b) => a.plate_number.localeCompare(b.plate_number));
+  }, [selectedScooters]);
+
+  // 計算總台數（由各型號台數加總）
+  const totalCount = React.useMemo(() => {
+    return Object.values(modelStats).reduce((sum, stat) => sum + stat.count, 0);
+  }, [modelStats]);
+
   if (!isOpen) return null;
 
   return (
@@ -255,12 +297,17 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
                 <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center">
                   <Calendar size={14} className="mr-1.5" /> 預約日期 <span className="text-red-500 ml-1">*</span>
                 </label>
-                <input 
-                  type="date" 
-                  className={inputClasses} 
-                  required
+                <Flatpickr
+                  className={inputClasses}
                   value={formData.appointment_date}
-                  onChange={(e) => setFormData({ ...formData, appointment_date: e.target.value })}
+                  onChange={(dates) => {
+                    if (dates && dates.length > 0) {
+                      const dateStr = dates[0].toISOString().split('T')[0];
+                      setFormData({ ...formData, appointment_date: dateStr });
+                    }
+                  }}
+                  options={dateOptions}
+                  placeholder="選擇日期"
                 />
               </div>
 
@@ -269,22 +316,36 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center">
                     <Clock size={14} className="mr-1.5" /> 開始時間 <span className="text-red-500 ml-1">*</span>
                   </label>
-                  <input 
-                    type="datetime-local" 
+                  <Flatpickr
                     className={inputClasses}
                     value={formData.start_time}
-                    onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
+                    onChange={(dates) => {
+                      if (dates && dates.length > 0) {
+                        const date = dates[0];
+                        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+                        setFormData({ ...formData, start_time: dateStr });
+                      }
+                    }}
+                    options={datetimeOptions}
+                    placeholder="選擇日期時間"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center">
                     <Clock size={14} className="mr-1.5" /> 結束時間 <span className="text-red-500 ml-1">*</span>
                   </label>
-                  <input 
-                    type="datetime-local" 
+                  <Flatpickr
                     className={inputClasses}
                     value={formData.end_time}
-                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
+                    onChange={(dates) => {
+                      if (dates && dates.length > 0) {
+                        const date = dates[0];
+                        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+                        setFormData({ ...formData, end_time: dateStr });
+                      }
+                    }}
+                    options={datetimeOptions}
+                    placeholder="選擇日期時間"
                   />
                 </div>
               </div>
@@ -293,11 +354,20 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
                 <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider flex items-center">
                   <Clock size={14} className="mr-1.5" /> 預計還車時間
                 </label>
-                <input 
-                  type="datetime-local" 
+                <Flatpickr
                   className={inputClasses}
                   value={formData.expected_return_time}
-                  onChange={(e) => setFormData({ ...formData, expected_return_time: e.target.value })}
+                  onChange={(dates) => {
+                    if (dates && dates.length > 0) {
+                      const date = dates[0];
+                      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+                      setFormData({ ...formData, expected_return_time: dateStr });
+                    } else {
+                      setFormData({ ...formData, expected_return_time: '' });
+                    }
+                  }}
+                  options={datetimeOptions}
+                  placeholder="選擇日期時間"
                 />
               </div>
 
@@ -332,20 +402,38 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">船班時間（來）</label>
-                  <input 
-                    type="datetime-local" 
+                  <Flatpickr
                     className={inputClasses}
                     value={formData.ship_arrival_time}
-                    onChange={(e) => setFormData({ ...formData, ship_arrival_time: e.target.value })}
+                    onChange={(dates) => {
+                      if (dates && dates.length > 0) {
+                        const date = dates[0];
+                        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+                        setFormData({ ...formData, ship_arrival_time: dateStr });
+                      } else {
+                        setFormData({ ...formData, ship_arrival_time: '' });
+                      }
+                    }}
+                    options={datetimeOptions}
+                    placeholder="選擇日期時間"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">船班時間（回）</label>
-                  <input 
-                    type="datetime-local" 
+                  <Flatpickr
                     className={inputClasses}
                     value={formData.ship_return_time}
-                    onChange={(e) => setFormData({ ...formData, ship_return_time: e.target.value })}
+                    onChange={(dates) => {
+                      if (dates && dates.length > 0) {
+                        const date = dates[0];
+                        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+                        setFormData({ ...formData, ship_return_time: dateStr });
+                      } else {
+                        setFormData({ ...formData, ship_return_time: '' });
+                      }
+                    }}
+                    options={datetimeOptions}
+                    placeholder="選擇日期時間"
                   />
                 </div>
               </div>
@@ -432,27 +520,44 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
                   )}
                 </div>
 
-                <div className="mt-4 p-5 bg-gray-50/50 rounded-2xl border border-dashed border-gray-200 min-h-[140px]">
+                <div className="mt-4 p-5 bg-gray-50/50 dark:bg-gray-700/30 rounded-2xl border border-dashed border-gray-200 dark:border-gray-600 min-h-[140px]">
                   {selectedScooters.length === 0 ? (
-                    <div className="flex flex-col items-center justify-center h-full py-6 text-gray-400">
+                    <div className="flex flex-col items-center justify-center h-full py-6 text-gray-400 dark:text-gray-500">
                       <Search size={32} className="opacity-10 mb-2" />
                       <p className="text-xs">目前尚未選擇任何機車</p>
                     </div>
                   ) : (
                     <div className="space-y-4">
-                       <div className="flex flex-wrap gap-2">
-                          {selectedScooters.map(s => (
-                            <span key={s.id} className="inline-flex items-center px-3 py-1.5 rounded-xl bg-orange-600 text-white text-xs font-bold shadow-sm">
-                              {s.plate_number}
-                              <button 
-                                className="ml-2 hover:text-white/70" 
-                                onClick={() => toggleScooter(s.id)}
-                              >
-                                <X size={14} />
-                              </button>
-                            </span>
-                          ))}
-                       </div>
+                      {/* 顯示選中的車牌號（按車牌號排序） */}
+                      <div className="flex flex-wrap gap-2">
+                        {sortedSelectedScooters.map(s => (
+                          <span key={s.id} className="inline-flex items-center px-3 py-1.5 rounded-xl bg-orange-600 text-white text-xs font-bold shadow-sm">
+                            {s.plate_number}
+                            <button 
+                              className="ml-2 hover:text-white/70 transition-colors" 
+                              onClick={() => toggleScooter(s.id)}
+                            >
+                              <X size={14} />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                      
+                      {/* 顯示各型號統計 */}
+                      <div className="pt-3 border-t border-gray-200 dark:border-gray-600 space-y-2">
+                        {Object.entries(modelStats).map(([model, { count }]) => (
+                          <div key={model} className="flex items-center justify-between text-sm">
+                            <span className="text-gray-700 dark:text-gray-300 font-medium">{model}</span>
+                            <span className="text-orange-600 dark:text-orange-400 font-bold">{count}台</span>
+                          </div>
+                        ))}
+                        
+                        {/* 顯示總台數 */}
+                        <div className="pt-2 mt-2 border-t border-gray-300 dark:border-gray-500 flex items-center justify-between">
+                          <span className="text-gray-800 dark:text-gray-200 font-bold">總計</span>
+                          <span className="text-orange-600 dark:text-orange-400 font-black text-base">{totalCount}台</span>
+                        </div>
+                      </div>
                     </div>
                   )}
                 </div>
