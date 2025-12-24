@@ -1,11 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Search, Calendar, Clock, Phone, FileText, Sparkles, Loader2 } from 'lucide-react';
+import { X, Search, Calendar, Clock, Phone, FileText, Loader2 } from 'lucide-react';
 import { ordersApi, scootersApi, partnersApi } from '../lib/api';
-import { getSmartRecommendation } from '../lib/gemini';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import flatpickr from 'flatpickr';
-import { Chinese } from 'flatpickr/dist/l10n/zh-tw.js';
+import { MandarinTraditional } from 'flatpickr/dist/l10n/zh-tw.js';
 
 interface AddOrderModalProps {
   isOpen: boolean;
@@ -31,10 +30,6 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
   const [selectedScooterIds, setSelectedScooterIds] = useState<number[]>([]);
   const [searchPlate, setSearchPlate] = useState('');
   const [showPlateDropdown, setShowPlateDropdown] = useState(false);
-  
-  const [aiInput, setAiInput] = useState('');
-  const [isAiLoading, setIsAiLoading] = useState(false);
-  const [aiRecommendation, setAiRecommendation] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -56,15 +51,15 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
 
   const inputClasses = "w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200";
 
-  // Flatpickr 設定
+  // Flatpickr 設定（繁體中文）
   const dateOptions = {
-    locale: Chinese,
+    locale: MandarinTraditional,
     dateFormat: 'Y-m-d',
     allowInput: true,
   };
 
   const datetimeOptions = {
-    locale: Chinese,
+    locale: MandarinTraditional,
     dateFormat: 'Y-m-d H:i',
     enableTime: true,
     time_24hr: true,
@@ -94,8 +89,6 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
       });
       setSelectedScooterIds([]);
       setSearchPlate('');
-      setAiInput('');
-      setAiRecommendation(null);
     }
   }, [isOpen]);
 
@@ -122,32 +115,6 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
       setSelectedScooterIds(selectedScooterIds.filter(id => id !== scooterId));
     } else {
       setSelectedScooterIds([...selectedScooterIds, scooterId]);
-    }
-  };
-
-  const handleAiRecommend = async () => {
-    if (!aiInput.trim()) return;
-    setIsAiLoading(true);
-    setAiRecommendation(null);
-    try {
-      const result = await getSmartRecommendation(`客戶描述：${aiInput}`);
-      if (result) {
-        setAiRecommendation(result.recommendation);
-        // Auto-select if models match (simple demo logic)
-        const toSelect: number[] = [];
-        result.suggestedScooters?.forEach((suggestion: any) => {
-          const matches = availableScooters
-            .filter(s => s.model === suggestion.model)
-            .slice(0, suggestion.count)
-            .map(s => s.id);
-          toSelect.push(...matches);
-        });
-        setSelectedScooterIds([...selectedScooterIds, ...toSelect]);
-      }
-    } catch (error) {
-      console.error('AI recommendation failed:', error);
-    } finally {
-      setIsAiLoading(false);
     }
   };
 
@@ -236,36 +203,6 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
         </div>
 
         <div className="p-8 overflow-y-auto space-y-8 flex-1">
-          {/* AI Helper Bar */}
-          <div className="bg-orange-50/50 border border-orange-100 p-5 rounded-2xl">
-            <div className="flex items-center space-x-2 text-orange-700 font-bold mb-3">
-              <Sparkles size={16} className="animate-pulse" />
-              <span className="text-sm">AI 智慧推薦配車</span>
-            </div>
-            <div className="flex space-x-2">
-              <input 
-                type="text" 
-                placeholder="描述需求，例如：兩大一小去環島，想要白牌車..." 
-                className={inputClasses}
-                value={aiInput}
-                onChange={(e) => setAiInput(e.target.value)}
-              />
-              <button 
-                onClick={handleAiRecommend}
-                disabled={isAiLoading}
-                className="bg-orange-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-orange-700 disabled:opacity-50 flex items-center shadow-md shadow-orange-100 active:scale-95 transition-all"
-              >
-                {isAiLoading ? <Loader2 size={16} className="animate-spin mr-2" /> : <Sparkles size={16} className="mr-2" />}
-                自動建議
-              </button>
-            </div>
-            {aiRecommendation && (
-              <div className="mt-3 p-3 bg-white/60 dark:bg-gray-700/60 rounded-xl text-xs text-orange-800 dark:text-orange-300 border border-orange-100 dark:border-orange-800 italic leading-relaxed">
-                <span className="font-bold mr-1">AI 建議：</span>{aiRecommendation}
-              </div>
-            )}
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="space-y-5">
               <div>
