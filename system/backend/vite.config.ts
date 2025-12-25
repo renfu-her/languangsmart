@@ -18,6 +18,13 @@ export default defineConfig(({ mode }) => {
         alias: {
           '@': path.resolve(__dirname, '.'),
         }
-      }
+      },
+      build: {
+        outDir: path.resolve(__dirname, '../../public'),
+        emptyOutDir: false, // 不要清空 public 目錄（保留 Laravel 文件）
+        rollupOptions: {
+          input: path.resolve(__dirname, 'index.html'),
+        },
+      },
     };
 });
