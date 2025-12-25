@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, ShoppingCart, Users, Bike, AlertCircle, Image as ImageIcon, Settings } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, Bike, AlertCircle, Image as ImageIcon, Settings, Shield, User } from 'lucide-react';
 
 export const NAV_ITEMS = [
   { 
@@ -35,5 +35,13 @@ export const NAV_ITEMS = [
     title: '商店管理', 
     icon: <ShoppingCart size={20} />, 
     path: '/stores'
+  },
+  { 
+    title: '系統', 
+    icon: <Settings size={20} />, 
+    children: [
+      { name: '會員管理', path: '/members' },
+      { name: '系統管理者管理', path: '/admins' }
+    ]
   }
 ];

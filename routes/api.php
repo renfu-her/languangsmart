@@ -8,10 +8,18 @@ use App\Http\Controllers\Api\ScooterController;
 use App\Http\Controllers\Api\FineController;
 use App\Http\Controllers\Api\AccessoryController;
 use App\Http\Controllers\Api\StoreController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\CaptchaController;
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+// Auth Routes (Public)
+Route::post('/login', [AuthController::class, 'login']);
+Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
+Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+
+// Captcha Routes (Public)
+Route::get('/captcha/generate', [CaptchaController::class, 'generate']);
+Route::post('/captcha/verify', [CaptchaController::class, 'verify']);
 
 // Orders API
 Route::prefix('orders')->group(function () {
@@ -72,4 +80,13 @@ Route::prefix('accessories')->group(function () {
     Route::get('/{accessory}', [AccessoryController::class, 'show']);
     Route::put('/{accessory}', [AccessoryController::class, 'update']);
     Route::delete('/{accessory}', [AccessoryController::class, 'destroy']);
+});
+
+// Users API
+Route::prefix('users')->group(function () {
+    Route::get('/', [UserController::class, 'index']);
+    Route::post('/', [UserController::class, 'store']);
+    Route::get('/{user}', [UserController::class, 'show']);
+    Route::put('/{user}', [UserController::class, 'update']);
+    Route::delete('/{user}', [UserController::class, 'destroy']);
 });

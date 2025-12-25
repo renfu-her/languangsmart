@@ -1,9 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
-import { Outlet, Link, useLocation } from 'react-router-dom';
-import { ChevronDown, ChevronRight, User, Menu, Sun, Moon } from 'lucide-react';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import { ChevronDown, ChevronRight, User, Menu, Sun, Moon, LogOut } from 'lucide-react';
 import { NAV_ITEMS } from '../constants';
 import AIChatAssistant from './AIChatAssistant';
+import { useAuth } from '../contexts/AuthContext';
 
 const SidebarItem: React.FC<{ item: any; isOpenByDefault?: boolean; sidebarOpen: boolean; theme: 'light' | 'dark' }> = ({ 
   item, 
@@ -84,6 +85,8 @@ const SidebarItem: React.FC<{ item: any; isOpenByDefault?: boolean; sidebarOpen:
 };
 
 const DashboardLayout: React.FC = () => {
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const saved = localStorage.getItem('theme');
@@ -132,19 +135,29 @@ const DashboardLayout: React.FC = () => {
         </nav>
 
         {/* 使用者資訊區域 */}
-        <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700 bg-gray-800/50' : 'border-gray-50 bg-gray-50/30'}`}>
-          <div className={`flex items-center transition-all duration-300 ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-2`}>
-            <div className={`w-9 h-9 rounded-xl ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-100'} border shadow-sm flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
-              <User size={18} />
-            </div>
-            {sidebarOpen && (
-              <div className="flex-1 overflow-hidden animate-in fade-in duration-300">
-                <p className={`text-xs font-black truncate ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>管理員 Admin</p>
-                <button className={`text-[10px] font-bold hover:text-red-600 transition-colors uppercase tracking-tighter ${theme === 'dark' ? 'text-red-500' : 'text-red-400'}`}>Sign Out</button>
+        {user && (
+          <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700 bg-gray-800/50' : 'border-gray-50 bg-gray-50/30'}`}>
+            <div className={`flex items-center transition-all duration-300 ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-2`}>
+              <div className={`w-9 h-9 rounded-xl ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-100'} border shadow-sm flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
+                <User size={18} />
               </div>
-            )}
+              {sidebarOpen && (
+                <div className="flex-1 overflow-hidden animate-in fade-in duration-300">
+                  <p className={`text-xs font-black truncate ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>{user.name}</p>
+                  <button 
+                    onClick={async () => {
+                      await logout();
+                      navigate('/login');
+                    }}
+                    className={`text-[10px] font-bold hover:text-red-600 transition-colors uppercase tracking-tighter ${theme === 'dark' ? 'text-red-500' : 'text-red-400'}`}
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
       </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden relative">
@@ -156,12 +169,28 @@ const DashboardLayout: React.FC = () => {
             <Menu size={20} />
           </button>
           <div className="flex items-center space-x-4">
+            {user && (
+              <div className="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-gray-700">
+                <User size={16} className="text-gray-600 dark:text-gray-300" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-200">{user.name}</span>
+              </div>
+            )}
             <button
               onClick={toggleTheme}
               className={`p-2.5 rounded-xl transition-all ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-50 text-gray-600'}`}
               title={theme === 'dark' ? '切換為淺色模式' : '切換為深色模式'}
             >
               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            </button>
+            <button
+              onClick={async () => {
+                await logout();
+                navigate('/login');
+              }}
+              className={`p-2.5 rounded-xl transition-all ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-50 text-gray-600'}`}
+              title="登出"
+            >
+              <LogOut size={20} />
             </button>
              <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border shadow-sm ${
                theme === 'dark' 

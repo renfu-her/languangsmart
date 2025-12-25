@@ -24,11 +24,13 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseUrl}${endpoint}`;
+    const token = localStorage.getItem('auth_token');
     const config: RequestInit = {
       ...options,
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
         ...options.headers,
       },
     };
@@ -38,6 +40,14 @@ class ApiClient {
       const data = await response.json();
 
       if (!response.ok) {
+        // 如果是 401 未授權錯誤，清除 token 並跳轉到登入頁面
+        if (response.status === 401) {
+          localStorage.removeItem('auth_token');
+          if (window.location.hash !== '#/login') {
+            window.location.hash = '/login';
+          }
+        }
+        
         // 創建一個包含完整錯誤資訊的錯誤物件
         const error: any = new Error(data.message || 'API request failed');
         error.response = {
@@ -181,5 +191,26 @@ export const accessoriesApi = {
   update: (id: string | number, data: any) => api.put(`/accessories/${id}`, data),
   delete: (id: string | number) => api.delete(`/accessories/${id}`),
   statistics: () => api.get('/accessories/statistics'),
+};
+
+export const usersApi = {
+  list: (params?: { role?: string; status?: string; search?: string }) =>
+    api.get('/users', params),
+  get: (id: string | number) => api.get(`/users/${id}`),
+  create: (data: any) => api.post('/users', data),
+  update: (id: string | number, data: any) => api.put(`/users/${id}`, data),
+  delete: (id: string | number) => api.delete(`/users/${id}`),
+};
+
+export const authApi = {
+  login: (email: string, password: string, captchaId: string, captchaAnswer: string) => 
+    api.post('/login', { email, password, captcha_id: captchaId, captcha_answer: captchaAnswer }),
+  me: () => api.get('/me'),
+  logout: () => api.post('/logout'),
+};
+
+export const captchaApi = {
+  generate: () => api.get('/captcha/generate'),
+  verify: (captchaId: string, answer: string) => api.post('/captcha/verify', { captcha_id: captchaId, answer }),
 };
 

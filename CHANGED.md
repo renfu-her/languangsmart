@@ -1,5 +1,114 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-25 10:45:00 - 添加驗證碼圖片與雜訊干擾
+
+### Backend Changes
+- **更新 CaptchaController** (`app/Http/Controllers/Api/CaptchaController.php`)
+  - 改為生成圖片驗證碼（PNG 格式）
+  - 使用 PHP GD 庫生成圖片
+  - 添加多種干擾元素：
+    - 200 個隨機背景雜訊點
+    - 5 條隨機干擾線條
+    - 3 條波浪線干擾
+    - 50 個字符上的雜訊點
+  - 字符隨機旋轉（-15 到 15 度）
+  - 字符位置輕微偏移
+  - 返回 base64 編碼的圖片數據
+  - 圖片尺寸：200x60 像素
+
+### Frontend Changes
+- **更新 LoginPage** (`system/backend/pages/LoginPage.tsx`)
+  - 驗證碼顯示改為圖片（`<img>` 標籤）
+  - 支援點擊圖片刷新驗證碼
+  - 圖片高度設為 48px，寬度自動調整
+  - 添加 `select-none` 防止選取圖片
+  - 添加 `cursor-pointer` 提示可點擊
+
+### Features
+- 圖片驗證碼帶有多種雜訊干擾
+- 字符隨機旋轉和位置偏移
+- 點擊圖片可刷新驗證碼
+- Base64 編碼，無需額外圖片存儲
+- 支援深色模式
+
+---
+
+## 2025-12-25 10:30:00 - 更新驗證碼為 6 位大寫字母數字（排除 O 和 0）
+
+### Backend Changes
+- **更新 CaptchaController** (`app/Http/Controllers/Api/CaptchaController.php`)
+  - 改為生成 6 位大寫字母數字驗證碼
+  - 排除字母 O 和數字 0（避免混淆）
+  - 使用字符集：`ABCDEFGHIJKLMNPQRSTUVWXYZ123456789`
+  - 返回 `code` 而非 `question`
+
+- **更新 AuthController** (`app/Http/Controllers/Api/AuthController.php`)
+  - 驗證碼答案改為字符串類型（6 位）
+  - 驗證時強制轉為大寫並去除空格
+
+### Frontend Changes
+- **更新 LoginPage** (`system/backend/pages/LoginPage.tsx`)
+  - 驗證碼顯示改為大寫等寬字體，字體更大更清晰
+  - 輸入框自動轉為大寫
+  - 自動過濾 O 和 0 字符
+  - 限制最多輸入 6 位
+  - 驗證碼答案改為字符串類型
+
+- **更新 AuthContext** (`system/backend/contexts/AuthContext.tsx`)
+  - `login` 方法的 `captchaAnswer` 參數改為 `string` 類型
+
+- **更新 API Client** (`system/backend/lib/api.ts`)
+  - `authApi.login` 和 `captchaApi.verify` 的驗證碼參數改為 `string` 類型
+
+### Features
+- 6 位大寫字母數字驗證碼
+- 排除容易混淆的 O 和 0
+- 輸入時自動轉大寫
+- 自動過濾無效字符
+- 更清晰的驗證碼顯示
+
+---
+
+## 2025-12-25 10:24:45 - 添加登入驗證碼功能
+
+### Backend Changes
+- **新增 CaptchaController** (`app/Http/Controllers/Api/CaptchaController.php`)
+  - `generate()`: 生成數學驗證碼（兩個 1-10 的數字相加）
+  - `verify()`: 驗證驗證碼答案
+  - 使用 Laravel Cache 存儲驗證碼答案，5 分鐘過期
+
+- **更新 AuthController** (`app/Http/Controllers/Api/AuthController.php`)
+  - 登入時要求驗證 `captcha_id` 和 `captcha_answer`
+  - 驗證碼錯誤或過期時返回錯誤訊息
+
+- **API Routes** (`routes/api.php`)
+  - `GET /api/captcha/generate` - 生成驗證碼
+  - `POST /api/captcha/verify` - 驗證驗證碼
+
+### Frontend Changes
+- **更新 LoginPage** (`system/backend/pages/LoginPage.tsx`)
+  - 添加驗證碼顯示區域（數學題目）
+  - 添加驗證碼答案輸入框
+  - 添加重新獲取驗證碼按鈕
+  - 登入失敗後自動重新獲取驗證碼
+  - 驗證碼載入狀態顯示
+
+- **更新 AuthContext** (`system/backend/contexts/AuthContext.tsx`)
+  - `login` 方法添加 `captchaId` 和 `captchaAnswer` 參數
+
+- **更新 API Client** (`system/backend/lib/api.ts`)
+  - 添加 `captchaApi` 用於驗證碼相關 API 調用
+  - 更新 `authApi.login` 方法以包含驗證碼參數
+
+### Features
+- 數學驗證碼：兩個 1-10 的隨機數字相加
+- 驗證碼有效期：5 分鐘
+- 驗證後自動清除驗證碼
+- 登入失敗後自動刷新驗證碼
+- 支援深色模式
+
+---
+
 ## 2025-12-24 21:30:00
 
 ### 新增商店管理功能
