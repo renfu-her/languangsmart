@@ -53,7 +53,7 @@ class PartnerController extends Controller
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'tax_id' => 'nullable|string|max:20',
-            'manager' => 'required|string|max:255',
+            'manager' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {
@@ -91,7 +91,7 @@ class PartnerController extends Controller
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'tax_id' => 'nullable|string|max:20',
-            'manager' => 'required|string|max:255',
+            'manager' => 'nullable|string|max:255',
         ]);
 
         if ($validator->fails()) {

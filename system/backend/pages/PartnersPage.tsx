@@ -8,7 +8,7 @@ interface Partner {
   address: string | null;
   phone: string | null;
   tax_id: string | null;
-  manager: string;
+  manager: string | null;
   photo_path: string | null;
 }
 
@@ -57,7 +57,7 @@ const PartnersPage: React.FC = () => {
         address: partner.address || '',
         phone: partner.phone || '',
         tax_id: partner.tax_id || '',
-        manager: partner.manager,
+        manager: partner.manager || '',
       });
       setPhotoPreview(partner.photo_path || null);
     } else {
@@ -219,7 +219,7 @@ const PartnersPage: React.FC = () => {
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{partner.address || '-'}</td>
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium tracking-wide">{partner.phone || '-'}</td>
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-bold">{partner.tax_id || '-'}</td>
-                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-black">{partner.manager}</td>
+                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-black">{partner.manager || '-'}</td>
                     <td className="px-6 py-5 text-right space-x-2">
                       <button 
                         onClick={() => handleOpenModal(partner)}
@@ -309,12 +309,11 @@ const PartnersPage: React.FC = () => {
                 </div>
                 <div className="col-span-2">
                   <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">
-                    商店主管 <span className="text-red-500">*</span>
+                    商店主管
                   </label>
                   <input 
                     type="text" 
                     className={inputClasses.replace('bg-white', 'bg-white dark:bg-gray-700').replace('text-gray-', 'dark:text-gray-300 text-gray-').replace('border-gray-200', 'border-gray-200 dark:border-gray-600')} 
-                    required
                     value={formData.manager}
                     onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
                   />

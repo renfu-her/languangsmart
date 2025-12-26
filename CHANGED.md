@@ -1,5 +1,32 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-26 13:55:36 - 將合作商的商店主管欄位改為非必填
+
+### Database Changes
+- **Migration** (`database/migrations/2025_12_26_135450_make_manager_nullable_in_partners_table.php`)
+  - 將 `partners` 表的 `manager` 欄位改為 `nullable`
+  - 允許商店主管欄位為空值
+
+### Frontend Changes
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 移除「商店主管」欄位的必填標記（紅色星號）
+  - 移除 `required` 屬性
+  - 更新 `Partner` interface，將 `manager` 改為 `string | null`
+  - 更新表格顯示：當 `manager` 為空時顯示 `-`
+  - 更新表單初始化：當編輯時，如果 `manager` 為 `null`，設為空字串
+
+### Backend Changes
+- **PartnerController.php** (`app/Http/Controllers/Api/PartnerController.php`)
+  - 在 `store` 和 `update` 方法中，將 `manager` 驗證規則從 `required|string|max:255` 改為 `nullable|string|max:255`
+  - 允許建立和更新合作商時不填寫商店主管
+
+### Features
+- 商店主管欄位現在為選填
+- 前端和後端驗證一致
+- 資料庫結構已更新
+
+---
+
 ## 2025-12-26 11:48:03 - 為罰單管理頁面添加空狀態說明
 
 ### Frontend Changes
