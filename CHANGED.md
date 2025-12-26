@@ -1,5 +1,25 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-26 13:57:14 - 訂單預約日期自動更新年份選擇器
+
+### Frontend Changes
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 添加 `onYearChange` prop，用於通知父組件年份改變
+  - 在預約日期 `onChange` 處理中，提取年份並調用 `onYearChange` 回調
+  - 當用戶選擇預約日期時，自動更新年份選擇器
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 傳遞 `onYearChange` 回調給 `AddOrderModal`
+  - 當年份改變時，更新 `selectedYear` 狀態
+  - 確保年份選擇器與預約日期同步
+
+### Features
+- 當在訂單表單中填寫預約日期時，年份選擇器會自動切換到該日期的年份
+- 提升用戶體驗，減少手動切換年份的操作
+- 保持年份選擇器與預約日期的一致性
+
+---
+
 ## 2025-12-26 13:55:36 - 將合作商的商店主管欄位改為非必填
 
 ### Database Changes

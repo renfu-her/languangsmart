@@ -573,6 +573,11 @@ const OrdersPage: React.FC = () => {
       <AddOrderModal 
         isOpen={isAddModalOpen} 
         editingOrder={editingOrder}
+        onYearChange={(year) => {
+          if (year && year !== selectedYear) {
+            setSelectedYear(year);
+          }
+        }}
         onClose={async (appointmentDate) => {
           setIsAddModalOpen(false);
           setEditingOrder(null);

@@ -30,6 +30,7 @@ interface AddOrderModalProps {
   isOpen: boolean;
   onClose: (appointmentDate?: string) => void;
   editingOrder?: Order | null;
+  onYearChange?: (year: number) => void;
 }
 
 interface Scooter {
@@ -45,7 +46,7 @@ interface Partner {
   name: string;
 }
 
-const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingOrder }) => {
+const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingOrder, onYearChange }) => {
   const [availableScooters, setAvailableScooters] = useState<Scooter[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [selectedScooterIds, setSelectedScooterIds] = useState<number[]>([]);
@@ -366,6 +367,10 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                       const day = String(date.getDate()).padStart(2, '0');
                       const dateStr = `${year}-${month}-${day}`;
                       setFormData(prev => ({ ...prev, appointment_date: dateStr }));
+                      // 通知父組件年份改變
+                      if (onYearChange && year) {
+                        onYearChange(year);
+                      }
                     }
                   }}
                   options={dateOptions}
