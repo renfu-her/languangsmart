@@ -19,6 +19,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // 設置 Carbon 預設時區為 Asia/Taipei
+        \Carbon\Carbon::setLocale('zh_TW');
+        date_default_timezone_set('Asia/Taipei');
     }
 }

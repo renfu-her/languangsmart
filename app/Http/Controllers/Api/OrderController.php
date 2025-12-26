@@ -24,8 +24,8 @@ class OrderController extends Controller
         // Filter by month (format: YYYY-MM)
         if ($request->has('month')) {
             $month = $request->get('month');
-            $startDate = Carbon::parse($month . '-01')->startOfMonth();
-            $endDate = Carbon::parse($month . '-01')->endOfMonth();
+            $startDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->startOfMonth();
+            $endDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->endOfMonth();
             $query->whereBetween('appointment_date', [$startDate, $endDate]);
         }
 
@@ -357,8 +357,8 @@ class OrderController extends Controller
         }
 
         $month = $request->get('month');
-        $startDate = Carbon::parse($month . '-01')->startOfMonth();
-        $endDate = Carbon::parse($month . '-01')->endOfMonth();
+        $startDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->startOfMonth();
+        $endDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->endOfMonth();
 
         // Get orders for the month
         $orders = Order::with(['partner', 'scooters'])

@@ -28,7 +28,7 @@ interface Order {
 
 interface AddOrderModalProps {
   isOpen: boolean;
-  onClose: () => void;
+  onClose: (appointmentDate?: string) => void;
   editingOrder?: Order | null;
 }
 
@@ -268,7 +268,8 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
       } else {
         await ordersApi.create(orderData);
       }
-      onClose();
+      // 傳遞預約日期，用於跳轉到對應月份
+      onClose(formData.appointment_date || undefined);
     } catch (error: any) {
       console.error('Failed to create order:', error);
       alert(error.message || (editingOrder ? '更新訂單失敗，請檢查輸入資料' : '建立訂單失敗，請檢查輸入資料'));

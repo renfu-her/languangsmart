@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2 } from 'lucide-react';
+import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown } from 'lucide-react';
 import { OrderStatus } from '../types';
 import AddOrderModal from '../components/AddOrderModal';
 import { ordersApi } from '../lib/api';
@@ -134,9 +134,11 @@ const OrdersPage: React.FC = () => {
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+  const [openStatusDropdownId, setOpenStatusDropdownId] = useState<number | null>(null);
+  const [statusDropdownPosition, setStatusDropdownPosition] = useState<{ top: number; left: number } | null>(null);
+  const statusDropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const statusButtonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
-  // 用於追蹤是否已經自動切換過，避免無限循環
-  const autoSwitchedRef = useRef(false);
 
   // Fetch orders
   useEffect(() => {
@@ -156,44 +158,6 @@ const OrdersPage: React.FC = () => {
         if (response.meta) {
           setTotalPages(response.meta.last_page);
         }
-        
-        // 檢查是否有訂單的預約日期跨月，如果有則自動切換到預約日期所在的月份
-        // 只在首次載入時檢查，避免無限循環
-        if (ordersData.length > 0 && !autoSwitchedRef.current && !searchTerm && currentPage === 1) {
-          const now = new Date();
-          const currentYear = now.getFullYear();
-          const currentMonth = now.getMonth() + 1;
-          
-          // 檢查訂單的預約日期是否與當前選擇的月份不同
-          for (const order of ordersData) {
-            if (order.appointment_date) {
-              // 解析日期字符串（格式：YYYY-MM-DD）
-              const [year, month, day] = order.appointment_date.split('-').map(Number);
-              const appointmentYear = year;
-              const appointmentMonth = month;
-              
-              // 如果預約日期所在的年月與當前選擇的不同，自動切換
-              if (appointmentYear !== selectedYear || appointmentMonth !== selectedMonth) {
-                // 確保年份在有效範圍內（2025 到當前年份）
-                if (appointmentYear >= 2025 && appointmentYear <= currentYear) {
-                  // 確保月份在有效範圍內
-                  let validMonth = appointmentMonth;
-                  if (appointmentYear === 2025 && appointmentMonth < 12) {
-                    validMonth = 12;
-                  } else if (appointmentYear === currentYear && appointmentMonth > currentMonth) {
-                    validMonth = currentMonth;
-                  }
-                  
-                  autoSwitchedRef.current = true;
-                  setSelectedYear(appointmentYear);
-                  setSelectedMonth(validMonth);
-                  // 只處理第一個跨月的訂單，避免重複切換
-                  break;
-                }
-              }
-            }
-          }
-        }
       } catch (error) {
         console.error('Failed to fetch orders:', error);
         setOrders([]);
@@ -205,10 +169,21 @@ const OrdersPage: React.FC = () => {
     fetchOrders();
   }, [selectedYear, selectedMonth, searchTerm, currentPage]);
 
-  // 當搜索條件或頁面改變時，重置自動切換標記
+
+  // 滾動時關閉狀態下拉選單
   useEffect(() => {
-    autoSwitchedRef.current = false;
-  }, [searchTerm, currentPage]);
+    const handleScroll = () => {
+      if (openStatusDropdownId !== null) {
+        setOpenStatusDropdownId(null);
+        setStatusDropdownPosition(null);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [openStatusDropdownId]);
 
   // Fetch statistics
   const fetchStatistics = async () => {
@@ -244,20 +219,7 @@ const OrdersPage: React.FC = () => {
   }, [openDropdownId]);
 
   const handleYearChange = (year: number) => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1;
-    
     setSelectedYear(year);
-    
-    // 如果選擇的是當前年份，且當前選擇的月份超過當前月份，則設為當前月份
-    if (year === currentYear && selectedMonth > currentMonth) {
-      setSelectedMonth(currentMonth);
-    }
-    // 如果選擇的是 2025 年，且當前選擇的月份小於 12，則設為 12 月
-    else if (year === 2025 && selectedMonth < 12) {
-      setSelectedMonth(12);
-    }
     setCurrentPage(1);
   };
 
@@ -277,31 +239,9 @@ const OrdersPage: React.FC = () => {
     return years;
   };
 
-  // 獲取可選的月份列表
+  // 獲取可選的月份列表（固定 1-12 月）
   const getAvailableMonths = () => {
-    const now = new Date();
-    const currentYear = now.getFullYear();
-    const currentMonth = now.getMonth() + 1;
-    const months = [];
-    
-    let startMonth = 1;
-    let endMonth = 12;
-    
-    // 如果是 2025 年，從 12 月開始
-    if (selectedYear === 2025) {
-      startMonth = 12;
-    }
-    
-    // 如果是當前年份，到當前月份為止
-    if (selectedYear === currentYear) {
-      endMonth = currentMonth;
-    }
-    
-    for (let month = startMonth; month <= endMonth; month++) {
-      months.push(month);
-    }
-    
-    return months;
+    return [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   };
 
   const handleEdit = (order: Order) => {
@@ -320,7 +260,7 @@ const OrdersPage: React.FC = () => {
       await ordersApi.delete(orderId);
       // 重新載入訂單列表
       const response = await ordersApi.list({
-        month: selectedMonth,
+        month: selectedMonthString,
         search: searchTerm || undefined,
         page: currentPage,
       });
@@ -330,9 +270,14 @@ const OrdersPage: React.FC = () => {
         setTotalPages(response.meta.last_page);
       }
       fetchStatistics();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete order:', error);
-      alert('刪除訂單失敗，請稍後再試。');
+      // 如果是 404 錯誤（訂單不存在），只顯示警告
+      if (error.response?.status === 404) {
+        alert('訂單不存在或已被刪除。');
+      } else {
+        alert('刪除訂單失敗，請稍後再試。');
+      }
     }
     setOpenDropdownId(null);
     setDropdownPosition(null);
@@ -494,45 +439,39 @@ const OrdersPage: React.FC = () => {
                   orders.map((order) => (
                   <tr key={order.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 group transition-colors">
                     <td className="px-4 py-4">
-                      <select
-                        value={order.status}
-                        onChange={async (e) => {
-                          const newStatus = e.target.value;
-                          try {
-                            // 使用專門的狀態更新 API
-                            await ordersApi.updateStatus(order.id, newStatus);
-                            // 重新載入訂單列表
-                            const response = await ordersApi.list({
-                              month: selectedMonthString,
-                              search: searchTerm || undefined,
-                              page: currentPage,
-                            });
-                            const ordersData = response.data || [];
-                            setOrders(Array.isArray(ordersData) ? ordersData : []);
-                            if (response.meta) {
-                              setTotalPages(response.meta.last_page);
+                      <div className="relative">
+                        <button
+                          ref={(el) => { statusButtonRefs.current[order.id] = el; }}
+                          onClick={() => {
+                            if (openStatusDropdownId === order.id) {
+                              setOpenStatusDropdownId(null);
+                              setStatusDropdownPosition(null);
+                            } else {
+                              const button = statusButtonRefs.current[order.id];
+                              if (button) {
+                                const rect = button.getBoundingClientRect();
+                                setStatusDropdownPosition({
+                                  top: rect.bottom + window.scrollY + 4,
+                                  left: rect.left + window.scrollX,
+                                });
+                              }
+                              setOpenStatusDropdownId(order.id);
                             }
-                            fetchStatistics();
-                          } catch (error) {
-                            console.error('Failed to update order status:', error);
-                            alert('更新狀態失敗，請稍後再試。');
-                          }
-                        }}
-                        className={`px-2 py-1 rounded-full text-xs font-bold border-0 cursor-pointer focus:ring-2 focus:ring-orange-500/20 ${
-                          order.status === '進行中' ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' :
-                          order.status === '已完成' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
-                          order.status === '已預訂' ? 'bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400' :
-                          order.status === '待接送' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' :
-                          order.status === '在合作商' ? 'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400' :
-                          'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400'
-                        }`}
-                      >
-                        <option value="已預訂">已預訂</option>
-                        <option value="進行中">進行中</option>
-                        <option value="待接送">待接送</option>
-                        <option value="已完成">已完成</option>
-                        <option value="在合作商">在合作商</option>
-                      </select>
+                          }}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all flex items-center space-x-1.5 ${
+                            order.status === '進行中' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800' :
+                            order.status === '已完成' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' :
+                            order.status === '已預訂' ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' :
+                            order.status === '待接送' ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' :
+                            order.status === '在合作商' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800' :
+                            'bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700'
+                          }`}
+                        >
+                          <span>{order.status}</span>
+                          <ChevronDown size={14} className={`transition-transform ${openStatusDropdownId === order.id ? 'rotate-180' : ''}`} />
+                        </button>
+                        
+                      </div>
                     </td>
                     <td className="px-4 py-4 font-bold text-gray-900 dark:text-gray-100">{order.tenant}</td>
                     <td className="px-4 py-4 text-gray-500 dark:text-gray-400">{formatDate(order.appointment_date)}</td>
@@ -634,35 +573,115 @@ const OrdersPage: React.FC = () => {
       <AddOrderModal 
         isOpen={isAddModalOpen} 
         editingOrder={editingOrder}
-        onClose={() => {
+        onClose={async (appointmentDate) => {
           setIsAddModalOpen(false);
           setEditingOrder(null);
-          // Refresh orders
-          const fetchOrders = async () => {
+          
+          // 如果有預約日期，跳轉到該月份
+          let monthChanged = false;
+          if (appointmentDate) {
+            const [year, month] = appointmentDate.split('-').map(Number);
+            if (year && month) {
+              if (year !== selectedYear || month !== selectedMonth) {
+                setSelectedYear(year);
+                setSelectedMonth(month);
+                setCurrentPage(1);
+                monthChanged = true;
+              }
+            }
+          }
+          
+          // 如果月份沒有改變，手動刷新訂單列表和統計
+          if (!monthChanged) {
             try {
               const response = await ordersApi.list({
                 month: selectedMonthString,
                 search: searchTerm || undefined,
                 page: currentPage,
               });
-              // API 返回結構: { data: [...], meta: {...} }
-              // response 本身就是 { data: [...], meta: {...} }
               const ordersData = response.data || [];
               setOrders(Array.isArray(ordersData) ? ordersData : []);
               if (response.meta) {
                 setTotalPages(response.meta.last_page);
               }
+              fetchStatistics();
             } catch (error) {
-              console.error('Failed to fetch orders:', error);
+              console.error('Failed to refresh orders:', error);
             }
-          };
-          fetchOrders();
-          fetchStatistics();
+          }
+          // 如果月份改變了，useEffect 會自動觸發刷新
         }} 
       />
       <StatsModal isOpen={isStatsModalOpen} onClose={() => setIsStatsModalOpen(false)} stats={stats} />
       
-      {/* 下拉菜單使用 fixed 定位，避免被表格 overflow 裁剪 */}
+      {/* 狀態下拉選單使用 fixed 定位，避免被表格 overflow 裁剪 */}
+      {openStatusDropdownId !== null && statusDropdownPosition && orders.find(o => o.id === openStatusDropdownId) && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => {
+              setOpenStatusDropdownId(null);
+              setStatusDropdownPosition(null);
+            }}
+          />
+          <div 
+            className="fixed bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 min-w-[120px] overflow-hidden backdrop-blur-sm"
+            style={{
+              top: `${statusDropdownPosition.top}px`,
+              left: `${statusDropdownPosition.left}px`,
+            }}
+            ref={(el) => { if (openStatusDropdownId) statusDropdownRefs.current[openStatusDropdownId] = el; }}
+          >
+            {(() => {
+              const order = orders.find(o => o.id === openStatusDropdownId);
+              if (!order) return null;
+              return (
+                <>
+                  {['已預訂', '進行中', '待接送', '已完成', '在合作商'].map((status) => (
+                    <button
+                      key={status}
+                      onClick={async () => {
+                        if (status !== order.status) {
+                          try {
+                            // 使用專門的狀態更新 API
+                            await ordersApi.updateStatus(order.id, status);
+                            // 重新載入訂單列表
+                            const response = await ordersApi.list({
+                              month: selectedMonthString,
+                              search: searchTerm || undefined,
+                              page: currentPage,
+                            });
+                            const ordersData = response.data || [];
+                            setOrders(Array.isArray(ordersData) ? ordersData : []);
+                            if (response.meta) {
+                              setTotalPages(response.meta.last_page);
+                            }
+                            fetchStatistics();
+                          } catch (error) {
+                            console.error('Failed to update order status:', error);
+                            alert('更新狀態失敗，請稍後再試。');
+                          }
+                        }
+                        setOpenStatusDropdownId(null);
+                        setStatusDropdownPosition(null);
+                      }}
+                      className={`w-full px-3 py-2 text-left text-xs font-medium transition-colors ${
+                        status === order.status
+                          ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      {status}
+                    </button>
+                  ))}
+                </>
+              );
+            })()}
+          </div>
+        </>
+      )}
+
+      {/* 操作下拉菜單使用 fixed 定位，避免被表格 overflow 裁剪 */}
       {openDropdownId !== null && dropdownPosition && orders.find(o => o.id === openDropdownId) && (
         <>
           <div 

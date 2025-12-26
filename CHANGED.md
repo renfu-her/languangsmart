@@ -1,5 +1,195 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-26 11:44:15 - 修復新增訂單後列表不刷新的問題
+
+### 問題
+- 新增訂單完成後，如果預約日期在當前月份，列表不會自動刷新
+- 只有當月份改變時，useEffect 才會觸發刷新
+
+### 解決方案
+- **改進 AddOrderModal 的 onClose 回調** (`system/backend/pages/OrdersPage.tsx`)
+  - 檢查月份是否改變
+  - 如果月份改變了，useEffect 會自動觸發刷新
+  - 如果月份沒有改變，手動刷新訂單列表和統計
+  - 確保無論如何，新增/更新訂單後列表都會刷新
+
+### 檔案變更
+- `system/backend/pages/OrdersPage.tsx`
+  - 改進 `onClose` 回調邏輯，確保列表總是會刷新
+
+### 結果
+- 新增/更新訂單後，列表會自動刷新
+- 更好的用戶體驗
+
+---
+
+## 2025-12-26 11:41:27 - 修復刪除訂單時的日期解析錯誤
+
+### 問題
+- 刪除訂單時出現錯誤：`Could not parse '12-01': Failed to parse time string (12-01)`
+- 原因：`handleDelete` 函數中使用了 `month: selectedMonth`（數字）而不是 `month: selectedMonthString`（字符串格式 'YYYY-MM'）
+- 導致 API 嘗試解析 '12' 而不是 '2025-12'，造成日期解析失敗
+
+### 解決方案
+- **修復 handleDelete 函數** (`system/backend/pages/OrdersPage.tsx`)
+  - 將 `month: selectedMonth` 改為 `month: selectedMonthString`
+  - 改進錯誤處理，針對 404 錯誤（訂單不存在）顯示更友好的提示訊息
+
+### 檔案變更
+- `system/backend/pages/OrdersPage.tsx`
+  - 修復 `handleDelete` 函數中的月份參數
+  - 改進錯誤處理邏輯
+
+### 結果
+- 刪除訂單功能現在正常工作
+- 不再出現日期解析錯誤
+- 更好的錯誤提示訊息
+
+---
+
+## 2025-12-26 11:36:27 - 設置應用程式時區為 Asia/Taipei
+
+### Backend Changes
+- **更新 Laravel 時區配置** (`config/app.php`)
+  - 將 `timezone` 從 `'UTC'` 改為 `'Asia/Taipei'`
+
+- **更新 AppServiceProvider** (`app/Providers/AppServiceProvider.php`)
+  - 在 `boot()` 方法中設置 Carbon 預設時區為 `Asia/Taipei`
+  - 設置 PHP 預設時區為 `Asia/Taipei`
+  - 設置 Carbon 語言為 `zh_TW`
+
+- **更新 OrderController** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在 `index()` 方法中，Carbon 日期解析時明確設置時區為 `Asia/Taipei`
+  - 在 `statistics()` 方法中，Carbon 日期解析時明確設置時區為 `Asia/Taipei`
+
+### 影響範圍
+- 所有日期和時間處理將使用 Asia/Taipei 時區
+- 避免時區轉換導致的日期偏移問題
+- 確保日期篩選和統計功能使用正確的時區
+
+---
+
+## 2025-12-26 11:34:51 - 優化月份選擇和訂單篩選邏輯
+
+### 主要變更
+
+1. **固定月份選擇為 1-12 月**
+   - 移除動態月份限制邏輯
+   - `getAvailableMonths()` 現在固定返回 1-12 月
+   - 移除 `handleYearChange` 中的月份限制邏輯
+
+2. **一進入就載入當前月份**
+   - 初始化時自動設置為當前年份和月份（已實現）
+
+3. **訂單列表根據預約日期篩選**
+   - API 使用 `appointment_date` 欄位進行月份篩選（已實現）
+   - 顯示該月份的所有訂單
+
+4. **新增/更新訂單後自動跳轉到預約日期所在月份**
+   - 修改 `AddOrderModal` 的 `onClose` 回調，接受 `appointmentDate` 參數
+   - 在 `OrdersPage` 中處理新增/更新後的月份跳轉
+   - 根據預約日期自動切換到對應的年份和月份
+
+5. **移除自動切換月份邏輯**
+   - 移除 `autoSwitchedRef` 相關邏輯
+   - 移除首次載入時的自動切換檢查
+
+### 檔案變更
+
+- `system/backend/pages/OrdersPage.tsx`
+  - 固定月份選擇為 1-12 月
+  - 移除月份限制邏輯
+  - 實現新增/更新後的月份跳轉
+  - 移除自動切換月份邏輯
+
+- `system/backend/components/AddOrderModal.tsx`
+  - 修改 `onClose` 回調，傳遞預約日期
+  - 新增/更新訂單時傳遞預約日期給父組件
+
+### Features
+- 月份選擇更簡單直觀（固定 1-12 月）
+- 新增/更新訂單後自動跳轉到預約日期所在月份
+- 更好的用戶體驗
+
+---
+
+## 2025-12-26 11:28:20 - 修改狀態下拉選單背景顏色
+
+### Frontend Changes
+- **更新下拉選單背景樣式** (`system/backend/pages/OrdersPage.tsx`)
+  - 將下拉選單背景從白色 (`bg-white`) 改為淺灰色 (`bg-gray-50`)
+  - 添加 `backdrop-blur-sm` 效果，提供更柔和的視覺效果
+  - 深色模式保持 `dark:bg-gray-800`
+
+### 樣式改進
+- 更柔和的背景顏色，不再是純白色
+- 更好的視覺層次感
+- 與整體設計更協調
+
+---
+
+## 2025-12-26 11:26:26 - 修復狀態下拉選單被表格遮擋的問題
+
+### 問題
+- 狀態下拉選單使用 `absolute` 定位，在表格的 `overflow-x-auto` 容器中被裁剪
+- 下拉選單無法完整顯示，被表格邊界遮擋
+
+### 解決方案
+- **改用 fixed 定位** (`system/backend/pages/OrdersPage.tsx`)
+  - 將狀態下拉選單從 `absolute` 改為 `fixed` 定位
+  - 動態計算按鈕位置（使用 `getBoundingClientRect()`）
+  - 添加遮罩層處理點擊外部關閉
+  - 滾動時自動關閉下拉選單
+  - 確保 z-index 足夠高（z-50）
+
+### 實現細節
+- 添加 `statusDropdownPosition` 狀態追蹤下拉選單位置
+- 點擊按鈕時計算位置並設置下拉選單
+- 使用 `fixed` 定位確保下拉選單不被表格容器裁剪
+- 與操作下拉選單使用相同的實現方式
+
+### 結果
+- 下拉選單現在可以完整顯示，不會被表格邊界遮擋
+- 更好的用戶體驗
+- 與操作下拉選單保持一致的行為
+
+---
+
+## 2025-12-26 11:23:41 - 將訂單狀態選擇改為自定義下拉選單
+
+### Frontend Changes
+- **替換狀態選擇為自定義下拉選單** (`system/backend/pages/OrdersPage.tsx`)
+  - 將原生的 `<select>` 元素替換為自定義下拉選單組件
+  - 按鈕顯示當前選中的狀態，帶有對應的顏色背景和邊框
+  - 點擊按鈕打開/關閉下拉選單
+  - 下拉選單中顯示所有狀態選項
+  - 當前選中的選項在選單中高亮顯示（藍色背景）
+  - 添加 `ChevronDown` 圖標，打開時旋轉 180 度
+  - 點擊外部自動關閉下拉選單
+  - 支援深色模式
+
+### 樣式特點
+- **按鈕樣式**：
+  - 已預訂：橙色背景 (`bg-orange-50 text-orange-700 border-orange-200`)
+  - 進行中：藍色背景 (`bg-blue-50 text-blue-700 border-blue-200`)
+  - 待接送：黃色背景 (`bg-yellow-50 text-yellow-700 border-yellow-200`)
+  - 已完成：綠色背景 (`bg-green-50 text-green-700 border-green-200`)
+  - 在合作商：紫色背景 (`bg-purple-50 text-purple-700 border-purple-200`)
+
+- **下拉選單樣式**：
+  - 白色背景，圓角邊框
+  - 當前選中項：藍色背景高亮
+  - 其他選項：懸停時灰色背景
+  - 陰影效果，z-index 確保顯示在最上層
+
+### Features
+- 更美觀的用戶界面
+- 更好的用戶體驗
+- 符合設計規範的自定義下拉選單
+- 支援深色模式
+
+---
+
 ## 2025-12-26 11:05:44 - 修復訂單狀態 Enum Migration
 
 ### 問題
