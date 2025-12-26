@@ -63,7 +63,7 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'partner_id' => 'nullable|exists:partners,id',
-            'tenant' => 'required|string|max:255',
+            'tenant' => 'nullable|string|max:255',
             'appointment_date' => 'required|date',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',
@@ -143,7 +143,7 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'partner_id' => 'nullable|exists:partners,id',
-            'tenant' => 'required|string|max:255',
+            'tenant' => 'nullable|string|max:255',
             'appointment_date' => 'required|date',
             'start_time' => 'required|date',
             'end_time' => 'required|date|after:start_time',

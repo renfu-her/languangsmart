@@ -23,6 +23,11 @@ class OrderResource extends JsonResource
             })->values();
         }, []);
 
+        // 獲取機車 ID 列表（用於編輯）
+        $scooterIds = $this->whenLoaded('scooters', function () {
+            return $this->scooters->pluck('id')->toArray();
+        }, []);
+
         return [
             'id' => $this->id,
             'order_number' => $this->order_number,
@@ -44,6 +49,7 @@ class OrderResource extends JsonResource
             'status' => $this->status,
             'remark' => $this->remark,
             'scooters' => $scooters,
+            'scooter_ids' => $scooterIds, // 添加機車 ID 列表
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

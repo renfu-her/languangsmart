@@ -6,9 +6,30 @@ import 'flatpickr/dist/flatpickr.min.css';
 import flatpickr from 'flatpickr';
 import { MandarinTraditional } from 'flatpickr/dist/l10n/zh-tw.js';
 
+interface Order {
+  id: number;
+  order_number: string;
+  status: string;
+  tenant: string;
+  appointment_date: string;
+  start_time: string;
+  end_time: string;
+  expected_return_time: string | null;
+  scooters: Array<{ id: number; model: string; count: number }>;
+  shipping_company: string | null;
+  ship_arrival_time: string | null;
+  ship_return_time: string | null;
+  phone: string | null;
+  partner: { id: number; name: string } | null;
+  payment_method: string | null;
+  payment_amount: number;
+  remark: string | null;
+}
+
 interface AddOrderModalProps {
   isOpen: boolean;
   onClose: () => void;
+  editingOrder?: Order | null;
 }
 
 interface Scooter {
@@ -24,7 +45,7 @@ interface Partner {
   name: string;
 }
 
-const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
+const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingOrder }) => {
   const [availableScooters, setAvailableScooters] = useState<Scooter[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [selectedScooterIds, setSelectedScooterIds] = useState<number[]>([]);
@@ -69,29 +90,100 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (isOpen) {
-      fetchAvailableScooters();
-      fetchPartners();
-      // Reset form
-      setFormData({
-        partner_id: '',
-        tenant: '',
-        appointment_date: '',
-        start_time: '',
-        end_time: '',
-        expected_return_time: '',
-        phone: '',
-        shipping_company: '',
-        ship_arrival_time: '',
-        ship_return_time: '',
-        payment_method: '',
-        payment_amount: '',
-        status: '預約中',
-        remark: '',
-      });
-      setSelectedScooterIds([]);
-      setSearchPlate('');
+      const initializeModal = async () => {
+        // 先獲取可用機車和合作商
+        await Promise.all([
+          fetchAvailableScooters(),
+          fetchPartners()
+        ]);
+        
+        if (editingOrder) {
+          // 編輯模式：預填表單數據並獲取訂單詳情以獲取機車 ID
+          const formatDateTime = (dateTime: string | null) => {
+            if (!dateTime) return '';
+            const date = new Date(dateTime);
+            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+          };
+          
+          const formatDate = (date: string) => {
+            return date;
+          };
+          
+          setFormData({
+            partner_id: editingOrder.partner?.id.toString() || '',
+            tenant: editingOrder.tenant,
+            appointment_date: formatDate(editingOrder.appointment_date),
+            start_time: formatDateTime(editingOrder.start_time),
+            end_time: formatDateTime(editingOrder.end_time),
+            expected_return_time: formatDateTime(editingOrder.expected_return_time),
+            phone: editingOrder.phone || '',
+            shipping_company: editingOrder.shipping_company || '',
+            ship_arrival_time: formatDateTime(editingOrder.ship_arrival_time),
+            ship_return_time: formatDateTime(editingOrder.ship_return_time),
+            payment_method: editingOrder.payment_method || '',
+            payment_amount: editingOrder.payment_amount.toString(),
+            status: editingOrder.status,
+            remark: editingOrder.remark || '',
+          });
+          
+          // 從訂單詳情 API 獲取完整的機車 ID 列表
+          try {
+            const response = await ordersApi.get(editingOrder.id);
+            const orderData = response.data;
+            let scooterIds: number[] = [];
+            
+            // 如果 API 返回包含 scooter_ids 或完整的 scooters 數組
+            if (orderData.scooter_ids && Array.isArray(orderData.scooter_ids)) {
+              scooterIds = orderData.scooter_ids;
+            } else if (orderData.scooters && Array.isArray(orderData.scooters)) {
+              // 如果返回的是完整的機車對象數組
+              scooterIds = orderData.scooters.map((s: any) => s.id || s.scooter_id).filter((id: any) => id);
+            }
+            
+            if (scooterIds.length > 0) {
+              // 獲取這些機車的完整信息（包括已租借的）
+              const orderScooters = await fetchScootersByIds(scooterIds);
+              // 將訂單中的機車也加入到可用機車列表中（如果還沒有）
+              setAvailableScooters(prev => {
+                const existingIds = new Set(prev.map(s => s.id));
+                const newScooters = orderScooters.filter((s: Scooter) => !existingIds.has(s.id));
+                return [...prev, ...newScooters];
+              });
+              // 確保在機車信息已載入後再設置選中的機車 ID
+              setSelectedScooterIds(scooterIds);
+            } else {
+              setSelectedScooterIds([]);
+            }
+          } catch (error) {
+            console.error('Failed to fetch order details:', error);
+            setSelectedScooterIds([]);
+          }
+        } else {
+          // 新增模式：重置表單
+          setFormData({
+            partner_id: '',
+            tenant: '',
+            appointment_date: '',
+            start_time: '',
+            end_time: '',
+            expected_return_time: '',
+            phone: '',
+            shipping_company: '',
+            ship_arrival_time: '',
+            ship_return_time: '',
+            payment_method: '',
+            payment_amount: '',
+            status: '預約中',
+            remark: '',
+          });
+          setSelectedScooterIds([]);
+        }
+        setSearchPlate('');
+      };
+      
+      initializeModal();
     }
-  }, [isOpen]);
+  }, [isOpen, editingOrder]);
 
   const fetchAvailableScooters = async () => {
     try {
@@ -99,6 +191,27 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
       setAvailableScooters(response.data || []);
     } catch (error) {
       console.error('Failed to fetch available scooters:', error);
+    }
+  };
+
+  const fetchScootersByIds = async (scooterIds: number[]): Promise<Scooter[]> => {
+    try {
+      // 獲取所有機車列表（包括已租借的），不傳 status 參數以獲取所有狀態的機車
+      const response = await scootersApi.list();
+      const allScooters = response.data || [];
+      // 過濾出需要的機車
+      const foundScooters = allScooters.filter((s: Scooter) => scooterIds.includes(s.id));
+      
+      // 如果有些機車沒找到，可能是因為它們在訂單中但不在列表中
+      // 這種情況下，我們至少返回找到的機車
+      if (foundScooters.length < scooterIds.length) {
+        console.warn(`Some scooters not found: ${scooterIds.filter(id => !foundScooters.some(s => s.id === id)).join(', ')}`);
+      }
+      
+      return foundScooters;
+    } catch (error) {
+      console.error('Failed to fetch scooters by IDs:', error);
+      return [];
     }
   };
 
@@ -120,7 +233,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.tenant || !formData.appointment_date || !formData.start_time || !formData.end_time || !formData.payment_amount) {
+    if (!formData.appointment_date || !formData.start_time || !formData.end_time || !formData.payment_amount) {
       alert('請填寫必填欄位');
       return;
     }
@@ -150,11 +263,15 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
         scooter_ids: selectedScooterIds,
       };
 
-      await ordersApi.create(orderData);
+      if (editingOrder) {
+        await ordersApi.update(editingOrder.id, orderData);
+      } else {
+        await ordersApi.create(orderData);
+      }
       onClose();
     } catch (error: any) {
       console.error('Failed to create order:', error);
-      alert(error.message || '建立訂單失敗，請檢查輸入資料');
+      alert(error.message || (editingOrder ? '更新訂單失敗，請檢查輸入資料' : '建立訂單失敗，請檢查輸入資料'));
     } finally {
       setIsSubmitting(false);
     }
@@ -196,7 +313,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
       <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative animate-in fade-in zoom-in duration-200">
         <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between bg-white dark:bg-gray-800 sticky top-0 z-10">
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
-            新增租借訂單
+            {editingOrder ? '編輯租借訂單' : '新增租借訂單'}
           </h2>
           <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 dark:text-gray-500 transition-colors">
             <X size={20} />
@@ -221,7 +338,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">承租人資訊 <span className="text-red-500">*</span></label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">承租人資訊</label>
                 <input 
                   type="text" 
                   className={inputClasses} 
@@ -526,10 +643,10 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose }) => {
             {isSubmitting ? (
               <>
                 <Loader2 size={16} className="animate-spin mr-2" />
-                建立中...
+                {editingOrder ? '更新中...' : '建立中...'}
               </>
             ) : (
-              '建立訂單'
+              editingOrder ? '更新訂單' : '新增訂單'
             )}
           </button>
         </div>

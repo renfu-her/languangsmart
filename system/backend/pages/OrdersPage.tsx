@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2 } from 'lucide-react';
 import { OrderStatus } from '../types';
 import AddOrderModal from '../components/AddOrderModal';
 import { ordersApi } from '../lib/api';
@@ -94,6 +94,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
 const OrdersPage: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [selectedMonth, setSelectedMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -105,6 +106,10 @@ const OrdersPage: React.FC = () => {
   const [statsLoading, setStatsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
   // Fetch orders
   useEffect(() => {
@@ -152,9 +157,76 @@ const OrdersPage: React.FC = () => {
     fetchStatistics();
   }, [selectedMonth]);
 
+  // 點擊外部關閉下拉菜單（現在通過遮罩層處理）
+  // 滾動時關閉下拉菜單
+  useEffect(() => {
+    const handleScroll = () => {
+      if (openDropdownId !== null) {
+        setOpenDropdownId(null);
+        setDropdownPosition(null);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [openDropdownId]);
+
   const handleMonthChange = (month: string) => {
     setSelectedMonth(month);
     setCurrentPage(1);
+  };
+
+  const handleEdit = (order: Order) => {
+    setEditingOrder(order);
+    setIsAddModalOpen(true);
+    setOpenDropdownId(null);
+    setDropdownPosition(null);
+  };
+
+  const handleDelete = async (orderId: number) => {
+    if (!confirm('確定要刪除此訂單嗎？此操作無法復原。')) {
+      return;
+    }
+
+    try {
+      await ordersApi.delete(orderId);
+      // 重新載入訂單列表
+      const response = await ordersApi.list({
+        month: selectedMonth,
+        search: searchTerm || undefined,
+        page: currentPage,
+      });
+      const ordersData = response.data || [];
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      if (response.meta) {
+        setTotalPages(response.meta.last_page);
+      }
+      fetchStatistics();
+    } catch (error) {
+      console.error('Failed to delete order:', error);
+      alert('刪除訂單失敗，請稍後再試。');
+    }
+    setOpenDropdownId(null);
+    setDropdownPosition(null);
+  };
+
+  const toggleDropdown = (orderId: number) => {
+    if (openDropdownId === orderId) {
+      setOpenDropdownId(null);
+      setDropdownPosition(null);
+    } else {
+      const button = buttonRefs.current[orderId];
+      if (button) {
+        const rect = button.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY + 8, // mt-2 = 8px
+          right: window.innerWidth - rect.right,
+        });
+      }
+      setOpenDropdownId(orderId);
+    }
   };
 
   const formatDateTime = (dateTime: string | null) => {
@@ -334,9 +406,15 @@ const OrdersPage: React.FC = () => {
                     </td>
                     <td className="px-4 py-4 text-gray-400 dark:text-gray-500 max-w-[150px] truncate">{order.remark || '-'}</td>
                     <td className="px-4 py-4 text-center">
-                      <button className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-colors">
-                        <MoreHorizontal size={18} />
-                      </button>
+                      <div className="relative">
+                        <button 
+                          ref={(el) => { buttonRefs.current[order.id] = el; }}
+                          onClick={() => toggleDropdown(order.id)}
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   ))
@@ -391,8 +469,10 @@ const OrdersPage: React.FC = () => {
 
       <AddOrderModal 
         isOpen={isAddModalOpen} 
+        editingOrder={editingOrder}
         onClose={() => {
           setIsAddModalOpen(false);
+          setEditingOrder(null);
           // Refresh orders
           const fetchOrders = async () => {
             try {
@@ -417,6 +497,50 @@ const OrdersPage: React.FC = () => {
         }} 
       />
       <StatsModal isOpen={isStatsModalOpen} onClose={() => setIsStatsModalOpen(false)} stats={stats} />
+      
+      {/* 下拉菜單使用 fixed 定位，避免被表格 overflow 裁剪 */}
+      {openDropdownId !== null && dropdownPosition && orders.find(o => o.id === openDropdownId) && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => {
+              setOpenDropdownId(null);
+              setDropdownPosition(null);
+            }}
+          />
+          <div 
+            className="fixed w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              right: `${dropdownPosition.right}px`,
+            }}
+            ref={(el) => { if (openDropdownId) dropdownRefs.current[openDropdownId] = el; }}
+          >
+            {(() => {
+              const order = orders.find(o => o.id === openDropdownId);
+              if (!order) return null;
+              return (
+                <>
+                  <button
+                    onClick={() => handleEdit(order)}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                  >
+                    <Edit3 size={16} className="text-orange-600 dark:text-orange-400" />
+                    <span className="text-sm font-medium">編輯</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(order.id)}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                  >
+                    <Trash2 size={16} className="text-red-600 dark:text-red-400" />
+                    <span className="text-sm font-medium">刪除</span>
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+        </>
+      )}
     </div>
   );
 };

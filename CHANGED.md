@@ -1,5 +1,108 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-26 10:16:40 - 將承租人字段改為非必填
+
+### Backend Changes
+- **修改訂單驗證規則** (`app/Http/Controllers/Api/OrderController.php`)
+  - `store` 方法：將 `tenant` 從 `required` 改為 `nullable`
+  - `update` 方法：將 `tenant` 從 `required` 改為 `nullable`
+
+- **創建數據庫 Migration** (`database/migrations/2025_12_26_010640_make_tenant_nullable_in_orders_table.php`)
+  - 將 `orders` 表的 `tenant` 字段改為可為空（nullable）
+  - 添加 `down` 方法支持回滾
+
+### Frontend Changes
+- **修改表單驗證** (`system/backend/components/AddOrderModal.tsx`)
+  - 移除 `tenant` 字段的必填驗證
+  - 從表單驗證條件中移除 `formData.tenant` 檢查
+
+- **修改 UI 標籤** (`system/backend/components/AddOrderModal.tsx`)
+  - 移除「承租人資訊」標籤後的紅色星號（*）
+  - 承租人字段現在顯示為可選字段
+
+### Database Changes
+- `orders` 表的 `tenant` 字段現在允許 `NULL` 值
+- 需要運行 `php artisan migrate` 來應用此變更
+
+### Features
+- 訂單可以創建和更新時不填寫承租人信息
+- 承租人字段為可選字段，不影響訂單的創建和更新
+
+---
+
+## 2025-12-26 09:25:00 - 修復編輯訂單時機車顯示問題
+
+### Frontend Changes
+- **修復編輯訂單時機車不顯示** (`system/backend/components/AddOrderModal.tsx`)
+  - 添加 `fetchScootersByIds` 函數，用於獲取訂單中的機車完整信息（包括已租借的）
+  - 修改編輯模式初始化邏輯，確保在設置選中機車 ID 前先獲取機車信息
+  - 將訂單中的機車（包括已租借的）加入到可用機車列表中
+  - 使用 `Promise.all` 確保異步操作的正確執行順序
+  - 編輯模式下現在可以正確顯示已租借的機車、各型號數量和總計
+
+### Features
+- 編輯訂單時正確顯示已租借的機車列表
+- 顯示各型號的機車數量統計
+- 顯示總台數統計
+- 與新增訂單的顯示方式保持一致
+
+---
+
+## 2025-12-26 09:15:00 - 修復下拉菜單遮擋問題並更新按鈕文字
+
+### Frontend Changes
+- **修復訂單操作下拉菜單被遮擋** (`system/backend/pages/OrdersPage.tsx`)
+  - 將下拉菜單從 `absolute` 定位改為 `fixed` 定位
+  - 動態計算按鈕位置並設置下拉菜單位置
+  - 添加遮罩層處理點擊外部關閉
+  - 滾動時自動關閉下拉菜單
+  - 使用 `z-50` 確保下拉菜單顯示在最上層
+
+- **更新按鈕文字** (`system/backend/components/AddOrderModal.tsx`)
+  - 新增訂單時：按鈕顯示「新增訂單」，提交時顯示「建立中...」
+  - 編輯訂單時：按鈕顯示「更新訂單」，提交時顯示「更新中...」
+  - 根據 `editingOrder` 狀態動態顯示不同的文字
+
+### Features
+- 下拉菜單不再被表格容器遮擋
+- 按鈕文字更準確反映當前操作（新增/更新）
+
+---
+
+## 2025-12-26 08:52:14 - 移除聊天功能並添加訂單操作下拉菜單
+
+### Frontend Changes
+- **移除聊天功能** (`system/backend/components/DashboardLayout.tsx`)
+  - 移除 `AIChatAssistant` 組件的導入和使用
+  - 移除右下角聊天按鈕和聊天視窗
+
+- **添加訂單操作下拉菜單** (`system/backend/pages/OrdersPage.tsx`)
+  - 添加操作按鈕的下拉菜單功能
+  - 實現編輯和刪除訂單功能
+  - 添加點擊外部關閉下拉菜單的功能
+  - 使用 `useRef` 管理多個下拉菜單的引用
+  - 添加確認對話框防止誤刪
+
+- **更新 AddOrderModal 支持編輯** (`system/backend/components/AddOrderModal.tsx`)
+  - 添加 `editingOrder` prop 支持編輯模式
+  - 編輯模式下自動預填表單數據
+  - 從訂單詳情 API 獲取機車 ID 列表
+  - 提交時根據是否有 `editingOrder` 決定創建或更新
+  - 標題動態顯示「編輯租借訂單」或「新增租借訂單」
+
+### Backend Changes
+- **更新 OrderResource** (`app/Http/Resources/OrderResource.php`)
+  - 添加 `scooter_ids` 字段，包含訂單的所有機車 ID 列表
+  - 用於前端編輯模式下正確載入已選機車
+
+### Features
+- 訂單管理支持編輯和刪除操作
+- 操作按鈕下拉菜單包含編輯和刪除選項
+- 編輯模式下自動載入訂單數據和機車列表
+- 刪除前顯示確認對話框
+
+---
+
 ## 2025-12-25 10:45:00 - 添加驗證碼圖片與雜訊干擾
 
 ### Backend Changes
