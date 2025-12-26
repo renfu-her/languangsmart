@@ -1,5 +1,36 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-26 16:59:54 - 訂單管理月份選擇顯示有訂單的月份背景色
+
+### Backend Changes
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 新增 `getMonthsByYear` 方法，接收年份參數，返回該年份中有訂單的月份列表
+  - 使用 `MONTH(appointment_date)` 提取月份，並過濾指定年份的訂單
+  - 返回不重複的月份數組，按升序排列
+
+- **api.php** (`routes/api.php`)
+  - 新增路由 `GET /api/orders/months`，用於查詢指定年份中有訂單的月份
+
+### Frontend Changes
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 在 `ordersApi` 中添加 `getMonthsByYear` 方法，調用後端 API 獲取指定年份的月份列表
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 添加 `monthsWithOrders` 狀態，用於儲存當前年份中有訂單的月份列表
+  - 實現 `fetchMonthsWithOrders` 函數，調用 API 獲取指定年份的月份列表
+  - 在 `useEffect` 中，當 `selectedYear` 改變時自動調用 `fetchMonthsWithOrders`
+  - 在 `handleYearChange` 中調用 `fetchMonthsWithOrders`，確保年份切換時更新月份列表
+  - 在 `AddOrderModal` 的 `onClose` 回調中，當年份改變時也調用 `fetchMonthsWithOrders`
+  - 為月份下拉選單的 `<option>` 添加條件樣式：如果該月份有訂單，則顯示淡橘色背景（`#fff7ed`）
+
+### Features
+- 當選擇年份時，系統會自動查詢該年份中有訂單的月份
+- 月份下拉選單中，有訂單的月份會顯示淡橘色背景，方便用戶快速識別
+- 切換年份時，月份背景色會自動更新
+- 新增或更新訂單後，如果年份改變，會自動更新月份背景色
+
+---
+
 ## 2025-12-26 14:26:13 - 機車配件管理頁面添加操作下拉選單
 
 ### Frontend Changes

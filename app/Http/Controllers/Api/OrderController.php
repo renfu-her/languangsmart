@@ -416,5 +416,37 @@ class OrderController extends Controller
             'data' => $years,
         ]);
     }
+
+    /**
+     * Get all months that have orders for a specific year
+     */
+    public function getMonthsByYear(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'year' => 'required|integer|min:2000|max:2100',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $year = $request->get('year');
+
+        // 從指定年份的訂單中提取不重複的月份
+        $months = Order::whereNotNull('appointment_date')
+            ->whereRaw('YEAR(appointment_date) = ?', [$year])
+            ->selectRaw('MONTH(appointment_date) as month')
+            ->distinct()
+            ->orderBy('month', 'asc')
+            ->pluck('month')
+            ->toArray();
+
+        return response()->json([
+            'data' => $months,
+        ]);
+    }
 }
 

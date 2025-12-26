@@ -147,6 +147,7 @@ export const ordersApi = {
   delete: (id: string | number) => api.delete(`/orders/${id}`),
   statistics: (month: string) => api.get('/orders/statistics', { month }),
   getYears: () => api.get<number[]>('/orders/years'),
+  getMonthsByYear: (year: number) => api.get<number[]>('/orders/months', { year }),
 };
 
 export const partnersApi = {

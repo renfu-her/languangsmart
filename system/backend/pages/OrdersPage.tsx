@@ -131,6 +131,7 @@ const OrdersPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
+  const [monthsWithOrders, setMonthsWithOrders] = useState<number[]>([]);
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -159,9 +160,24 @@ const OrdersPage: React.FC = () => {
     }
   };
 
+  // Fetch months with orders for selected year
+  const fetchMonthsWithOrders = async (year: number) => {
+    try {
+      const response = await ordersApi.getMonthsByYear(year);
+      setMonthsWithOrders(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch months with orders:', error);
+      setMonthsWithOrders([]);
+    }
+  };
+
   useEffect(() => {
     fetchYears();
   }, []);
+
+  useEffect(() => {
+    fetchMonthsWithOrders(selectedYear);
+  }, [selectedYear]);
 
   // Fetch orders
   useEffect(() => {
@@ -244,6 +260,7 @@ const OrdersPage: React.FC = () => {
   const handleYearChange = (year: number) => {
     setSelectedYear(year);
     setCurrentPage(1);
+    fetchMonthsWithOrders(year);
   };
 
   const handleMonthChange = (month: number) => {
@@ -361,7 +378,13 @@ const OrdersPage: React.FC = () => {
               onChange={(e) => handleMonthChange(Number(e.target.value))}
              >
                 {getAvailableMonths().map(month => (
-                  <option key={month} value={month}>{month} 月</option>
+                  <option 
+                    key={month} 
+                    value={month}
+                    style={monthsWithOrders.includes(month) ? { backgroundColor: '#fff7ed' } : {}}
+                  >
+                    {month} 月
+                  </option>
                 ))}
              </select>
           </div>
@@ -619,6 +642,7 @@ const OrdersPage: React.FC = () => {
                 setSelectedYear(year);
                 setSelectedMonth(month);
                 setCurrentPage(1);
+                fetchMonthsWithOrders(year);
                 monthChanged = true;
               }
             }
