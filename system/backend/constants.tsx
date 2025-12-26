@@ -20,13 +20,6 @@ export const NAV_ITEMS = [
     ]
   },
   { 
-    title: '網站管理', 
-    icon: <Settings size={20} />, 
-    children: [
-      { name: '首頁輪播圖', path: '/banners' }
-    ]
-  },
-  { 
     title: '合作商管理', 
     icon: <Users size={20} />, 
     path: '/partners'
@@ -40,7 +33,6 @@ export const NAV_ITEMS = [
     title: '系統', 
     icon: <Settings size={20} />, 
     children: [
-      { name: '會員管理', path: '/members' },
       { name: '系統管理者管理', path: '/admins' }
     ]
   }

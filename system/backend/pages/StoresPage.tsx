@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit3, Trash2, MapPin, Phone, Building, Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Search, Edit3, Trash2, MapPin, Phone, Building, Image as ImageIcon, X, Loader2, MoreHorizontal } from 'lucide-react';
 import { storesApi } from '../lib/api';
 
 interface Store {
@@ -25,6 +25,10 @@ const StoresPage: React.FC = () => {
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
   const inputClasses = "w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200 shadow-sm";
 
@@ -124,7 +128,47 @@ const StoresPage: React.FC = () => {
       console.error('Failed to delete store:', error);
       alert('刪除失敗');
     }
+    setOpenDropdownId(null);
+    setDropdownPosition(null);
   };
+
+  const handleEdit = (store: Store) => {
+    handleOpenModal(store);
+    setOpenDropdownId(null);
+    setDropdownPosition(null);
+  };
+
+  const toggleDropdown = (storeId: number) => {
+    if (openDropdownId === storeId) {
+      setOpenDropdownId(null);
+      setDropdownPosition(null);
+    } else {
+      const button = buttonRefs.current[storeId];
+      if (button) {
+        const rect = button.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY + 8,
+          right: window.innerWidth - rect.right,
+        });
+      }
+      setOpenDropdownId(storeId);
+    }
+  };
+
+  // 滾動時關閉下拉菜單
+  useEffect(() => {
+    const handleScroll = () => {
+      if (openDropdownId !== null) {
+        setOpenDropdownId(null);
+        setDropdownPosition(null);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [openDropdownId]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -183,7 +227,7 @@ const StoresPage: React.FC = () => {
                   <th className="px-6 py-5">商店地址</th>
                   <th className="px-6 py-5">聯絡電話</th>
                   <th className="px-6 py-5">商店主管</th>
-                  <th className="px-6 py-5 text-right">操作</th>
+                  <th className="px-6 py-5 text-center">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -211,19 +255,16 @@ const StoresPage: React.FC = () => {
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{store.address || '-'}</td>
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium tracking-wide">{store.phone || '-'}</td>
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-black">{store.manager}</td>
-                    <td className="px-6 py-5 text-right space-x-2">
-                      <button 
-                        onClick={() => handleOpenModal(store)}
-                        className="p-2 hover:bg-orange-50 rounded-xl text-orange-600 transition-all font-bold"
-                      >
-                        <Edit3 size={16} />
-                      </button>
-                      <button 
-                        onClick={() => handleDelete(store.id)}
-                        className="p-2 hover:bg-red-50 rounded-xl text-red-500 transition-all font-bold"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                    <td className="px-6 py-5 text-center">
+                      <div className="relative">
+                        <button 
+                          ref={(el) => { buttonRefs.current[store.id] = el; }}
+                          onClick={() => toggleDropdown(store.id)}
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                   ))
@@ -329,6 +370,50 @@ const StoresPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 操作下拉菜單使用 fixed 定位，避免被表格 overflow 裁剪 */}
+      {openDropdownId !== null && dropdownPosition && stores.find(s => s.id === openDropdownId) && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => {
+              setOpenDropdownId(null);
+              setDropdownPosition(null);
+            }}
+          />
+          <div 
+            className="fixed w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              right: `${dropdownPosition.right}px`,
+            }}
+            ref={(el) => { if (openDropdownId) dropdownRefs.current[openDropdownId] = el; }}
+          >
+            {(() => {
+              const store = stores.find(s => s.id === openDropdownId);
+              if (!store) return null;
+              return (
+                <>
+                  <button
+                    onClick={() => handleEdit(store)}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                  >
+                    <Edit3 size={16} className="text-orange-600 dark:text-orange-400" />
+                    <span className="text-sm font-medium">編輯</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(store.id)}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                  >
+                    <Trash2 size={16} className="text-red-600 dark:text-red-400" />
+                    <span className="text-sm font-medium">刪除</span>
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+        </>
       )}
     </div>
   );

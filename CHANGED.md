@@ -1,5 +1,123 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-26 14:18:30 - 隱藏會員管理功能
+
+### Frontend Changes
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 從「系統」導航菜單中移除「會員管理」子項目
+  - 用戶將無法在側邊欄看到會員管理選項
+
+- **App.tsx** (`system/backend/App.tsx`)
+  - 移除 `MembersPage` 的導入
+  - 移除 `/members` 路由定義
+  - 用戶將無法通過路由訪問會員管理頁面
+
+### Features
+- 會員管理功能已完全隱藏
+- 側邊欄「系統」選單下不再顯示「會員管理」選項
+- 無法通過直接輸入 URL 訪問會員管理頁面
+- 簡化了管理界面，移除了不需要的功能
+
+---
+
+## 2025-12-26 14:17:29 - 系統管理者編輯模式下 Email 欄位不可編輯
+
+### Frontend Changes
+- **AdminsPage.tsx** (`system/backend/pages/AdminsPage.tsx`)
+  - 修改 Email 輸入欄位，在編輯模式下設為只讀和禁用
+  - 當 `editingAdmin` 不為 null 時，Email 欄位無法編輯
+  - 添加視覺樣式：禁用狀態下顯示灰色背景和降低透明度，並顯示「不允許」游標
+  - 新增管理者時，Email 欄位可以正常編輯
+  - 編輯現有管理者時，Email 欄位為只讀狀態
+
+### Features
+- 新增管理者時，Email 可以正常輸入
+- 編輯管理者時，Email 欄位不可編輯，防止修改已存在的 Email
+- 更好的數據完整性保護
+- 清晰的視覺反饋，用戶可以明確知道 Email 欄位不可編輯
+
+---
+
+## 2025-12-26 14:16:33 - 隱藏網站管理功能
+
+### Frontend Changes
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 從導航菜單中移除「網站管理」項目及其子項目「首頁輪播圖」
+  - 用戶將無法在側邊欄看到網站管理選項
+
+- **App.tsx** (`system/backend/App.tsx`)
+  - 移除 `BannersPage` 的導入
+  - 移除 `/banners` 路由定義
+  - 用戶將無法通過路由訪問首頁輪播圖頁面
+
+### Features
+- 網站管理功能已完全隱藏
+- 側邊欄不再顯示「網站管理」選項
+- 無法通過直接輸入 URL 訪問首頁輪播圖頁面
+- 簡化了管理界面，移除了不需要的功能
+
+---
+
+## 2025-12-26 14:15:23 - 系統管理者維護頁面添加操作下拉選單
+
+### Frontend Changes
+- **AdminsPage.tsx** (`system/backend/pages/AdminsPage.tsx`)
+  - 添加 `MoreHorizontal` 圖標導入
+  - 添加 `useRef` hook 導入
+  - 新增狀態管理：
+    - `openDropdownId`: 追蹤當前打開的下拉選單 ID
+    - `dropdownPosition`: 存儲下拉選單的位置
+    - `dropdownRefs`: 存儲下拉選單元素的引用
+    - `buttonRefs`: 存儲觸發按鈕的引用
+  - 新增 `toggleDropdown()` 函數：處理下拉選單的打開/關閉，並計算位置
+  - 新增 `handleEdit()` 函數：打開編輯模態框並關閉下拉選單
+  - 修改 `handleDelete()` 函數：在刪除後關閉下拉選單
+  - 修改表格操作列：將原本的兩個獨立按鈕（編輯、刪除）改為一個 `MoreHorizontal` 按鈕，點擊後顯示下拉選單
+  - 特殊處理：對於 `admin@admin.com`，下拉選單只顯示「編輯」選項，不顯示「刪除」選項
+  - 添加下拉選單渲染邏輯：使用 `fixed` 定位，避免被表格 `overflow` 裁剪
+  - 添加滾動監聽：當頁面滾動時自動關閉下拉選單
+  - 添加點擊外部關閉功能：點擊遮罩層可關閉下拉選單
+  - 操作列標題改為居中對齊
+
+### Features
+- 操作列現在使用下拉選單，與訂單管理、合作商管理和商店管理頁面保持一致
+- 下拉選單包含「編輯」和「刪除」兩個選項（對於非預設管理員）
+- 對於預設管理員（admin@admin.com），下拉選單只顯示「編輯」選項
+- 下拉選單使用固定定位，不會被表格裁剪
+- 支援點擊外部和滾動時自動關閉
+- 更好的用戶體驗和一致的 UI 設計
+
+---
+
+## 2025-12-26 14:13:48 - 商店管理頁面添加操作下拉選單
+
+### Frontend Changes
+- **StoresPage.tsx** (`system/backend/pages/StoresPage.tsx`)
+  - 添加 `MoreHorizontal` 圖標導入
+  - 添加 `useRef` hook 導入
+  - 新增狀態管理：
+    - `openDropdownId`: 追蹤當前打開的下拉選單 ID
+    - `dropdownPosition`: 存儲下拉選單的位置
+    - `dropdownRefs`: 存儲下拉選單元素的引用
+    - `buttonRefs`: 存儲觸發按鈕的引用
+  - 新增 `toggleDropdown()` 函數：處理下拉選單的打開/關閉，並計算位置
+  - 新增 `handleEdit()` 函數：打開編輯模態框並關閉下拉選單
+  - 修改 `handleDelete()` 函數：在刪除後關閉下拉選單
+  - 修改表格操作列：將原本的兩個獨立按鈕（編輯、刪除）改為一個 `MoreHorizontal` 按鈕，點擊後顯示下拉選單
+  - 添加下拉選單渲染邏輯：使用 `fixed` 定位，避免被表格 `overflow` 裁剪
+  - 添加滾動監聽：當頁面滾動時自動關閉下拉選單
+  - 添加點擊外部關閉功能：點擊遮罩層可關閉下拉選單
+  - 操作列標題改為居中對齊
+
+### Features
+- 操作列現在使用下拉選單，與訂單管理和合作商管理頁面保持一致
+- 下拉選單包含「編輯」和「刪除」兩個選項
+- 下拉選單使用固定定位，不會被表格裁剪
+- 支援點擊外部和滾動時自動關閉
+- 更好的用戶體驗和一致的 UI 設計
+
+---
+
 ## 2025-12-26 14:10:18 - 合作商管理頁面添加操作下拉選單
 
 ### Frontend Changes

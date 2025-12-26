@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit3, Trash2, Phone, Mail, Shield, X, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, Search, Edit3, Trash2, Phone, Mail, Shield, X, Loader2, MoreHorizontal } from 'lucide-react';
 import { usersApi } from '../lib/api';
 interface Admin {
   id: number;
@@ -24,6 +24,10 @@ const AdminsPage: React.FC = () => {
     password: '',
     status: 'active' as 'active' | 'inactive',
   });
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
   const inputClasses = `w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200 shadow-sm`;
 
@@ -142,7 +146,47 @@ const AdminsPage: React.FC = () => {
       const errorMessage = error?.response?.data?.message || '刪除失敗';
       alert(errorMessage);
     }
+    setOpenDropdownId(null);
+    setDropdownPosition(null);
   };
+
+  const handleEdit = (admin: Admin) => {
+    handleOpenModal(admin);
+    setOpenDropdownId(null);
+    setDropdownPosition(null);
+  };
+
+  const toggleDropdown = (adminId: number) => {
+    if (openDropdownId === adminId) {
+      setOpenDropdownId(null);
+      setDropdownPosition(null);
+    } else {
+      const button = buttonRefs.current[adminId];
+      if (button) {
+        const rect = button.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY + 8,
+          right: window.innerWidth - rect.right,
+        });
+      }
+      setOpenDropdownId(adminId);
+    }
+  };
+
+  // 滾動時關閉下拉菜單
+  useEffect(() => {
+    const handleScroll = () => {
+      if (openDropdownId !== null) {
+        setOpenDropdownId(null);
+        setDropdownPosition(null);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [openDropdownId]);
 
   return (
     <div className="p-6 dark:text-gray-100">
@@ -188,7 +232,7 @@ const AdminsPage: React.FC = () => {
                   <th className="px-6 py-5">Email</th>
                   <th className="px-6 py-5">電話</th>
                   <th className="px-6 py-5">狀態</th>
-                  <th className="px-6 py-5 text-right">操作</th>
+                  <th className="px-6 py-5 text-center">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
@@ -216,27 +260,15 @@ const AdminsPage: React.FC = () => {
                           {admin.status === 'active' ? '啟用' : '停用'}
                         </span>
                       </td>
-                      <td className="px-6 py-5 text-right">
-                        <div className="flex items-center justify-end space-x-2">
-                          <button
-                            onClick={() => handleOpenModal(admin)}
-                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg text-gray-400 dark:text-gray-500 transition-colors"
+                      <td className="px-6 py-5 text-center">
+                        <div className="relative">
+                          <button 
+                            ref={(el) => { buttonRefs.current[admin.id] = el; }}
+                            onClick={() => toggleDropdown(admin.id)}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
                           >
-                            <Edit3 size={16} />
+                            <MoreHorizontal size={18} />
                           </button>
-                          {admin.email !== 'admin@admin.com' && (
-                            <button
-                              onClick={() => handleDelete(admin.id, admin.email)}
-                              className="p-2 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg text-red-400 transition-colors"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          )}
-                          {admin.email === 'admin@admin.com' && (
-                            <span className="text-xs text-gray-400 dark:text-gray-500 px-2" title="預設管理員無法刪除">
-                              預設
-                            </span>
-                          )}
                         </div>
                       </td>
                     </tr>
@@ -282,10 +314,12 @@ const AdminsPage: React.FC = () => {
                 </label>
                 <input
                   type="email"
-                  className={inputClasses}
+                  className={`${inputClasses} ${editingAdmin ? 'bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-60' : ''}`}
                   placeholder="輸入 Email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  readOnly={!!editingAdmin}
+                  disabled={!!editingAdmin}
                 />
               </div>
 
@@ -355,6 +389,52 @@ const AdminsPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 操作下拉菜單使用 fixed 定位，避免被表格 overflow 裁剪 */}
+      {openDropdownId !== null && dropdownPosition && admins.find(a => a.id === openDropdownId) && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => {
+              setOpenDropdownId(null);
+              setDropdownPosition(null);
+            }}
+          />
+          <div 
+            className="fixed w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              right: `${dropdownPosition.right}px`,
+            }}
+            ref={(el) => { if (openDropdownId) dropdownRefs.current[openDropdownId] = el; }}
+          >
+            {(() => {
+              const admin = admins.find(a => a.id === openDropdownId);
+              if (!admin) return null;
+              return (
+                <>
+                  <button
+                    onClick={() => handleEdit(admin)}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                  >
+                    <Edit3 size={16} className="text-orange-600 dark:text-orange-400" />
+                    <span className="text-sm font-medium">編輯</span>
+                  </button>
+                  {admin.email !== 'admin@admin.com' && (
+                    <button
+                      onClick={() => handleDelete(admin.id, admin.email)}
+                      className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                    >
+                      <Trash2 size={16} className="text-red-600 dark:text-red-400" />
+                      <span className="text-sm font-medium">刪除</span>
+                    </button>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        </>
       )}
     </div>
   );
