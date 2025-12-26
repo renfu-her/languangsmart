@@ -4,7 +4,6 @@ import { OrderStatus } from '../types';
 import AddOrderModal from '../components/AddOrderModal';
 import { ordersApi } from '../lib/api';
 import * as XLSX from 'xlsx';
-import ExcelJS from 'exceljs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface Order {
@@ -344,85 +343,53 @@ const OrdersPage: React.FC = () => {
     setCurrentPage(1);
   };
 
-  const handleExportExcel = async () => {
+  const handleExportExcel = () => {
     if (!stats) {
       alert('目前沒有統計資料可匯出');
       return;
     }
 
-    try {
-      // 創建工作簿
-      const workbook = new ExcelJS.Workbook();
-      
-      // 創建總體統計工作表
-      const summarySheet = workbook.addWorksheet('總體統計');
-      summarySheet.columns = [
-        { header: '項目', key: 'item', width: 20 },
-        { header: '數值', key: 'value', width: 30 }
-      ];
-      summarySheet.addRow({ item: '單月總台數', value: `${stats.total_count || 0} 台` });
-      summarySheet.addRow({ item: '單月總金額', value: `$${(stats.total_amount || 0).toLocaleString()}` });
-      
-      // 設置標題行樣式
-      summarySheet.getRow(1).font = { bold: true };
-      summarySheet.getRow(1).fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE0E0E0' }
-      };
+    // 準備總體統計 Excel 數據
+    const summaryData = [
+      {
+        '項目': '單月總台數',
+        '數值': `${stats.total_count || 0} 台`
+      },
+      {
+        '項目': '單月總金額',
+        '數值': `$${(stats.total_amount || 0).toLocaleString()}`
+      }
+    ];
 
-      // 準備合作商統計數據
-      const partnerData = Object.entries(stats.partner_stats || {})
-        .map(([partnerName, data]) => ({
-          name: partnerName,
-          count: (data as { count: number; amount: number }).count || 0,
-          amount: (data as { count: number; amount: number }).amount || 0
-        }))
-        .sort((a, b) => b.amount - a.amount); // 按金額降序排列
+    // 準備合作商統計 Excel 數據
+    const partnerData = Object.entries(stats.partner_stats || {})
+      .map(([partnerName, data]) => ({
+        '合作商名稱': partnerName,
+        '台數': (data as { count: number; amount: number }).count || 0,
+        '金額': `$${(data as { count: number; amount: number }).amount.toLocaleString()}`
+      }))
+      .sort((a, b) => {
+        const amountA = parseInt(a.金額.replace(/[$,]/g, '')) || 0;
+        const amountB = parseInt(b.金額.replace(/[$,]/g, '')) || 0;
+        return amountB - amountA;
+      }); // 按金額降序排列
 
-      // 創建合作商統計工作表
-      const partnerSheet = workbook.addWorksheet('合作商統計');
-      partnerSheet.columns = [
-        { header: '合作商名稱', key: 'name', width: 25 },
-        { header: '台數', key: 'count', width: 15 },
-        { header: '金額', key: 'amount', width: 20 }
-      ];
+    // 創建工作簿
+    const wb = XLSX.utils.book_new();
+    
+    // 添加總體統計工作表
+    const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+    XLSX.utils.book_append_sheet(wb, wsSummary, '總體統計');
+    
+    // 添加合作商統計工作表
+    const wsPartner = XLSX.utils.json_to_sheet(partnerData);
+    XLSX.utils.book_append_sheet(wb, wsPartner, '合作商統計');
 
-      // 添加數據行
-      partnerData.forEach(partner => {
-        partnerSheet.addRow({
-          name: partner.name,
-          count: partner.count,
-          amount: `$${partner.amount.toLocaleString()}`
-        });
-      });
+    // 生成文件名：export-YYYYMM.xlsx
+    const fileName = `export-${selectedYear}${String(selectedMonth).padStart(2, '0')}.xlsx`;
 
-      // 設置標題行樣式
-      partnerSheet.getRow(1).font = { bold: true };
-      partnerSheet.getRow(1).fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFE0E0E0' }
-      };
-
-      // 生成文件名：export-YYYYMM.xlsx
-      const fileName = `export-${selectedYear}${String(selectedMonth).padStart(2, '0')}.xlsx`;
-
-      // 下載文件
-      const buffer = await workbook.xlsx.writeBuffer();
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('匯出 Excel 時發生錯誤:', error);
-      alert('匯出 Excel 時發生錯誤，請稍後再試');
-    }
+    // 下載文件
+    XLSX.writeFile(wb, fileName);
   };
 
   // 獲取可選的年份列表（從 API 獲取）

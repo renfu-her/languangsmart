@@ -1,5 +1,20 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-26 22:05:00 - 修復構建錯誤，移除 exceljs 依賴
+
+### Frontend Changes
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修復構建錯誤：移除 `exceljs` 導入和使用
+  - 改回使用 `xlsx` 庫進行 Excel 匯出（更適合瀏覽器環境）
+  - 將 `handleExportExcel` 函數改回同步函數（不再需要異步操作）
+  - Excel 匯出功能保持不變：
+    - 「總體統計」工作表：單月總台數、單月總金額
+    - 「合作商統計」工作表：各合作商的名稱、台數和金額明細
+
+### Bug Fixes
+- 修復 Vite 構建錯誤：`exceljs` 無法在瀏覽器環境中正確解析
+- 解決 Rollup 構建失敗問題
+
 ## 2025-12-26 22:03:50 - 移除 Excel 匯出中的柱狀圖
 
 ### Frontend Changes
