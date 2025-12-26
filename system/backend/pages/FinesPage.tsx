@@ -1,6 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, AlertCircle, CheckCircle2, MoreVertical, Camera, X, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Plus, AlertCircle, CheckCircle2, MoreHorizontal, Camera, X, Loader2, Calendar, Edit3, Trash2 } from 'lucide-react';
 import { finesApi, scootersApi } from '../lib/api';
+import Flatpickr from 'react-flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
+import { MandarinTraditional } from 'flatpickr/dist/l10n/zh-tw.js';
 
 interface Fine {
   id: number;
@@ -38,8 +41,18 @@ const FinesPage: React.FC = () => {
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
 
-  const inputClasses = "w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 shadow-sm";
+  const inputClasses = "w-full px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200 shadow-sm";
+
+  // Flatpickr 設定（繁體中文）
+  const dateOptions = React.useMemo(() => ({
+    locale: MandarinTraditional,
+    dateFormat: 'Y-m-d',
+    allowInput: true,
+  }), []);
 
   useEffect(() => {
     fetchFines();
@@ -151,16 +164,59 @@ const FinesPage: React.FC = () => {
     }
   };
 
+  const toggleDropdown = (fineId: number) => {
+    if (openDropdownId === fineId) {
+      setOpenDropdownId(null);
+      setDropdownPosition(null);
+    } else {
+      const button = buttonRefs.current[fineId];
+      if (button) {
+        const rect = button.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY + 8, // mt-2 = 8px
+          right: window.innerWidth - rect.right,
+        });
+      }
+      setOpenDropdownId(fineId);
+    }
+  };
+
+  const handleEdit = (fine: Fine) => {
+    handleOpenModal(fine);
+    setOpenDropdownId(null);
+    setDropdownPosition(null);
+  };
+
   const handleDelete = async (id: number) => {
-    if (!confirm('確定要刪除此罰單嗎？')) return;
+    if (!confirm('確定要刪除此罰單嗎？此操作無法復原。')) {
+      return;
+    }
     try {
       await finesApi.delete(id);
       fetchFines();
     } catch (error) {
       console.error('Failed to delete fine:', error);
-      alert('刪除失敗');
+      alert('刪除失敗，請稍後再試。');
     }
+    setOpenDropdownId(null);
+    setDropdownPosition(null);
   };
+
+  // 點擊外部關閉下拉菜單（通過遮罩層處理）
+  // 滾動時關閉下拉菜單
+  useEffect(() => {
+    const handleScroll = () => {
+      if (openDropdownId !== null) {
+        setOpenDropdownId(null);
+        setDropdownPosition(null);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => {
+      window.removeEventListener('scroll', handleScroll, true);
+    };
+  }, [openDropdownId]);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -279,12 +335,15 @@ const FinesPage: React.FC = () => {
                       </span>
                     </td>
                     <td className="px-6 py-5 text-center">
-                      <button 
-                        onClick={() => handleOpenModal(fine)}
-                        className="p-2 hover:bg-gray-100 rounded-xl text-gray-400 transition-all"
-                      >
-                        <MoreVertical size={18} />
-                      </button>
+                      <div className="relative">
+                        <button 
+                          ref={(el) => { buttonRefs.current[fine.id] = el; }}
+                          onClick={() => toggleDropdown(fine.id)}
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -332,12 +391,21 @@ const FinesPage: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-500 mb-2 uppercase tracking-wider">違規日期 <span className="text-red-500">*</span></label>
-                  <input 
-                    type="date" 
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider flex items-center">
+                    <Calendar size={14} className="mr-1.5" /> 違規日期 <span className="text-red-500 ml-1">*</span>
+                  </label>
+                  <Flatpickr
+                    key="violation_date"
                     className={inputClasses}
                     value={formData.violation_date}
-                    onChange={(e) => setFormData({ ...formData, violation_date: e.target.value })}
+                    onChange={(dates) => {
+                      if (dates && dates.length > 0) {
+                        const dateStr = dates[0].toISOString().split('T')[0];
+                        setFormData(prev => ({ ...prev, violation_date: dateStr }));
+                      }
+                    }}
+                    options={dateOptions}
+                    placeholder="選擇日期"
                   />
                 </div>
                 <div>
@@ -400,6 +468,49 @@ const FinesPage: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 下拉菜單使用 fixed 定位，避免被表格 overflow 裁剪 */}
+      {openDropdownId !== null && dropdownPosition && fines.find(f => f.id === openDropdownId) && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => {
+              setOpenDropdownId(null);
+              setDropdownPosition(null);
+            }}
+          />
+          <div 
+            className="fixed w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              right: `${dropdownPosition.right}px`,
+            }}
+          >
+            {(() => {
+              const fine = fines.find(f => f.id === openDropdownId);
+              if (!fine) return null;
+              return (
+                <>
+                  <button
+                    onClick={() => handleEdit(fine)}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                  >
+                    <Edit3 size={16} className="text-orange-600 dark:text-orange-400" />
+                    <span className="text-sm font-medium">編輯</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(fine.id)}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                  >
+                    <Trash2 size={16} className="text-red-600 dark:text-red-400" />
+                    <span className="text-sm font-medium">刪除</span>
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+        </>
       )}
     </div>
   );
