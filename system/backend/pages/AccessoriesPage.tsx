@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Plus, Package, Edit, Trash2, ShieldCheck, ShoppingBag, Smartphone, CloudRain, X, Loader2 } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Search, Plus, Package, Edit3, Trash2, ShieldCheck, ShoppingBag, Smartphone, CloudRain, X, Loader2, MoreHorizontal } from 'lucide-react';
 import { accessoriesApi } from '../lib/api';
 
 interface Accessory {
@@ -27,6 +27,10 @@ const AccessoriesPage: React.FC = () => {
   const [statistics, setStatistics] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
+  const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
+  const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const [formData, setFormData] = useState({
     name: '',
     category: '防護' as '防護' | '配件' | '雨具' | '其他',
@@ -40,6 +44,18 @@ const AccessoriesPage: React.FC = () => {
     fetchAccessories();
     fetchStatistics();
   }, [searchTerm]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (openDropdownId !== null) {
+        setOpenDropdownId(null);
+        setDropdownPosition(null);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, true);
+    return () => window.removeEventListener('scroll', handleScroll, true);
+  }, [openDropdownId]);
 
   const fetchAccessories = async () => {
     setLoading(true);
@@ -124,7 +140,32 @@ const AccessoriesPage: React.FC = () => {
     }
   };
 
+  const toggleDropdown = (id: number) => {
+    if (openDropdownId === id) {
+      setOpenDropdownId(null);
+      setDropdownPosition(null);
+    } else {
+      const button = buttonRefs.current[id];
+      if (button) {
+        const rect = button.getBoundingClientRect();
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY + 4,
+          right: window.innerWidth - rect.right + window.scrollX,
+        });
+        setOpenDropdownId(id);
+      }
+    }
+  };
+
+  const handleEdit = (accessory: Accessory) => {
+    setOpenDropdownId(null);
+    setDropdownPosition(null);
+    handleOpenModal(accessory);
+  };
+
   const handleDelete = async (id: number) => {
+    setOpenDropdownId(null);
+    setDropdownPosition(null);
     if (!confirm('確定要刪除此配件嗎？')) return;
     try {
       await accessoriesApi.delete(id);
@@ -241,18 +282,13 @@ const AccessoriesPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-5 text-center">
-                        <div className="flex items-center justify-center space-x-2">
+                        <div className="relative">
                           <button 
-                            onClick={() => handleOpenModal(item)}
-                            className="p-2 hover:bg-blue-50 text-blue-600 rounded-xl transition-all"
+                            ref={(el) => { buttonRefs.current[item.id] = el; }}
+                            onClick={() => toggleDropdown(item.id)}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
                           >
-                            <Edit size={16} />
-                          </button>
-                          <button 
-                            onClick={() => handleDelete(item.id)}
-                            className="p-2 hover:bg-red-50 text-red-600 rounded-xl transition-all"
-                          >
-                            <Trash2 size={16} />
+                            <MoreHorizontal size={18} />
                           </button>
                         </div>
                       </td>
@@ -264,6 +300,50 @@ const AccessoriesPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* 操作下拉菜單使用 fixed 定位，避免被表格 overflow 裁剪 */}
+      {openDropdownId !== null && dropdownPosition && accessories.find(a => a.id === openDropdownId) && (
+        <>
+          <div 
+            className="fixed inset-0 z-40" 
+            onClick={() => {
+              setOpenDropdownId(null);
+              setDropdownPosition(null);
+            }}
+          />
+          <div 
+            className="fixed w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200"
+            style={{
+              top: `${dropdownPosition.top}px`,
+              right: `${dropdownPosition.right}px`,
+            }}
+            ref={(el) => { if (openDropdownId) dropdownRefs.current[openDropdownId] = el; }}
+          >
+            {(() => {
+              const accessory = accessories.find(a => a.id === openDropdownId);
+              if (!accessory) return null;
+              return (
+                <>
+                  <button
+                    onClick={() => handleEdit(accessory)}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                  >
+                    <Edit3 size={16} className="text-orange-600 dark:text-orange-400" />
+                    <span className="text-sm font-medium">編輯</span>
+                  </button>
+                  <button
+                    onClick={() => handleDelete(accessory.id)}
+                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                  >
+                    <Trash2 size={16} className="text-red-600 dark:text-red-400" />
+                    <span className="text-sm font-medium">刪除</span>
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+        </>
+      )}
 
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

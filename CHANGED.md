@@ -1,5 +1,31 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-26 14:26:13 - 機車配件管理頁面添加操作下拉選單
+
+### Frontend Changes
+- **AccessoriesPage.tsx** (`system/backend/pages/AccessoriesPage.tsx`)
+  - 導入 `MoreHorizontal` 和 `Edit3` 圖標，並添加 `useRef` hook
+  - 添加操作下拉選單的狀態管理：
+    - `openDropdownId`: 追蹤當前打開的下拉選單 ID
+    - `dropdownPosition`: 儲存下拉選單的位置（top, right）
+    - `dropdownRefs`: 用於引用下拉選單 DOM 元素
+    - `buttonRefs`: 用於引用觸發按鈕 DOM 元素
+  - 實現 `toggleDropdown` 函數：計算下拉選單位置並切換顯示狀態
+  - 修改 `handleEdit` 函數：關閉下拉選單後打開編輯模態框
+  - 修改 `handleDelete` 函數：關閉下拉選單後執行刪除操作
+  - 將操作欄位從兩個獨立按鈕（編輯、刪除）改為 `MoreHorizontal` 圖標按鈕
+  - 添加下拉選單的渲染邏輯，使用 `fixed` 定位避免被表格 `overflow` 裁剪
+  - 添加滾動監聽器，當頁面滾動時自動關閉下拉選單
+  - 下拉選單包含「編輯」和「刪除」選項，樣式與其他管理頁面一致
+
+### Features
+- 操作欄位統一使用下拉選單設計，與其他管理頁面保持一致
+- 下拉選單使用 `fixed` 定位，確保不會被表格容器裁剪
+- 點擊外部區域或滾動頁面時自動關閉下拉選單
+- 更好的用戶體驗和視覺一致性
+
+---
+
 ## 2025-12-26 14:18:30 - 隱藏會員管理功能
 
 ### Frontend Changes
