@@ -518,7 +518,7 @@ const OrdersPage: React.FC = () => {
            <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">合作商單月統計</p>
               <button 
-                onClick={() => setIsChartModalOpen(true)}
+                onClick={() => setIsStatsModalOpen(true)}
                 className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 transition-colors"
               >
                 點擊彈出詳細視窗
