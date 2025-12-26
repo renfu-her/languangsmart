@@ -1,5 +1,33 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-26 14:10:18 - 合作商管理頁面添加操作下拉選單
+
+### Frontend Changes
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 添加 `MoreHorizontal` 圖標導入
+  - 添加 `useRef` hook 導入
+  - 新增狀態管理：
+    - `openDropdownId`: 追蹤當前打開的下拉選單 ID
+    - `dropdownPosition`: 存儲下拉選單的位置
+    - `dropdownRefs`: 存儲下拉選單元素的引用
+    - `buttonRefs`: 存儲觸發按鈕的引用
+  - 新增 `toggleDropdown()` 函數：處理下拉選單的打開/關閉，並計算位置
+  - 新增 `handleEdit()` 函數：打開編輯模態框並關閉下拉選單
+  - 修改 `handleDelete()` 函數：在刪除後關閉下拉選單
+  - 修改表格操作列：將原本的兩個獨立按鈕（編輯、刪除）改為一個 `MoreHorizontal` 按鈕，點擊後顯示下拉選單
+  - 添加下拉選單渲染邏輯：使用 `fixed` 定位，避免被表格 `overflow` 裁剪
+  - 添加滾動監聽：當頁面滾動時自動關閉下拉選單
+  - 添加點擊外部關閉功能：點擊遮罩層可關閉下拉選單
+
+### Features
+- 操作列現在使用下拉選單，與訂單管理頁面保持一致
+- 下拉選單包含「編輯」和「刪除」兩個選項
+- 下拉選單使用固定定位，不會被表格裁剪
+- 支援點擊外部和滾動時自動關閉
+- 更好的用戶體驗和一致的 UI 設計
+
+---
+
 ## 2025-12-26 14:05:28 - 通過 API 獲取訂單預約日期的年份列表
 
 ### Backend Changes
