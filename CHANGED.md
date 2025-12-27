@@ -1,5 +1,16 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-27 21:55:00 - 修復 AccessoriesPage 中缺少的 ChevronDown 導入
+
+### Frontend Changes
+- **AccessoriesPage.tsx** (`system/backend/pages/AccessoriesPage.tsx`)
+  - 修復缺少的 `ChevronDown` 導入
+  - 在 import 語句中添加 `ChevronDown` 從 `lucide-react`
+  - 解決 "ChevronDown is not defined" 錯誤
+
+### Bug Fixes
+- 修復了 AccessoriesPage 中 select 下拉選單的 ChevronDown 圖標無法顯示的問題
+
 ## 2025-12-27 21:50:00 - 統一 PartnersPage 所有輸入框的 placeholder 樣式
 
 ### Frontend Changes
