@@ -32,6 +32,8 @@ const StoresPage: React.FC = () => {
   const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStores();
@@ -242,11 +244,19 @@ const StoresPage: React.FC = () => {
                   stores.map((store) => (
                   <tr key={store.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-5">
-                      <div className="w-20 h-12 bg-gray-100 rounded-xl overflow-hidden border border-gray-200 shadow-inner">
+                      <div className="w-20 h-12 bg-gray-100 dark:bg-gray-700 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-600 shadow-inner">
                         {store.photo_path ? (
-                          <img src={store.photo_path} alt={store.name} className="w-full h-full object-cover" />
+                          <img 
+                            src={store.photo_path} 
+                            alt={store.name} 
+                            className="w-full h-full object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                            onClick={() => {
+                              setImageViewerUrl(store.photo_path);
+                              setImageViewerOpen(true);
+                            }}
+                          />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <div className="w-full h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
                             <ImageIcon size={20} />
                           </div>
                         )}
