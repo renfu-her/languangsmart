@@ -32,8 +32,6 @@ const StoresPage: React.FC = () => {
   const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
-  const [imageViewerOpen, setImageViewerOpen] = useState(false);
-  const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchStores();
