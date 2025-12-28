@@ -284,8 +284,8 @@ const AdminsPage: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={handleCloseModal} />
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-md relative animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-md relative animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
               <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                 {editingAdmin ? '編輯系統管理者' : '新增系統管理者'}
               </h2>
@@ -294,7 +294,7 @@ const AdminsPage: React.FC = () => {
               </button>
             </div>
 
-            <div className="p-6 space-y-4">
+            <div className="p-6 space-y-4 overflow-y-auto max-h-[calc(90vh-180px)]">
               <div>
                 <label className={labelClasses}>
                   姓名 <span className="text-red-500">*</span>
@@ -364,7 +364,7 @@ const AdminsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end space-x-4">
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 flex items-center justify-end space-x-4 flex-shrink-0">
               <button
                 onClick={handleCloseModal}
                 className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all"

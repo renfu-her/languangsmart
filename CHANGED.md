@@ -1,5 +1,122 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-28 20:30:00 - 為上傳圖片添加點擊放大查看功能 / Add Image Click-to-Zoom Functionality for Uploaded Images
+
+### Frontend Changes
+- **FinesPage.tsx** (`system/backend/pages/FinesPage.tsx`)
+  - 為「罰單影本/現場照」圖片預覽添加點擊放大功能
+  - 添加 `imageViewerOpen` 和 `imageViewerUrl` 狀態管理圖片查看器
+  - 圖片預覽添加 `cursor-pointer` 和 `hover:opacity-90` 樣式
+  - 添加圖片點擊事件處理，點擊後顯示放大查看器
+  - 實現全屏圖片查看器模态框，支援點擊背景或關閉按鈕關閉
+
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 為「店面形象照片」圖片預覽添加點擊放大功能
+  - 添加圖片查看器狀態和點擊事件處理
+  - 實現全屏圖片查看器
+
+- **StoresPage.tsx** (`system/backend/pages/StoresPage.tsx`)
+  - 為「店面形象照片」圖片預覽添加點擊放大功能
+  - 添加圖片查看器狀態和點擊事件處理
+  - 實現全屏圖片查看器
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - 為「機車外觀照片」圖片預覽添加點擊放大功能
+  - 添加圖片查看器狀態和點擊事件處理
+  - 實現全屏圖片查看器
+
+### Features
+- 所有上傳的圖片預覽現在都支援點擊放大查看
+- 圖片預覽顯示滑鼠指針樣式，提示用戶可以點擊
+- 點擊圖片後顯示全屏黑色背景的圖片查看器
+- 圖片在查看器中以最大尺寸顯示（最大高度 90vh），保持原始比例
+- 支援點擊背景或右上角關閉按鈕關閉圖片查看器
+- 圖片查看器使用 `z-[60]` 確保顯示在所有其他元素之上
+- 圖片點擊事件使用 `stopPropagation()` 防止觸發上傳區域的點擊事件
+
+### Technical Details
+- 圖片查看器使用 `fixed inset-0` 實現全屏覆蓋
+- 背景使用 `bg-black/90` 提供半透明黑色背景
+- 圖片使用 `object-contain` 保持原始比例
+- 關閉按鈕使用 `absolute` 定位在右上角
+- 支援深色模式（圖片查看器背景為黑色）
+
+## 2025-12-28 20:22:09 - 為所有管理頁面模态框添加滾動功能 / Add Scroll Functionality to All Management Modal Forms
+
+### Frontend Changes
+- **FinesPage.tsx** (`system/backend/pages/FinesPage.tsx`)
+  - 為「登記違規罰單」和「編輯違規罰單」模态框添加滾動功能
+  - 使用 flexbox 布局，設置模态框最大高度為 90vh
+  - 內容區域添加 `overflow-y-auto` 和 `max-h-[calc(90vh-180px)]` 以實現滾動
+  - Header 和 Footer 使用 `flex-shrink-0` 保持固定
+
+- **AccessoriesPage.tsx** (`system/backend/pages/AccessoriesPage.tsx`)
+  - 為「新增配件設備」和「編輯配件設備」模态框添加滾動功能
+  - 使用 flexbox 布局，設置模态框最大高度為 90vh
+  - 內容區域添加滾動功能
+
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 為「建立合作商」和「編輯合作商」模态框添加滾動功能
+  - 使用 flexbox 布局，設置模态框最大高度為 90vh
+  - 內容區域添加滾動功能
+
+- **StoresPage.tsx** (`system/backend/pages/StoresPage.tsx`)
+  - 為「建立商店」和「編輯商店」模态框添加滾動功能
+  - 使用 flexbox 布局，設置模态框最大高度為 90vh
+  - 內容區域添加滾動功能
+
+- **AdminsPage.tsx** (`system/backend/pages/AdminsPage.tsx`)
+  - 為「新增系統管理者」和「編輯系統管理者」模态框添加滾動功能
+  - 使用 flexbox 布局，設置模态框最大高度為 90vh
+  - 內容區域添加滾動功能
+
+### Features
+- 所有管理頁面的新增/編輯模态框現在都支援滾動
+- 當表單內容超出視窗高度時，可以透過滾動查看完整內容
+- Header（標題和關閉按鈕）和 Footer（取消和確認按鈕）保持固定，只有中間內容區域可滾動
+- 統一的滾動體驗，改善用戶在填寫長表單時的使用體驗
+- 支援深色模式
+
+### Technical Details
+- 模态框容器使用 `flex flex-col` 布局
+- 設置 `max-h-[90vh]` 限制模态框總高度
+- 內容區域使用 `overflow-y-auto max-h-[calc(90vh-180px)]` 實現滾動
+- Header 和 Footer 使用 `flex-shrink-0` 防止被壓縮
+
+## 2025-12-28 12:03:53 - 優化構建性能：實現代碼分割和手動分塊 / Build Performance Optimization: Code Splitting and Manual Chunking
+
+### Frontend Changes
+- **App.tsx** (`system/backend/App.tsx`)
+  - 使用 `React.lazy()` 實現路由級別的代碼分割
+  - 將所有頁面組件改為懶加載：`OrdersPage`, `PartnersPage`, `StoresPage`, `ScootersPage`, `FinesPage`, `AccessoriesPage`, `AdminsPage`
+  - 添加 `Suspense` 包裹和 `LoadingFallback` 組件，提供載入狀態顯示
+  - 減少初始包大小，提升首屏載入速度
+
+- **vite.config.ts** (`system/backend/vite.config.ts`)
+  - 配置 `manualChunks` 策略，將大型依賴庫分離到獨立 chunk：
+    - `react-vendor`: React 和 React DOM
+    - `router-vendor`: React Router
+    - `genai-vendor`: Google Gemini AI 庫
+    - `excel-vendor`: ExcelJS 和 XLSX 庫
+    - `charts-vendor`: Recharts 圖表庫
+    - `canvas-vendor`: html2canvas 庫
+    - `flatpickr-vendor`: Flatpickr 日期選擇器
+    - `icons-vendor`: Lucide React 圖標庫
+    - `vendor`: 其他 node_modules 依賴
+  - 將 chunk 大小警告限制提高到 600KB
+
+### Performance Improvements
+- 減少初始包大小：頁面組件只在需要時載入
+- 更好的緩存策略：vendor 庫與應用代碼分離，提升緩存命中率
+- 並行載入：多個小 chunk 可以並行下載，提升載入速度
+- 解決構建警告：將超過 500KB 的單一 chunk 拆分為多個較小的 chunk
+
+### Features
+- 路由級別的代碼分割，每個頁面獨立載入
+- Vendor 庫智能分離，提升緩存效率
+- 載入狀態提示，改善用戶體驗
+- 構建產物優化，減少首屏載入時間
+
 ## 2025-12-28 11:31:00 - 重構 React 代碼：統一共享樣式類別
 
 ### Frontend Refactoring

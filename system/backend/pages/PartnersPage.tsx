@@ -32,6 +32,8 @@ const PartnersPage: React.FC = () => {
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
 
   useEffect(() => {
     fetchPartners();
@@ -287,8 +289,8 @@ const PartnersPage: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseModal} />
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-2xl relative animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
               <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                 {editingPartner ? '編輯合作商' : '建立合作商'}
               </h2>
@@ -296,7 +298,7 @@ const PartnersPage: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
-            <div className="p-8 space-y-6">
+            <div className="p-8 space-y-6 overflow-y-auto max-h-[calc(90vh-180px)]">
               <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className={`${labelClasses} flex items-center`}>
@@ -376,13 +378,22 @@ const PartnersPage: React.FC = () => {
                       <p className="text-sm font-bold text-gray-700 dark:text-gray-300">拖放檔案，或者 <span className="text-orange-600 dark:text-orange-400">點擊瀏覽</span></p>
                       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-medium">建議比例 16:9, 最高支援 10MB JPG/PNG</p>
                       {photoPreview && (
-                        <img src={photoPreview} alt="Preview" className="mt-4 max-w-full max-h-48 rounded-lg" />
+                        <img 
+                          src={photoPreview} 
+                          alt="Preview" 
+                          className="mt-4 max-w-full max-h-48 rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setImageViewerUrl(photoPreview);
+                            setImageViewerOpen(true);
+                          }}
+                        />
                       )}
                    </div>
                 </div>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-end space-x-3 rounded-b-3xl">
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-end space-x-3 rounded-b-3xl flex-shrink-0">
               <button onClick={handleCloseModal} className={modalCancelButtonClasses}>取消</button>
               <button onClick={handleSubmit} className={modalSubmitButtonClasses}>
                 {editingPartner ? '確認更新' : '確認建立'}
@@ -434,6 +445,24 @@ const PartnersPage: React.FC = () => {
             })()}
           </div>
         </>
+      )}
+
+      {/* 圖片放大查看器 */}
+      {imageViewerOpen && imageViewerUrl && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90" onClick={() => setImageViewerOpen(false)}>
+          <button 
+            onClick={() => setImageViewerOpen(false)}
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
+          <img 
+            src={imageViewerUrl} 
+            alt="Full size" 
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   );

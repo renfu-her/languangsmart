@@ -45,6 +45,8 @@ const FinesPage: React.FC = () => {
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+  const [imageViewerOpen, setImageViewerOpen] = useState(false);
+  const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
 
   // Flatpickr 設定（繁體中文）
   const dateOptions = React.useMemo(() => ({
@@ -375,8 +377,8 @@ const FinesPage: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseModal} />
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-xl relative animate-in fade-in zoom-in duration-200">
-            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-xl relative animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
               <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                 {editingFine ? '編輯違規罰單' : '登記違規罰單'}
               </h2>
@@ -384,7 +386,7 @@ const FinesPage: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
-            <div className="p-8 space-y-5">
+            <div className="p-8 space-y-5 overflow-y-auto max-h-[calc(90vh-180px)]">
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className={labelClasses}>車牌號碼 <span className="text-red-500">*</span></label>
@@ -477,12 +479,21 @@ const FinesPage: React.FC = () => {
                   <p className="text-sm font-bold text-gray-700 dark:text-gray-300">點擊上傳或拍攝照片</p>
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-medium italic">支援格式: JPG, PNG, PDF</p>
                   {photoPreview && (
-                    <img src={photoPreview} alt="Preview" className="mt-4 max-w-full max-h-48 rounded-lg" />
+                    <img 
+                      src={photoPreview} 
+                      alt="Preview" 
+                      className="mt-4 max-w-full max-h-48 rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setImageViewerUrl(photoPreview);
+                        setImageViewerOpen(true);
+                      }}
+                    />
                   )}
                 </div>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-end space-x-3 rounded-b-3xl">
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-end space-x-3 rounded-b-3xl flex-shrink-0">
               <button onClick={handleCloseModal} className={modalCancelButtonClasses}>取消</button>
               <button onClick={handleSubmit} className={modalSubmitButtonClasses}>
                 {editingFine ? '確認更新' : '確認登記'}
@@ -533,6 +544,24 @@ const FinesPage: React.FC = () => {
             })()}
           </div>
         </>
+      )}
+
+      {/* 圖片放大查看器 */}
+      {imageViewerOpen && imageViewerUrl && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/90" onClick={() => setImageViewerOpen(false)}>
+          <button 
+            onClick={() => setImageViewerOpen(false)}
+            className="absolute top-4 right-4 p-2 bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
+          <img 
+            src={imageViewerUrl} 
+            alt="Full size" 
+            className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
       )}
     </div>
   );

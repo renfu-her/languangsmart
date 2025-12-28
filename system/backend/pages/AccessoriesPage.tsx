@@ -347,8 +347,8 @@ const AccessoriesPage: React.FC = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseModal} />
-          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg relative animate-in fade-in zoom-in duration-200 overflow-hidden">
-            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg relative animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between flex-shrink-0">
               <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
                 {editingAccessory ? '編輯配件設備' : '新增配件設備'}
               </h2>
@@ -356,7 +356,7 @@ const AccessoriesPage: React.FC = () => {
                 <X size={20} />
               </button>
             </div>
-            <div className="p-8 space-y-5">
+            <div className="p-8 space-y-5 overflow-y-auto max-h-[calc(90vh-180px)]">
               <div>
                 <label className={labelClasses}>配件完整名稱 <span className="text-red-500">*</span></label>
                 <input 
@@ -407,7 +407,7 @@ const AccessoriesPage: React.FC = () => {
                 <p className="mt-1 text-[10px] text-gray-400 italic">若為免費提供請填寫 0</p>
               </div>
             </div>
-            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-end space-x-3 rounded-b-3xl">
+            <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex justify-end space-x-3 rounded-b-3xl flex-shrink-0">
               <button onClick={handleCloseModal} className={modalCancelButtonClasses}>取消</button>
               <button onClick={handleSubmit} className={modalSubmitButtonClasses}>
                 {editingAccessory ? '確認更新' : '建立並存檔'}
