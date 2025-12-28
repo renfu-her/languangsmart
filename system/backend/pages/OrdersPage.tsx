@@ -960,7 +960,7 @@ const OrdersPage: React.FC = () => {
                         <div className="max-w-[150px]">
                           {expandedRemarks.has(order.id) ? (
                             <div>
-                              <div className="text-gray-400 dark:text-gray-500 break-words">{order.remark}</div>
+                              <div className="text-gray-400 dark:text-gray-500 break-words whitespace-pre-wrap">{order.remark}</div>
                               <button
                                 onClick={() => toggleRemark(order.id)}
                                 className="text-xs text-orange-600 dark:text-orange-400 hover:underline mt-1"
@@ -971,14 +971,12 @@ const OrdersPage: React.FC = () => {
                           ) : (
                             <div>
                               <div className="text-gray-400 dark:text-gray-500 truncate">{order.remark}</div>
-                              {order.remark.length > 20 && (
-                                <button
-                                  onClick={() => toggleRemark(order.id)}
-                                  className="text-xs text-orange-600 dark:text-orange-400 hover:underline mt-1"
-                                >
-                                  展開
-                                </button>
-                              )}
+                              <button
+                                onClick={() => toggleRemark(order.id)}
+                                className="text-xs text-orange-600 dark:text-orange-400 hover:underline mt-1"
+                              >
+                                展開
+                              </button>
                             </div>
                           )}
                         </div>
