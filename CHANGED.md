@@ -1,5 +1,30 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-29 21:07:00 - 修復建立訂單錯誤並改善錯誤訊息顯示 / Fix Order Creation Error and Improve Error Message Display
+
+### Backend Changes
+
+- **Order.php** (`app/Models/Order.php`)
+  - 從 `$fillable` 陣列中移除 `sort_order` 欄位
+  - 確保模型不再處理 `sort_order` 欄位
+
+### Frontend Changes
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 改善錯誤處理邏輯：
+    - 優先顯示 API 返回的錯誤訊息
+    - 如果有驗證錯誤，顯示第一個驗證錯誤訊息
+    - 提供更詳細的錯誤資訊，方便除錯
+
+### Bug Fixes
+- **建立訂單錯誤**：移除 `sort_order` 從模型的 `$fillable` 陣列，修復建立訂單時的錯誤
+- **錯誤訊息**：改善前端錯誤訊息顯示，現在會顯示更詳細的 API 錯誤資訊
+
+### Technical Details
+- `sort_order` 已完全從模型和 API 處理中移除
+- 資料庫欄位保留（有 default 值），但不影響功能
+- 前端錯誤處理現在會優先顯示 API 返回的具體錯誤訊息
+
 ## 2025-12-29 21:06:00 - 移除 API 中的 sort_order 處理 / Remove sort_order Handling from API
 
 ### Frontend Changes
