@@ -64,9 +64,9 @@ class OrderController extends Controller
         $validator = Validator::make($request->all(), [
             'partner_id' => 'nullable|exists:partners,id',
             'tenant' => 'nullable|string|max:255',
-            'appointment_date' => 'required|date',
-            'start_time' => 'required|date',
-            'end_time' => 'required|date',
+            'appointment_date' => 'nullable|date',
+            'start_time' => 'nullable|date',
+            'end_time' => 'nullable|date',
             'expected_return_time' => 'nullable|date',
             'phone' => 'nullable|string|max:20',
             'shipping_company' => 'nullable|in:泰富,藍白,聯營,大福',

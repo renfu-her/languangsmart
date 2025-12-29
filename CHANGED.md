@@ -1,5 +1,36 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-29 21:16:00 - 調整訂單必填欄位規則 / Adjust Order Required Fields Rules
+
+### Backend Changes
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修改 `store` 方法驗證規則：
+    - 只有 3 個必填欄位：`payment_amount`、`status`、`scooter_ids`
+    - 其他欄位改為 `nullable`：`appointment_date`、`start_time`、`end_time`、`tenant` 等
+  - 修改 `update` 方法驗證規則：
+    - 只有 3 個必填欄位：`payment_amount`、`status`（`scooter_ids` 為 `sometimes`）
+    - 其他欄位改為 `nullable`
+- **Database Migration** (`database/migrations/2025_12_29_211600_make_dates_nullable_in_orders_table.php`)
+  - 新增遷移檔案，將以下欄位改為可為 null：
+    - `appointment_date` 改為 `nullable`
+    - `start_time` 改為 `nullable`
+    - `end_time` 改為 `nullable`
+
+### Features
+- **必填欄位**：只有前端標記紅色 * 的欄位才是必填
+  - 總金額 * (`payment_amount`)
+  - 訂單狀態 * (`status`)
+  - 租借機車選取 * (`scooter_ids`)
+- **非必填欄位**：其他所有欄位都可以不填寫，包括：
+  - 合作商、承租人、預約日期、開始時間、結束時間等
+- **資料庫兼容**：資料庫欄位已調整為可為 null，符合 API 驗證規則
+
+### Technical Details
+- 新增和編輯訂單都使用相同的驗證規則
+- 資料庫遷移確保欄位可以為 null
+- 只有標記紅色 * 的欄位才會在 API 層面驗證為必填
+
 ## 2025-12-29 21:13:00 - 修復建立訂單驗證規則並改善錯誤處理 / Fix Order Creation Validation Rules and Improve Error Handling
 
 ### Backend Changes
