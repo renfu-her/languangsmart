@@ -37,6 +37,7 @@ class OrderResource extends JsonResource
             }),
             'tenant' => $this->tenant,
             'appointment_date' => $this->appointment_date->format('Y-m-d'),
+            'sort_order' => $this->sort_order ?? 0,
             'start_time' => $this->start_time->format('Y-m-d H:i:s'),
             'end_time' => $this->end_time->format('Y-m-d H:i:s'),
             'expected_return_time' => $this->expected_return_time ? $this->expected_return_time->format('Y-m-d H:i:s') : null,

@@ -12,6 +12,7 @@ interface Order {
   status: string;
   tenant: string;
   appointment_date: string;
+  sort_order?: number;
   start_time: string;
   end_time: string;
   expected_return_time: string | null;

@@ -15,6 +15,7 @@ class Order extends Model
         'partner_id',
         'tenant',
         'appointment_date',
+        'sort_order',
         'start_time',
         'end_time',
         'expected_return_time',

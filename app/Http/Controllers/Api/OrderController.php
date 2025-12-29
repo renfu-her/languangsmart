@@ -42,6 +42,7 @@ class OrderController extends Controller
         // Pagination: 200 per page
         $perPage = 200;
         $orders = $query->orderBy('appointment_date', 'desc')
+            ->orderBy('sort_order', 'desc')
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
 
@@ -65,6 +66,7 @@ class OrderController extends Controller
             'partner_id' => 'nullable|exists:partners,id',
             'tenant' => 'nullable|string|max:255',
             'appointment_date' => 'nullable|date',
+            'sort_order' => 'nullable|integer',
             'start_time' => 'nullable|date',
             'end_time' => 'nullable|date',
             'expected_return_time' => 'nullable|date',
@@ -114,7 +116,14 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
-            $order = Order::create($validator->validated());
+            $validated = $validator->validated();
+            // 如果没有提供 sort_order，默认使用 appointment_date 的 timestamp
+            if (!isset($validated['sort_order']) || $validated['sort_order'] === null) {
+                $validated['sort_order'] = $request->has('appointment_date') && $request->get('appointment_date') 
+                    ? strtotime($request->get('appointment_date')) 
+                    : time();
+            }
+            $order = Order::create($validated);
             $order->scooters()->attach($scooterIds);
 
             // 根據訂單狀態更新機車狀態
@@ -161,6 +170,7 @@ class OrderController extends Controller
             'partner_id' => 'nullable|exists:partners,id',
             'tenant' => 'nullable|string|max:255',
             'appointment_date' => 'nullable|date',
+            'sort_order' => 'nullable|integer',
             'start_time' => 'nullable|date',
             'end_time' => 'nullable|date',
             'expected_return_time' => 'nullable|date',
@@ -197,7 +207,19 @@ class OrderController extends Controller
             $oldStatus = $order->status;
             $oldScooterIds = $order->scooters->pluck('id')->toArray();
 
-            $order->update($validator->validated());
+            $validated = $validator->validated();
+            // 如果没有提供 sort_order，默认使用 appointment_date 的 timestamp（如果 appointment_date 存在）
+            if (!isset($validated['sort_order']) || $validated['sort_order'] === null) {
+                if ($request->has('appointment_date') && $request->get('appointment_date')) {
+                    $validated['sort_order'] = strtotime($request->get('appointment_date'));
+                } elseif ($order->appointment_date) {
+                    // 如果没有提供新的 appointment_date，使用现有的
+                    $validated['sort_order'] = $order->appointment_date->timestamp;
+                } else {
+                    $validated['sort_order'] = time();
+                }
+            }
+            $order->update($validated);
 
             $newStatus = $request->get('status', $order->status);
             $allScooterIds = [];

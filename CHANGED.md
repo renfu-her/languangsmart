@@ -1,5 +1,55 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-29 08:48:00 - 調整訂單排序優先級 / Adjust Order Sorting Priority
+
+### Backend Changes
+- **OrderController** (`app/Http/Controllers/Api/OrderController.php`)
+  - `index` 方法：調整排序優先級，預約日期優先，排序順序第二
+  - 排序順序改為：`appointment_date DESC, sort_order DESC, created_at DESC`
+
+## 2025-12-29 08:44:50 - 為訂單添加排序順序字段 / Add Sort Order Field to Orders
+
+### Backend Changes
+- **Database Migration** (`database/migrations/2025_12_27_000001_add_sort_order_to_orders_table.php`)
+  - 新增 `sort_order` 整數欄位到 `orders` 表，預設值為 0，位於 `appointment_date` 之後
+
+- **Order Model** (`app/Models/Order.php`)
+  - 將 `sort_order` 加入 `$fillable` 陣列，允許批量賦值
+
+- **OrderController** (`app/Http/Controllers/Api/OrderController.php`)
+  - `store` 方法：新增 `sort_order` 驗證規則（`nullable|integer`）
+  - `store` 方法：如果未提供 `sort_order`，預設使用 `appointment_date` 的時間戳
+  - `update` 方法：新增 `sort_order` 驗證規則（`nullable|integer`）
+  - `update` 方法：如果未提供 `sort_order`，預設使用 `appointment_date` 的時間戳（如果存在）
+  - `index` 方法：修改排序邏輯，優先按 `sort_order` 降序排序，然後按 `appointment_date` 降序排序
+
+- **OrderResource** (`app/Http/Resources/OrderResource.php`)
+  - 在返回的陣列中新增 `sort_order` 欄位，預設值為 0
+
+### Frontend Changes
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - `Order` 介面新增 `sort_order?: number` 欄位
+  - `formData` 狀態新增 `sort_order` 欄位
+  - 編輯模式下載入 `sort_order` 值
+  - 新增排序順序輸入欄位，位於預約日期之後
+  - 輸入欄位說明：留空則自動使用預約日期作為排序依據
+  - 當選擇預約日期時，如果 `sort_order` 為空，自動使用日期時間戳
+  - `handleSubmit` 中處理 `sort_order`：如果未提供，使用 `appointment_date` 的時間戳
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - `Order` 介面新增 `sort_order?: number` 欄位
+
+### Features
+- **排序順序欄位**：訂單新增可編輯的 `sort_order` 欄位，數字越大越靠前
+- **預設排序**：如果未指定 `sort_order`，自動使用 `appointment_date` 的時間戳作為排序依據
+- **API 排序**：列表 API 優先按 `sort_order` 降序排序，然後按 `appointment_date` 降序排序
+- **可編輯**：前端表單中可以手動設定排序順序，留空則使用預約日期自動計算
+
+### Technical Details
+- 使用整數型態存儲排序順序，支援負數和 0
+- 預設排序邏輯：`sort_order DESC, appointment_date DESC, created_at DESC`
+- 前端自動將日期轉換為時間戳（毫秒），後端轉換為秒級時間戳
+
 ## 2025-12-28 20:51:00 - 訂單管理列表排序和拖拽功能 / Order Management List Sorting and Drag-to-Reorder Features
 
 ### Frontend Changes
