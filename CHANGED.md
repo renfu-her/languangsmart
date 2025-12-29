@@ -1,5 +1,23 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-29 08:54:49 - 為訂單管理表格添加頂部和底部滾動條 / Add Top and Bottom Scrollbars to Order Management Table
+
+### Frontend Changes
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 將表格分為兩個區域：表頭滾動區域和表體滾動區域
+  - 添加 `tableHeaderScrollRef` 和 `tableBodyScrollRef` 用於同步滾動位置
+  - 表頭區域設置 `overflow-x-auto overflow-y-hidden` 和底部邊框
+  - 表體區域設置 `overflow-x-auto`
+  - 實現雙向滾動同步：滾動表頭時同步表體，滾動表體時同步表頭
+  - 使用固定表格佈局（`table-layout: fixed`）和固定最小寬度確保列寬一致
+  - 為每個列設置固定寬度，確保表頭和表體列寬完全對齊
+
+### Features
+- **雙滾動條**：表格頂部和底部都有水平滾動條
+- **同步滾動**：兩個滾動條同步滾動，確保表頭和表體始終對齊
+- **固定列寬**：使用固定表格佈局，確保所有列的寬度一致
+- **視覺一致性**：表頭和表體的列寬完全對齊，提供更好的用戶體驗
+
 ## 2025-12-29 08:48:00 - 調整訂單排序優先級 / Adjust Order Sorting Priority
 
 ### Backend Changes

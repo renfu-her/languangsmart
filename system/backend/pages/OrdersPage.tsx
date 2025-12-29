@@ -217,6 +217,10 @@ const OrdersPage: React.FC = () => {
   const statusDropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
   const statusButtonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
   
+  // 表格滾動條同步引用
+  const tableHeaderScrollRef = useRef<HTMLDivElement>(null);
+  const tableBodyScrollRef = useRef<HTMLDivElement>(null);
+  
   // 排序選項狀態
   const [sortByStatus, setSortByStatus] = useState(false);
   const [sortByStartTime, setSortByStartTime] = useState(false);
@@ -846,26 +850,51 @@ const OrdersPage: React.FC = () => {
             <p className="mt-4 text-gray-500">載入中...</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm whitespace-nowrap">
-              <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-medium">
-                <tr>
-                  <th className="px-4 py-4">狀態</th>
-                  <th className="px-4 py-4">承租人</th>
-                  <th className="px-4 py-4">預約日期</th>
-                  <th className="px-4 py-4">租借開始</th>
-                  <th className="px-4 py-4">租借結束</th>
-                  <th className="px-4 py-4">預計還車</th>
-                  <th className="px-4 py-4">租借機車 (款x台)</th>
-                  <th className="px-4 py-4">航運(來/回)</th>
-                  <th className="px-4 py-4">連絡電話</th>
-                  <th className="px-4 py-4">合作商</th>
-                  <th className="px-4 py-4">方式/金額</th>
-                  <th className="px-4 py-4">備註</th>
-                  <th className="px-4 py-4 text-center">操作</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
+          <div className="relative">
+            {/* 頂部滾動條（表頭） */}
+            <div 
+              ref={tableHeaderScrollRef}
+              className="overflow-x-auto overflow-y-hidden border-b border-gray-200 dark:border-gray-700"
+              style={{ scrollbarWidth: 'thin' }}
+              onScroll={(e) => {
+                if (tableBodyScrollRef.current && tableBodyScrollRef.current.scrollLeft !== e.currentTarget.scrollLeft) {
+                  tableBodyScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+                }
+              }}
+            >
+              <table className="w-full text-left text-sm whitespace-nowrap" style={{ tableLayout: 'fixed', minWidth: '1400px' }}>
+                <thead className="bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 font-medium">
+                  <tr>
+                    <th className="px-4 py-4 w-[100px]">狀態</th>
+                    <th className="px-4 py-4 w-[120px]">承租人</th>
+                    <th className="px-4 py-4 w-[110px]">預約日期</th>
+                    <th className="px-4 py-4 w-[140px]">租借開始</th>
+                    <th className="px-4 py-4 w-[140px]">租借結束</th>
+                    <th className="px-4 py-4 w-[140px]">預計還車</th>
+                    <th className="px-4 py-4 w-[130px]">租借機車 (款x台)</th>
+                    <th className="px-4 py-4 w-[160px]">航運(來/回)</th>
+                    <th className="px-4 py-4 w-[120px]">連絡電話</th>
+                    <th className="px-4 py-4 w-[120px]">合作商</th>
+                    <th className="px-4 py-4 w-[110px]">方式/金額</th>
+                    <th className="px-4 py-4 w-[150px]">備註</th>
+                    <th className="px-4 py-4 w-[80px] text-center">操作</th>
+                  </tr>
+                </thead>
+              </table>
+            </div>
+            {/* 底部滾動條（表體） */}
+            <div 
+              ref={tableBodyScrollRef}
+              className="overflow-x-auto"
+              style={{ scrollbarWidth: 'thin' }}
+              onScroll={(e) => {
+                if (tableHeaderScrollRef.current && tableHeaderScrollRef.current.scrollLeft !== e.currentTarget.scrollLeft) {
+                  tableHeaderScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+                }
+              }}
+            >
+              <table className="w-full text-left text-sm whitespace-nowrap" style={{ tableLayout: 'fixed', minWidth: '1400px' }}>
+                <tbody className="divide-y divide-gray-100">
                 {sortedOrders.length === 0 ? (
                   <tr>
                     <td colSpan={13} className="px-4 py-12 text-center text-gray-500 dark:text-gray-400">
@@ -887,7 +916,7 @@ const OrdersPage: React.FC = () => {
                       draggedOverOrderId === order.id ? 'border-t-2 border-orange-500' : ''
                     }`}
                   >
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 w-[100px]">
                       <div className="relative">
                         <button
                           ref={(el) => { statusButtonRefs.current[order.id] = el; }}
@@ -922,12 +951,12 @@ const OrdersPage: React.FC = () => {
                         
                       </div>
                     </td>
-                    <td className="px-4 py-4 font-bold text-gray-900 dark:text-gray-100">{order.tenant}</td>
-                    <td className="px-4 py-4 text-gray-500 dark:text-gray-400">{formatDate(order.appointment_date)}</td>
-                    <td className="px-4 py-4 text-gray-500 dark:text-gray-400">{formatDateTime(order.start_time)}</td>
-                    <td className="px-4 py-4 text-gray-500 dark:text-gray-400">{formatDateTime(order.end_time)}</td>
-                    <td className="px-4 py-4 text-gray-500 dark:text-gray-400 font-bold">{formatDateTime(order.expected_return_time)}</td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 w-[120px] font-bold text-gray-900 dark:text-gray-100">{order.tenant}</td>
+                    <td className="px-4 py-4 w-[110px] text-gray-500 dark:text-gray-400">{formatDate(order.appointment_date)}</td>
+                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400">{formatDateTime(order.start_time)}</td>
+                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400">{formatDateTime(order.end_time)}</td>
+                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400 font-bold">{formatDateTime(order.expected_return_time)}</td>
+                    <td className="px-4 py-4 w-[130px]">
                       <div className="flex flex-col gap-1">
                         {order.scooters.map((s, idx) => (
                           <span key={idx} className="bg-gray-100 px-2 py-0.5 rounded-lg text-[10px] w-fit font-medium text-gray-700">
@@ -936,7 +965,7 @@ const OrdersPage: React.FC = () => {
                         ))}
                       </div>
                     </td>
-                    <td className="px-4 py-4 text-xs leading-tight">
+                    <td className="px-4 py-4 w-[160px] text-xs leading-tight">
                       {order.shipping_company && (
                         <>
                           <div className="text-gray-700 font-bold mb-1">{order.shipping_company}</div>
@@ -950,13 +979,13 @@ const OrdersPage: React.FC = () => {
                       )}
                       {!order.shipping_company && '-'}
                     </td>
-                    <td className="px-4 py-4 text-gray-500 dark:text-gray-400 font-medium">{order.phone || '-'}</td>
-                    <td className="px-4 py-4 text-orange-600 dark:text-orange-400 font-bold">{order.partner?.name || '-'}</td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 w-[120px] text-gray-500 dark:text-gray-400 font-medium">{order.phone || '-'}</td>
+                    <td className="px-4 py-4 w-[120px] text-orange-600 dark:text-orange-400 font-bold">{order.partner?.name || '-'}</td>
+                    <td className="px-4 py-4 w-[110px]">
                       <div className="text-xs text-gray-400 dark:text-gray-500 mb-0.5">{order.payment_method || '-'}</div>
                       <div className="font-black text-gray-900 dark:text-gray-100">${order.payment_amount.toLocaleString()}</div>
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-4 py-4 w-[150px]">
                       {order.remark ? (
                         <div className="max-w-[150px]">
                           {expandedRemarks.has(order.id) ? (
@@ -985,7 +1014,7 @@ const OrdersPage: React.FC = () => {
                         <span className="text-gray-400 dark:text-gray-500">-</span>
                       )}
                     </td>
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-4 py-4 w-[80px] text-center">
                       <div className="relative">
                         <button 
                           ref={(el) => { buttonRefs.current[order.id] = el; }}
@@ -999,8 +1028,9 @@ const OrdersPage: React.FC = () => {
                   </tr>
                   ))
                 )}
-              </tbody>
-            </table>
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
