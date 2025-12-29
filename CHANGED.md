@@ -1,5 +1,43 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-29 20:29:00 - 添加臨時拖拽排序並設置默認狀態排序 / Add Temporary Drag Sorting and Set Default Status Sort
+
+### Frontend Changes
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 設置默認排序為狀態：
+    - `activeSortColumn` 初始值改為 `'status'`，頁面載入時默認按狀態排序
+  - 恢復拖拽排序功能（臨時排序，不保存）：
+    - 添加 `draggedOrderId`、`draggedOverOrderId`、`temporaryOrder` 狀態用於臨時拖拽排序
+    - 實現 `handleDragStart`、`handleDragOver`、`handleDragEnd`、`handleDragLeave` 拖拽處理函數
+    - 拖拽功能僅在無排序狀態下可用（`draggable={!activeSortColumn}`）
+    - 當有排序選項時，拖拽被禁用
+  - 修改排序邏輯：
+    - 當有排序選項時，應用排序邏輯
+    - 當無排序選項且有臨時拖拽排序時，應用臨時排序順序
+    - 臨時排序不保存到後端，僅用於當前顯示
+  - 修改表頭點擊邏輯：
+    - 點擊已排序的列時，恢復為狀態排序（而不是取消排序）
+    - 點擊排序時清除臨時拖拽排序
+  - 修改表格行：
+    - 添加 `draggable` 屬性（僅在無排序時可拖拽）
+    - 添加拖拽事件處理器
+    - 添加拖拽視覺反饋（`cursor-move`、`opacity-50`、`border-t-2 border-orange-500`）
+  - 數據刷新時清除臨時排序：
+    - 在 `fetchOrders` 成功和失敗時都清除 `temporaryOrder`
+
+### Features
+- **默認狀態排序**：頁面載入時默認按狀態排序（進行中、待接送、在合作商、已預訂、已完成）
+- **臨時拖拽排序**：在無排序狀態下可以自由拖拽訂單行調整順序
+- **不保存排序**：臨時拖拽排序僅用於顯示，不會保存到後端
+- **排序優先級**：當有排序選項時，拖拽功能被禁用，確保排序邏輯優先
+- **視覺反饋**：拖拽時顯示半透明和邊框提示
+
+### Technical Details
+- 使用 `temporaryOrder` 數組存儲臨時排序順序
+- 拖拽功能通過檢查 `activeSortColumn` 來控制是否可用
+- 支持深色模式
+
 ## 2025-12-29 14:17:00 - 移除訂單手動排序並改為點擊表頭排序 / Remove Manual Sorting and Implement Click-to-Sort on Table Headers
 
 ### Frontend Changes

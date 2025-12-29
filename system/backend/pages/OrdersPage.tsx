@@ -221,8 +221,13 @@ const OrdersPage: React.FC = () => {
   const tableHeaderScrollRef = useRef<HTMLDivElement>(null);
   const tableBodyScrollRef = useRef<HTMLDivElement>(null);
   
-  // 點擊表頭排序狀態（null表示不排序，使用原始順序）
-  const [activeSortColumn, setActiveSortColumn] = useState<'status' | 'appointment_date' | 'start_time' | 'end_time' | 'expected_return_time' | null>(null);
+  // 點擊表頭排序狀態（默認按狀態排序）
+  const [activeSortColumn, setActiveSortColumn] = useState<'status' | 'appointment_date' | 'start_time' | 'end_time' | 'expected_return_time' | null>('status');
+  
+  // 臨時拖拽排序（不保存，僅用於顯示）
+  const [draggedOrderId, setDraggedOrderId] = useState<number | null>(null);
+  const [draggedOverOrderId, setDraggedOverOrderId] = useState<number | null>(null);
+  const [temporaryOrder, setTemporaryOrder] = useState<number[]>([]); // 臨時排序順序
   
   // 備註展開狀態（顯示彈窗的訂單ID）
   const [expandedRemarkId, setExpandedRemarkId] = useState<number | null>(null);
@@ -281,12 +286,15 @@ const OrdersPage: React.FC = () => {
         const ordersData = response.data || [];
         const fetchedOrders = Array.isArray(ordersData) ? ordersData : [];
         setOrders(fetchedOrders);
+        // 清除臨時拖拽排序
+        setTemporaryOrder([]);
         if (response.meta) {
           setTotalPages(response.meta.last_page);
         }
       } catch (error) {
         console.error('Failed to fetch orders:', error);
         setOrders([]);
+        setTemporaryOrder([]);
       } finally {
         setLoading(false);
       }
@@ -520,64 +528,123 @@ const OrdersPage: React.FC = () => {
     return index === -1 ? 999 : index;
   };
 
-  // 點擊表頭排序後的訂單列表
+  // 點擊表頭排序後的訂單列表（支持臨時拖拽排序）
   const sortedOrders = useMemo(() => {
-    if (!activeSortColumn) {
-      return orders; // 沒有選擇排序，返回原始順序
+    let sorted = [...orders];
+
+    // 如果有排序選項，先應用排序
+    if (activeSortColumn) {
+      switch (activeSortColumn) {
+        case 'status':
+          // 狀態排序：進行中、待接送、在合作商、已預訂、已完成
+          sorted.sort((a, b) => getStatusOrder(a.status) - getStatusOrder(b.status));
+          break;
+        
+        case 'appointment_date':
+          // 預約日期排序：由近而遠（降序）
+          sorted.sort((a, b) => {
+            const dateA = a.appointment_date ? new Date(a.appointment_date).getTime() : 0;
+            const dateB = b.appointment_date ? new Date(b.appointment_date).getTime() : 0;
+            return dateB - dateA;
+          });
+          break;
+        
+        case 'start_time':
+          // 租借開始時間排序：由近而遠（降序）
+          sorted.sort((a, b) => {
+            const dateA = a.start_time ? new Date(a.start_time).getTime() : 0;
+            const dateB = b.start_time ? new Date(b.start_time).getTime() : 0;
+            return dateB - dateA;
+          });
+          break;
+        
+        case 'end_time':
+          // 租借結束時間排序：由近而遠（降序）
+          sorted.sort((a, b) => {
+            const dateA = a.end_time ? new Date(a.end_time).getTime() : 0;
+            const dateB = b.end_time ? new Date(b.end_time).getTime() : 0;
+            return dateB - dateA;
+          });
+          break;
+        
+        case 'expected_return_time':
+          // 預計還車時間排序：由近而遠（降序）
+          sorted.sort((a, b) => {
+            const dateA = a.expected_return_time ? new Date(a.expected_return_time).getTime() : 0;
+            const dateB = b.expected_return_time ? new Date(b.expected_return_time).getTime() : 0;
+            return dateB - dateA;
+          });
+          break;
+      }
     }
 
-    const sorted = [...orders];
-
-    switch (activeSortColumn) {
-      case 'status':
-        // 狀態排序：進行中、待接送、在合作商、已預訂、已完成
-        sorted.sort((a, b) => getStatusOrder(a.status) - getStatusOrder(b.status));
-        break;
-      
-      case 'appointment_date':
-        // 預約日期排序：由近而遠（降序）
-        sorted.sort((a, b) => {
-          const dateA = a.appointment_date ? new Date(a.appointment_date).getTime() : 0;
-          const dateB = b.appointment_date ? new Date(b.appointment_date).getTime() : 0;
-          return dateB - dateA;
-        });
-        break;
-      
-      case 'start_time':
-        // 租借開始時間排序：由近而遠（降序）
-        sorted.sort((a, b) => {
-          const dateA = a.start_time ? new Date(a.start_time).getTime() : 0;
-          const dateB = b.start_time ? new Date(b.start_time).getTime() : 0;
-          return dateB - dateA;
-        });
-        break;
-      
-      case 'end_time':
-        // 租借結束時間排序：由近而遠（降序）
-        sorted.sort((a, b) => {
-          const dateA = a.end_time ? new Date(a.end_time).getTime() : 0;
-          const dateB = b.end_time ? new Date(b.end_time).getTime() : 0;
-          return dateB - dateA;
-        });
-        break;
-      
-      case 'expected_return_time':
-        // 預計還車時間排序：由近而遠（降序）
-        sorted.sort((a, b) => {
-          const dateA = a.expected_return_time ? new Date(a.expected_return_time).getTime() : 0;
-          const dateB = b.expected_return_time ? new Date(b.expected_return_time).getTime() : 0;
-          return dateB - dateA;
-        });
-        break;
+    // 如果有臨時拖拽排序且沒有排序選項，應用臨時排序
+    if (temporaryOrder.length > 0 && !activeSortColumn) {
+      const orderMap = new Map(sorted.map(o => [o.id, o]));
+      const temporarilyOrdered = temporaryOrder.map(id => orderMap.get(id)).filter(Boolean) as Order[];
+      // 添加不在temporaryOrder中的訂單到末尾
+      const temporaryOrderSet = new Set(temporaryOrder);
+      const remaining = sorted.filter(o => !temporaryOrderSet.has(o.id));
+      return [...temporarilyOrdered, ...remaining];
     }
 
     return sorted;
-  }, [orders, activeSortColumn]);
+  }, [orders, activeSortColumn, temporaryOrder]);
 
   // 點擊表頭排序處理函數
   const handleHeaderClick = (column: 'status' | 'appointment_date' | 'start_time' | 'end_time' | 'expected_return_time') => {
-    // 如果點擊的是當前排序列，則取消排序；否則設置為新的排序列
-    setActiveSortColumn(activeSortColumn === column ? null : column);
+    // 如果點擊的是當前排序列，則取消排序（恢復為狀態排序）；否則設置為新的排序列
+    if (activeSortColumn === column) {
+      setActiveSortColumn('status'); // 取消排序時恢復為默認狀態排序
+    } else {
+      setActiveSortColumn(column);
+    }
+    // 清除臨時拖拽排序
+    setTemporaryOrder([]);
+  };
+
+  // 拖拽處理函數（僅在無排序狀態下可用）
+  const handleDragStart = (e: React.DragEvent, orderId: number) => {
+    // 只有在沒有排序選項時才允許拖拽
+    if (!activeSortColumn) {
+      setDraggedOrderId(orderId);
+      e.dataTransfer.effectAllowed = 'move';
+    } else {
+      e.preventDefault();
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent, orderId: number) => {
+    // 只有在沒有排序選項時才允許拖拽
+    if (!activeSortColumn && draggedOrderId !== orderId) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      setDraggedOverOrderId(orderId);
+    }
+  };
+
+  const handleDragEnd = () => {
+    if (!activeSortColumn && draggedOrderId && draggedOverOrderId && draggedOrderId !== draggedOverOrderId) {
+      // 使用當前 sortedOrders 的順序作為基礎
+      const currentOrder = sortedOrders.map(o => o.id);
+      const draggedIndex = currentOrder.indexOf(draggedOrderId);
+      const draggedOverIndex = currentOrder.indexOf(draggedOverOrderId);
+      
+      if (draggedIndex !== -1 && draggedOverIndex !== -1) {
+        const newOrder = [...currentOrder];
+        // 移除被拖拽的項目
+        newOrder.splice(draggedIndex, 1);
+        // 插入到新位置
+        newOrder.splice(draggedOverIndex, 0, draggedOrderId);
+        setTemporaryOrder(newOrder);
+      }
+    }
+    setDraggedOrderId(null);
+    setDraggedOverOrderId(null);
+  };
+
+  const handleDragLeave = () => {
+    setDraggedOverOrderId(null);
   };
 
   // 切換備註展開（彈窗顯示）
@@ -808,7 +875,18 @@ const OrdersPage: React.FC = () => {
                   sortedOrders.map((order) => (
                   <tr 
                     key={order.id} 
-                    className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 group transition-colors"
+                    draggable={!activeSortColumn} // 只有在無排序狀態下才可拖拽
+                    onDragStart={(e) => handleDragStart(e, order.id)}
+                    onDragOver={(e) => handleDragOver(e, order.id)}
+                    onDragEnd={handleDragEnd}
+                    onDragLeave={handleDragLeave}
+                    className={`hover:bg-gray-50/50 dark:hover:bg-gray-700/50 group transition-colors ${
+                      !activeSortColumn ? 'cursor-move' : ''
+                    } ${
+                      draggedOrderId === order.id ? 'opacity-50' : ''
+                    } ${
+                      draggedOverOrderId === order.id ? 'border-t-2 border-orange-500' : ''
+                    }`}
                   >
                     <td className="px-4 py-4 w-[100px]">
                       <div className="relative">
