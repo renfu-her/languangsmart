@@ -1,5 +1,41 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-29 14:17:00 - 移除訂單手動排序並改為點擊表頭排序 / Remove Manual Sorting and Implement Click-to-Sort on Table Headers
+
+### Frontend Changes
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 移除默認排序提示和排序選項UI：
+    - 移除「默認排序: 預約日期」提示
+    - 移除所有排序選項的複選框（狀態、租借日期、租借結束、預計還車）
+  - 移除拖拽排序功能：
+    - 移除 `draggedOrderId`、`draggedOverOrderId`、`manualOrder` 狀態
+    - 移除所有拖拽相關的事件處理器（`handleDragStart`、`handleDragOver`、`handleDragEnd`、`handleDragLeave`）
+    - 移除表格行的 `draggable` 屬性和拖拽樣式
+  - 實現點擊表頭排序功能：
+    - 添加 `activeSortColumn` 狀態來追蹤當前排序的列
+    - 添加 `handleHeaderClick` 函數處理表頭點擊
+    - 修改表頭：五個列（狀態、預約日期、租借開始、租借結束、預計還車）變為可點擊
+    - 添加視覺反饋：當前排序的列顯示橙色向下箭頭（↓）
+    - 點擊已排序的列可取消排序，恢復原始順序
+  - 修改排序邏輯：
+    - 狀態列：按照 1.進行中 2.待接送 3.在合作商 4.已預訂 5.已完成 排序
+    - 日期列（預約日期、租借開始、租借結束、預計還車）：按照日期由近而遠（降序）排序
+    - 沒有選擇排序時，保持原始順序（不進行默認排序）
+
+### Features
+- **點擊表頭排序**：點擊五個可排序列的表頭即可自動排序
+- **視覺反饋**：當前排序的列顯示橙色箭頭指示器
+- **取消排序**：再次點擊已排序的列可取消排序
+- **無默認排序**：頁面載入時不進行任何排序，保持原始順序
+- **簡化UI**：移除所有排序選項複選框，界面更簡潔
+
+### Technical Details
+- 使用 `useMemo` 優化排序性能
+- 表頭添加 `cursor-pointer` 和 `hover:bg-gray-100` 樣式提示可點擊
+- 使用 `select-none` 防止文字選擇影響點擊體驗
+- 支持深色模式
+
 ## 2025-12-29 09:15:00 - 修改備註展開方式並添加機車管理統計 / Modify Remark Expansion and Add Scooter Statistics
 
 ### Frontend Changes

@@ -221,16 +221,8 @@ const OrdersPage: React.FC = () => {
   const tableHeaderScrollRef = useRef<HTMLDivElement>(null);
   const tableBodyScrollRef = useRef<HTMLDivElement>(null);
   
-  // 排序選項狀態
-  const [sortByStatus, setSortByStatus] = useState(false);
-  const [sortByStartTime, setSortByStartTime] = useState(false);
-  const [sortByEndTime, setSortByEndTime] = useState(false);
-  const [sortByExpectedReturnTime, setSortByExpectedReturnTime] = useState(false);
-  
-  // 拖拽排序狀態
-  const [draggedOrderId, setDraggedOrderId] = useState<number | null>(null);
-  const [draggedOverOrderId, setDraggedOverOrderId] = useState<number | null>(null);
-  const [manualOrder, setManualOrder] = useState<number[]>([]); // 手動排序的順序
+  // 點擊表頭排序狀態（null表示不排序，使用原始順序）
+  const [activeSortColumn, setActiveSortColumn] = useState<'status' | 'appointment_date' | 'start_time' | 'end_time' | 'expected_return_time' | null>(null);
   
   // 備註展開狀態（顯示彈窗的訂單ID）
   const [expandedRemarkId, setExpandedRemarkId] = useState<number | null>(null);
@@ -289,15 +281,12 @@ const OrdersPage: React.FC = () => {
         const ordersData = response.data || [];
         const fetchedOrders = Array.isArray(ordersData) ? ordersData : [];
         setOrders(fetchedOrders);
-        // 重置手動排序順序
-        setManualOrder(fetchedOrders.map(o => o.id));
         if (response.meta) {
           setTotalPages(response.meta.last_page);
         }
       } catch (error) {
         console.error('Failed to fetch orders:', error);
         setOrders([]);
-        setManualOrder([]);
       } finally {
         setLoading(false);
       }
@@ -531,124 +520,64 @@ const OrdersPage: React.FC = () => {
     return index === -1 ? 999 : index;
   };
 
-  // 用於存儲最新的 sortedOrders（用於拖拽時訪問）
-  const sortedOrdersRef = useRef<Order[]>([]);
-
-  // 排序和拖拽排序後的訂單列表
+  // 點擊表頭排序後的訂單列表
   const sortedOrders = useMemo(() => {
-    let sorted = [...orders];
-
-    // 如果有手動排序順序且沒有啟用任何排序選項，使用手動排序
-    const hasAnySort = sortByStatus || sortByStartTime || sortByEndTime || sortByExpectedReturnTime;
-    if (manualOrder.length > 0 && !hasAnySort) {
-      const orderMap = new Map(sorted.map(o => [o.id, o]));
-      const manuallyOrdered = manualOrder.map(id => orderMap.get(id)).filter(Boolean) as Order[];
-      // 添加不在manualOrder中的訂單到末尾
-      const manualOrderSet = new Set(manualOrder);
-      const remaining = sorted.filter(o => !manualOrderSet.has(o.id));
-      return [...manuallyOrdered, ...remaining];
+    if (!activeSortColumn) {
+      return orders; // 沒有選擇排序，返回原始順序
     }
 
-    // 按優先級排序
-    const sortFunctions: ((a: Order, b: Order) => number)[] = [];
+    const sorted = [...orders];
 
-    // 1. 狀態排序（優先級最高）
-    if (sortByStatus) {
-      sortFunctions.push((a, b) => getStatusOrder(a.status) - getStatusOrder(b.status));
-    }
-
-    // 2. 租借開始時間排序（由近而遠，降序）
-    if (sortByStartTime) {
-      sortFunctions.push((a, b) => {
-        const dateA = a.start_time ? new Date(a.start_time).getTime() : 0;
-        const dateB = b.start_time ? new Date(b.start_time).getTime() : 0;
-        return dateB - dateA; // 由近而遠（降序）
-      });
-    }
-
-    // 3. 租借結束時間排序（由近而遠，降序）
-    if (sortByEndTime) {
-      sortFunctions.push((a, b) => {
-        const dateA = a.end_time ? new Date(a.end_time).getTime() : 0;
-        const dateB = b.end_time ? new Date(b.end_time).getTime() : 0;
-        return dateB - dateA; // 由近而遠（降序）
-      });
-    }
-
-    // 4. 預計還車時間排序（由近而遠，降序）
-    if (sortByExpectedReturnTime) {
-      sortFunctions.push((a, b) => {
-        const dateA = a.expected_return_time ? new Date(a.expected_return_time).getTime() : 0;
-        const dateB = b.expected_return_time ? new Date(b.expected_return_time).getTime() : 0;
-        return dateB - dateA; // 由近而遠（降序）
-      });
-    }
-
-    // 5. 默認按預約日期排序（升序）
-    if (sortFunctions.length === 0) {
-      sortFunctions.push((a, b) => {
-        const dateA = a.appointment_date ? new Date(a.appointment_date).getTime() : 0;
-        const dateB = b.appointment_date ? new Date(b.appointment_date).getTime() : 0;
-        return dateA - dateB; // 升序
-      });
-    }
-
-    // 應用所有排序函數
-    sorted.sort((a, b) => {
-      for (const sortFn of sortFunctions) {
-        const result = sortFn(a, b);
-        if (result !== 0) return result;
-      }
-      return 0;
-    });
-
-    // 更新 ref
-    sortedOrdersRef.current = sorted;
-    return sorted;
-  }, [orders, sortByStatus, sortByStartTime, sortByEndTime, sortByExpectedReturnTime, manualOrder]);
-
-  // 拖拽處理函數
-  const handleDragStart = (e: React.DragEvent, orderId: number) => {
-    setDraggedOrderId(orderId);
-    e.dataTransfer.effectAllowed = 'move';
-  };
-
-  const handleDragOver = (e: React.DragEvent, orderId: number) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-    if (draggedOrderId !== orderId) {
-      setDraggedOverOrderId(orderId);
-    }
-  };
-
-  const handleDragEnd = () => {
-    if (draggedOrderId && draggedOverOrderId && draggedOrderId !== draggedOverOrderId) {
-      // 使用 sortedOrdersRef 的當前順序作為基礎
-      const currentSorted = sortedOrdersRef.current;
-      const currentOrder = currentSorted.map(o => o.id);
-      const draggedIndex = currentOrder.indexOf(draggedOrderId);
-      const draggedOverIndex = currentOrder.indexOf(draggedOverOrderId);
+    switch (activeSortColumn) {
+      case 'status':
+        // 狀態排序：進行中、待接送、在合作商、已預訂、已完成
+        sorted.sort((a, b) => getStatusOrder(a.status) - getStatusOrder(b.status));
+        break;
       
-      if (draggedIndex !== -1 && draggedOverIndex !== -1) {
-        const newOrder = [...currentOrder];
-        // 移除被拖拽的項目
-        newOrder.splice(draggedIndex, 1);
-        // 插入到新位置
-        newOrder.splice(draggedOverIndex, 0, draggedOrderId);
-        setManualOrder(newOrder);
-        // 清除所有排序選項，使用手動排序
-        setSortByStatus(false);
-        setSortByStartTime(false);
-        setSortByEndTime(false);
-        setSortByExpectedReturnTime(false);
-      }
+      case 'appointment_date':
+        // 預約日期排序：由近而遠（降序）
+        sorted.sort((a, b) => {
+          const dateA = a.appointment_date ? new Date(a.appointment_date).getTime() : 0;
+          const dateB = b.appointment_date ? new Date(b.appointment_date).getTime() : 0;
+          return dateB - dateA;
+        });
+        break;
+      
+      case 'start_time':
+        // 租借開始時間排序：由近而遠（降序）
+        sorted.sort((a, b) => {
+          const dateA = a.start_time ? new Date(a.start_time).getTime() : 0;
+          const dateB = b.start_time ? new Date(b.start_time).getTime() : 0;
+          return dateB - dateA;
+        });
+        break;
+      
+      case 'end_time':
+        // 租借結束時間排序：由近而遠（降序）
+        sorted.sort((a, b) => {
+          const dateA = a.end_time ? new Date(a.end_time).getTime() : 0;
+          const dateB = b.end_time ? new Date(b.end_time).getTime() : 0;
+          return dateB - dateA;
+        });
+        break;
+      
+      case 'expected_return_time':
+        // 預計還車時間排序：由近而遠（降序）
+        sorted.sort((a, b) => {
+          const dateA = a.expected_return_time ? new Date(a.expected_return_time).getTime() : 0;
+          const dateB = b.expected_return_time ? new Date(b.expected_return_time).getTime() : 0;
+          return dateB - dateA;
+        });
+        break;
     }
-    setDraggedOrderId(null);
-    setDraggedOverOrderId(null);
-  };
 
-  const handleDragLeave = () => {
-    setDraggedOverOrderId(null);
+    return sorted;
+  }, [orders, activeSortColumn]);
+
+  // 點擊表頭排序處理函數
+  const handleHeaderClick = (column: 'status' | 'appointment_date' | 'start_time' | 'end_time' | 'expected_return_time') => {
+    // 如果點擊的是當前排序列，則取消排序；否則設置為新的排序列
+    setActiveSortColumn(activeSortColumn === column ? null : column);
   };
 
   // 切換備註展開（彈窗顯示）
@@ -747,78 +676,10 @@ const OrdersPage: React.FC = () => {
 
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
         <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-800/50">
-          <div className="flex flex-col gap-4">
-            {/* 默認排序提示 */}
-            <div className="flex items-center justify-between">
-              <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                默認排序: 預約日期
-              </div>
-              <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
-                <span>顯示 {sortedOrders.length} 筆</span>
-              </div>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+              <span>顯示 {sortedOrders.length} 筆</span>
             </div>
-            
-            {/* 排序選項 */}
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">排序選項:</span>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={sortByStatus}
-                    onChange={(e) => setSortByStatus(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
-                  />
-                  {sortByStatus && (
-                    <Check size={12} className="absolute top-0.5 left-0.5 text-white pointer-events-none" />
-                  )}
-                </div>
-                <span className="text-xs text-gray-700 dark:text-gray-300">狀態</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={sortByStartTime}
-                    onChange={(e) => setSortByStartTime(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
-                  />
-                  {sortByStartTime && (
-                    <Check size={12} className="absolute top-0.5 left-0.5 text-white pointer-events-none" />
-                  )}
-                </div>
-                <span className="text-xs text-gray-700 dark:text-gray-300">租借日期</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={sortByEndTime}
-                    onChange={(e) => setSortByEndTime(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
-                  />
-                  {sortByEndTime && (
-                    <Check size={12} className="absolute top-0.5 left-0.5 text-white pointer-events-none" />
-                  )}
-                </div>
-                <span className="text-xs text-gray-700 dark:text-gray-300">租借結束</span>
-              </label>
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <div className="relative">
-                  <input
-                    type="checkbox"
-                    checked={sortByExpectedReturnTime}
-                    onChange={(e) => setSortByExpectedReturnTime(e.target.checked)}
-                    className="w-4 h-4 rounded border-gray-300 text-orange-600 focus:ring-orange-500 cursor-pointer"
-                  />
-                  {sortByExpectedReturnTime && (
-                    <Check size={12} className="absolute top-0.5 left-0.5 text-white pointer-events-none" />
-                  )}
-                </div>
-                <span className="text-xs text-gray-700 dark:text-gray-300">預計還車</span>
-              </label>
-            </div>
-            
             {/* 搜索框 */}
             <div className="relative w-full max-w-sm">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
@@ -857,12 +718,62 @@ const OrdersPage: React.FC = () => {
               <table className="w-full text-left text-sm whitespace-nowrap" style={{ tableLayout: 'fixed', minWidth: '1400px' }}>
                 <thead className="bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 font-medium">
                   <tr>
-                    <th className="px-4 py-4 w-[100px]">狀態</th>
+                    <th 
+                      className="px-4 py-4 w-[100px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none"
+                      onClick={() => handleHeaderClick('status')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>狀態</span>
+                        {activeSortColumn === 'status' && (
+                          <span className="text-orange-600 dark:text-orange-400">↓</span>
+                        )}
+                      </div>
+                    </th>
                     <th className="px-4 py-4 w-[120px]">承租人</th>
-                    <th className="px-4 py-4 w-[110px]">預約日期</th>
-                    <th className="px-4 py-4 w-[140px]">租借開始</th>
-                    <th className="px-4 py-4 w-[140px]">租借結束</th>
-                    <th className="px-4 py-4 w-[140px]">預計還車</th>
+                    <th 
+                      className="px-4 py-4 w-[110px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none"
+                      onClick={() => handleHeaderClick('appointment_date')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>預約日期</span>
+                        {activeSortColumn === 'appointment_date' && (
+                          <span className="text-orange-600 dark:text-orange-400">↓</span>
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="px-4 py-4 w-[140px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none"
+                      onClick={() => handleHeaderClick('start_time')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>租借開始</span>
+                        {activeSortColumn === 'start_time' && (
+                          <span className="text-orange-600 dark:text-orange-400">↓</span>
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="px-4 py-4 w-[140px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none"
+                      onClick={() => handleHeaderClick('end_time')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>租借結束</span>
+                        {activeSortColumn === 'end_time' && (
+                          <span className="text-orange-600 dark:text-orange-400">↓</span>
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="px-4 py-4 w-[140px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none"
+                      onClick={() => handleHeaderClick('expected_return_time')}
+                    >
+                      <div className="flex items-center space-x-1">
+                        <span>預計還車</span>
+                        {activeSortColumn === 'expected_return_time' && (
+                          <span className="text-orange-600 dark:text-orange-400">↓</span>
+                        )}
+                      </div>
+                    </th>
                     <th className="px-4 py-4 w-[130px]">租借機車 (款x台)</th>
                     <th className="px-4 py-4 w-[160px]">航運(來/回)</th>
                     <th className="px-4 py-4 w-[120px]">連絡電話</th>
@@ -897,16 +808,7 @@ const OrdersPage: React.FC = () => {
                   sortedOrders.map((order) => (
                   <tr 
                     key={order.id} 
-                    draggable={true}
-                    onDragStart={(e) => handleDragStart(e, order.id)}
-                    onDragOver={(e) => handleDragOver(e, order.id)}
-                    onDragEnd={handleDragEnd}
-                    onDragLeave={handleDragLeave}
-                    className={`hover:bg-gray-50/50 dark:hover:bg-gray-700/50 group transition-colors cursor-move ${
-                      draggedOrderId === order.id ? 'opacity-50' : ''
-                    } ${
-                      draggedOverOrderId === order.id ? 'border-t-2 border-orange-500' : ''
-                    }`}
+                    className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 group transition-colors"
                   >
                     <td className="px-4 py-4 w-[100px]">
                       <div className="relative">
