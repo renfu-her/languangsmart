@@ -36,10 +36,10 @@ class OrderResource extends JsonResource
                 return $this->partner ? new PartnerResource($this->partner) : null;
             }),
             'tenant' => $this->tenant,
-            'appointment_date' => $this->appointment_date->format('Y-m-d'),
+            'appointment_date' => $this->appointment_date ? $this->appointment_date->format('Y-m-d') : null,
             'sort_order' => $this->sort_order ?? 0,
-            'start_time' => $this->start_time->format('Y-m-d H:i:s'),
-            'end_time' => $this->end_time->format('Y-m-d H:i:s'),
+            'start_time' => $this->start_time ? $this->start_time->format('Y-m-d H:i:s') : null,
+            'end_time' => $this->end_time ? $this->end_time->format('Y-m-d H:i:s') : null,
             'expected_return_time' => $this->expected_return_time ? $this->expected_return_time->format('Y-m-d H:i:s') : null,
             'phone' => $this->phone,
             'shipping_company' => $this->shipping_company,

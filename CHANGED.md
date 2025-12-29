@@ -1,5 +1,24 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-29 21:25:00 - 修復 OrderResource 中對 null 值調用 format() 的錯誤 / Fix format() Call on Null in OrderResource
+
+### Backend Changes
+
+- **OrderResource.php** (`app/Http/Resources/OrderResource.php`)
+  - 修復 null 值處理：
+    - `appointment_date` 添加 null 檢查：`$this->appointment_date ? $this->appointment_date->format('Y-m-d') : null`
+    - `start_time` 添加 null 檢查：`$this->start_time ? $this->start_time->format('Y-m-d H:i:s') : null`
+    - `end_time` 添加 null 檢查：`$this->end_time ? $this->end_time->format('Y-m-d H:i:s') : null`
+  - 現在這些欄位可以為 null，不會再出現 "Call to a member function format() on null" 錯誤
+
+### Bug Fixes
+- **format() 錯誤**：修復當 `appointment_date`、`start_time`、`end_time` 為 null 時調用 `format()` 方法導致的錯誤
+- 現在這些欄位在為 null 時會返回 null，而不是嘗試調用方法
+
+### Technical Details
+- 與 `expected_return_time`、`ship_arrival_time`、`ship_return_time` 的處理方式一致
+- 確保所有可為 null 的日期/時間欄位都有適當的 null 檢查
+
 ## 2025-12-29 21:16:00 - 調整訂單必填欄位規則 / Adjust Order Required Fields Rules
 
 ### Backend Changes
