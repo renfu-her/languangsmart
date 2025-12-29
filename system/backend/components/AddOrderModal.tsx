@@ -236,6 +236,11 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
   };
 
   const handleSubmit = async () => {
+    if (!formData.appointment_date) {
+      alert('請填寫必填欄位（預約日期）');
+      return;
+    }
+
     if (!formData.payment_amount) {
       alert('請填寫必填欄位（總金額）');
       return;
@@ -390,7 +395,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
 
               <div>
                 <label className={`${labelClasses} flex items-center`}>
-                  <Calendar size={14} className="mr-1.5" /> 預約日期
+                  <Calendar size={14} className="mr-1.5" /> 預約日期 <span className="text-red-500 ml-1">*</span>
                 </label>
                 <Flatpickr
                   key="appointment_date"

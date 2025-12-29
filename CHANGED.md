@@ -1,5 +1,35 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-29 21:28:00 - 將預約日期設為必填欄位 / Set Appointment Date as Required Field
+
+### Backend Changes
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修改 `store` 方法驗證規則：
+    - `appointment_date` 改為 `required|date`（必填）
+  - 修改 `update` 方法驗證規則：
+    - `appointment_date` 改為 `required|date`（必填）
+
+### Frontend Changes
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 在「預約日期」標籤後添加紅色 * 標記，表示必填
+  - 在 `handleSubmit` 中添加預約日期的前端驗證
+  - 如果未填寫預約日期，會顯示提示訊息
+
+### Features
+- **必填欄位更新**：現在有 4 個必填欄位
+  - 預約日期 * (`appointment_date`) - 新增
+  - 總金額 * (`payment_amount`)
+  - 訂單狀態 * (`status`)
+  - 租借機車選取 * (`scooter_ids`)
+- **新增和編輯**：新增訂單和編輯訂單都使用相同的必填規則
+
+### Technical Details
+- API 驗證規則：`appointment_date` 為 `required|date`
+- 前端驗證：在提交前檢查預約日期是否填寫
+- 前端 UI：預約日期標籤顯示紅色 * 標記
+
 ## 2025-12-29 21:25:00 - 修復 OrderResource 中對 null 值調用 format() 的錯誤 / Fix format() Call on Null in OrderResource
 
 ### Backend Changes
