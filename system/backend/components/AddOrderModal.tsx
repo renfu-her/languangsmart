@@ -60,7 +60,6 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     partner_id: '',
     tenant: '',
     appointment_date: '',
-    sort_order: '',
     start_time: '',
     end_time: '',
     expected_return_time: '',
@@ -117,7 +116,6 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
             partner_id: editingOrder.partner?.id.toString() || '',
             tenant: editingOrder.tenant,
             appointment_date: formatDate(editingOrder.appointment_date),
-            sort_order: editingOrder.sort_order?.toString() || '',
             start_time: formatDateTime(editingOrder.start_time),
             end_time: formatDateTime(editingOrder.end_time),
             expected_return_time: formatDateTime(editingOrder.expected_return_time),
@@ -169,7 +167,6 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
             partner_id: '',
             tenant: '',
             appointment_date: '',
-            sort_order: '',
             start_time: '',
             end_time: '',
             expected_return_time: '',
@@ -251,19 +248,10 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
 
     setIsSubmitting(true);
     try {
-      // 如果没有提供 sort_order，默认使用 appointment_date 的 timestamp
-      let sortOrder: number | undefined = undefined;
-      if (formData.sort_order && formData.sort_order.trim() !== '') {
-        sortOrder = parseInt(formData.sort_order, 10);
-      } else if (formData.appointment_date) {
-        sortOrder = new Date(formData.appointment_date).getTime();
-      }
-
       const orderData = {
         partner_id: formData.partner_id || null,
         tenant: formData.tenant,
         appointment_date: formData.appointment_date,
-        sort_order: sortOrder,
         start_time: formData.start_time,
         end_time: formData.end_time,
         expected_return_time: formData.expected_return_time || null,
@@ -383,12 +371,9 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                       const month = String(date.getMonth() + 1).padStart(2, '0');
                       const day = String(date.getDate()).padStart(2, '0');
                       const dateStr = `${year}-${month}-${day}`;
-                      const timestamp = date.getTime();
                       setFormData(prev => ({ 
                         ...prev, 
-                        appointment_date: dateStr,
-                        // 如果没有手动设置过 sort_order，则自动使用日期的时间戳
-                        sort_order: prev.sort_order === '' ? timestamp.toString() : prev.sort_order
+                        appointment_date: dateStr
                       }));
                       // 通知父組件年份改變
                       if (onYearChange && year) {
@@ -399,20 +384,6 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                   options={dateOptions}
                   placeholder="選擇日期"
                 />
-              </div>
-
-              <div>
-                <label className={labelClasses}>排序順序</label>
-                <input 
-                  type="number" 
-                  className={inputClasses}
-                  placeholder="留空則使用預約日期時間戳"
-                  value={formData.sort_order}
-                  onChange={(e) => setFormData({ ...formData, sort_order: e.target.value })}
-                />
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  數字越大越靠前，留空則自動使用預約日期作為排序依據
-                </p>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

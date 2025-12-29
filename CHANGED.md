@@ -1,5 +1,79 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-29 21:06:00 - 移除 API 中的 sort_order 處理 / Remove sort_order Handling from API
+
+### Frontend Changes
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 移除發送 `sort_order` 到 API 的邏輯
+  - 不再計算或發送 `sort_order` 欄位
+
+### Backend Changes
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 移除 `store` 方法中的 `sort_order` 驗證規則
+  - 移除 `store` 方法中的 `sort_order` 自動設置邏輯
+  - 移除 `update` 方法中的 `sort_order` 驗證規則
+  - 移除 `update` 方法中的 `sort_order` 自動設置邏輯
+  - 移除 `index` 方法中的 `sort_order` 排序邏輯
+  - 現在只按 `appointment_date` 和 `created_at` 排序
+
+### Features
+- **簡化 API**：API 不再處理或記錄 `sort_order` 欄位
+- **前端排序**：排序功能完全由前端處理，不依賴後端 `sort_order` 欄位
+- **資料庫兼容**：資料庫欄位保留（不影響現有數據），但 API 不再使用
+
+### Technical Details
+- 前端不再發送 `sort_order` 到 API
+- 後端不再驗證、處理或保存 `sort_order`
+- 列表排序改為只按 `appointment_date DESC, created_at DESC`
+- 資料庫 `sort_order` 欄位保留但不使用
+
+## 2025-12-29 21:05:00 - 修改後端 API 以處理毫秒級時間戳 / Update Backend API to Handle Millisecond Timestamps
+
+### Backend Changes
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修改 `store` 方法：
+    - 添加毫秒級時間戳檢測和轉換邏輯
+    - 如果 `sort_order` 大於 10^10（毫秒級），自動轉換為秒級時間戳
+    - 確保與前端發送的毫秒級時間戳兼容
+  - 修改 `update` 方法：
+    - 添加毫秒級時間戳檢測和轉換邏輯
+    - 如果 `sort_order` 大於 10^10（毫秒級），自動轉換為秒級時間戳
+    - 確保與前端發送的毫秒級時間戳兼容
+
+### Technical Details
+- 前端使用 `new Date().getTime()` 返回毫秒級時間戳（例如：1735430400000）
+- 後端使用 `strtotime()` 返回秒級時間戳（例如：1735430400）
+- 檢測邏輯：如果 `sort_order > 10000000000`，則為毫秒級，需要除以 1000 轉換為秒級
+- 這樣可以同時兼容前端發送的毫秒級時間戳和後端自動生成的秒級時間戳
+
+## 2025-12-29 21:04:00 - 移除排序順序輸入欄位 / Remove Sort Order Input Field
+
+### Frontend Changes
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 移除排序順序輸入欄位：
+    - 從表單中移除「排序順序」輸入欄位及其說明文字
+    - 從 `formData` 狀態中移除 `sort_order` 欄位
+    - 移除編輯模式下載入 `sort_order` 的邏輯
+    - 移除預約日期變更時自動設置 `sort_order` 的邏輯
+  - 簡化 `sort_order` 處理：
+    - `handleSubmit` 中自動使用 `appointment_date` 的時間戳作為 `sort_order`
+    - 不再允許用戶手動輸入排序順序
+    - 後端仍會自動處理 `sort_order`，但前端不再顯示輸入欄位
+
+### Features
+- **自動排序**：排序順序自動根據預約日期計算，無需手動輸入
+- **簡化界面**：移除排序順序輸入欄位，簡化表單界面
+- **後端兼容**：後端邏輯保持不變，仍會自動處理 `sort_order`
+
+### Technical Details
+- `sort_order` 自動使用 `appointment_date` 的時間戳（毫秒）
+- 後端會將毫秒轉換為秒級時間戳
+- 用戶無法再手動設置排序順序
+
 ## 2025-12-29 20:38:00 - 允許在有排序時也可以拖拽移動 / Allow Drag Sorting Even When Sort Option is Active
 
 ### Frontend Changes
