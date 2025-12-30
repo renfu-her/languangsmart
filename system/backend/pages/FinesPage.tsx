@@ -370,17 +370,8 @@ const FinesPage: React.FC = () => {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-5 font-black text-base tracking-tight">
-                        {fine.scooter?.plate_number ? (
-                          <span 
-                            style={fine.scooter?.display_color ? { color: fine.scooter.display_color } : undefined}
-                            className={fine.scooter?.display_color ? '' : 'text-gray-900 dark:text-gray-100'}
-                          >
-                            {fine.scooter.plate_number}
-                          </span>
-                        ) : (
-                          <span className="text-gray-900 dark:text-gray-100">-</span>
-                        )}
+                      <td className="px-6 py-5 font-black text-base tracking-tight text-gray-900 dark:text-gray-100">
+                        {fine.scooter?.plate_number || '-'}
                       </td>
                       <td className="px-6 py-5 text-gray-800 dark:text-gray-200 font-bold">{fine.tenant}</td>
                       <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{fine.violation_date}</td>

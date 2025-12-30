@@ -1,5 +1,27 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 22:17:22 - 移除機車和罰單頁面的顏色設定，改為黑色文字 / Remove Color Settings from Scooters and Fines Pages, Use Black Text
+
+### Frontend Changes
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - **車牌號碼**：移除 `display_color` 的顏色設定，改為純黑色文字 (`text-gray-900 dark:text-gray-100`)
+  - **機車型號**：移除 `display_color` 的顏色設定，改為純黑色文字 (`text-gray-900 dark:text-gray-100`)
+  - **狀態標籤**：移除背景顏色設定，改為預設灰色背景 (`bg-gray-100 dark:bg-gray-700`)，文字為黑色
+
+- **FinesPage.tsx** (`system/backend/pages/FinesPage.tsx`)
+  - **車牌號碼**：移除 `display_color` 的顏色設定，改為純黑色文字 (`text-gray-900 dark:text-gray-100`)
+
+### Features
+- **簡化視覺設計**：移除機車和罰單頁面中車牌號碼、機車型號的顏色設定
+- **統一的文字顏色**：所有相關欄位使用黑色文字，保持一致的視覺風格
+- **狀態標籤簡化**：機車管理頁面的狀態標籤使用預設灰色背景，不再使用彩色背景
+
+### Technical Details
+- 移除所有 `display_color` 相關的內聯樣式設定
+- 使用 Tailwind CSS 類別設定文字顏色為黑色
+- 狀態標籤改為使用預設的灰色背景樣式
+
 ## 2025-12-30 22:08:41 - 調整狀態標籤顏色為更淡的版本 / Adjust Status Tag Colors to Lighter Shades
 
 ### Frontend Changes

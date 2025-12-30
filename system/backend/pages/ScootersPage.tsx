@@ -426,21 +426,11 @@ const ScootersPage: React.FC = () => {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-5 font-black">
-                        <span 
-                          style={scooter.display_color ? { color: scooter.display_color } : undefined}
-                          className={scooter.display_color ? '' : 'text-gray-900 dark:text-gray-100'}
-                        >
-                          {scooter.plate_number}
-                        </span>
+                      <td className="px-6 py-5 font-black text-gray-900 dark:text-gray-100">
+                        {scooter.plate_number}
                       </td>
-                      <td className="px-6 py-5 font-bold">
-                        <span 
-                          style={scooter.display_color ? { color: scooter.display_color } : undefined}
-                          className={scooter.display_color ? '' : 'text-gray-900 dark:text-gray-100'}
-                        >
-                          {scooter.model}
-                        </span>
+                      <td className="px-6 py-5 font-bold text-gray-900 dark:text-gray-100">
+                        {scooter.model}
                       </td>
                       <td className="px-6 py-5">
                         <span className={`px-2 py-1 rounded-lg text-[10px] font-black border ${
@@ -469,15 +459,7 @@ const ScootersPage: React.FC = () => {
                       </td>
                       <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.store?.name || '-'}</td>
                       <td className="px-6 py-5">
-                         <span 
-                           className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm text-gray-900 dark:text-gray-100"
-                           style={
-                             scooter.status === '待出租' ? { backgroundColor: '#D1D5DB' } : // 灰色 (gray-300)
-                             scooter.status === '出租中' ? { backgroundColor: '#BAE6FD' } : // 天藍色 (sky-200)
-                             scooter.status === '保養中' ? { backgroundColor: '#FED7AA' } : // 橘色 (orange-200)
-                             { backgroundColor: '#E5E7EB' } // 預設灰色
-                           }
-                         >
+                         <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm text-gray-900 dark:text-gray-100 bg-gray-100 dark:bg-gray-700">
                            {scooter.status}
                          </span>
                       </td>
