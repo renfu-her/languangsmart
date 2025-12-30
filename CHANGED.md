@@ -1,5 +1,30 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 15:10:15 - 更新 payment_method enum 欄位，添加缺少的三個付款方式選項 / Update payment_method Enum to Include Missing Payment Options
+
+### Database Changes
+
+- **Migration** (`database/migrations/2025_12_30_150956_update_payment_method_enum_in_orders_table.php`)
+  - 新增 migration 檔案來更新 `orders` 表的 `payment_method` enum 欄位
+  - 添加缺少的三個付款方式選項：
+    - 匯款
+    - 刷卡
+    - 行動支付
+  - 更新後的完整選項列表：`['現金', '月結', '日結', '匯款', '刷卡', '行動支付']`
+  - 使用 `ALTER TABLE` 語句修改 MySQL enum 欄位
+
+### Bug Fixes
+- **SQL 錯誤修復**：修復 `Data truncated for column 'payment_method'` 錯誤
+  - 之前資料庫 enum 只有三個選項（現金、月結、日結）
+  - 但前端和 API 驗證規則已經包含六個選項
+  - 當用戶選擇「匯款」、「刷卡」或「行動支付」時會導致 SQL 錯誤
+  - 現在資料庫 enum 已更新為包含所有六個選項
+
+### Technical Details
+- Migration 使用 `DB::statement()` 直接執行 SQL `ALTER TABLE` 語句
+- 因為 Laravel Schema Builder 不支援直接修改 enum 值，所以使用原生 SQL
+- `down()` 方法可以還原為原本的三個選項
+
 ## 2025-12-30 08:46:40 - 將切換深淺模式按鈕加回左側邊欄 / Add Dark/Light Mode Toggle Button Back to Sidebar
 
 ### Frontend Changes
