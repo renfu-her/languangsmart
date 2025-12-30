@@ -1,5 +1,24 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 17:33:57 - 更新機車管理列表車牌號碼使用 display_color / Update Scooters List Plate Number to Use display_color
+
+### Frontend Changes
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - 更新「車牌號碼」欄位顯示：
+    - 如果機車有設定 `display_color`，使用該顏色顯示車牌號碼文字
+    - 如果沒有 `display_color`，使用黑色（淺色模式）或白色（深色模式）
+    - 使用 inline style 來應用 `display_color`
+  - 與「機車型號」欄位保持一致，都使用 `display_color` 顯示顏色
+
+### Features
+- **視覺一致性**：機車管理列表中的「車牌號碼」和「機車型號」都使用 `display_color` 顯示
+- **用戶體驗**：可以通過顏色快速識別不同機車
+
+### Technical Details
+- 使用 `style={{ color: display_color }}` 來應用顏色
+- 如果沒有 `display_color`，使用 Tailwind CSS 類名 `text-gray-900 dark:text-gray-100`
+
 ## 2025-12-30 17:31:13 - 在罰單管理和機車管理列表中使用 display_color 顯示顏色 / Use display_color in Fines and Scooters List
 
 ### Frontend Changes
