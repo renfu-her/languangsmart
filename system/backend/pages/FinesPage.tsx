@@ -389,7 +389,11 @@ const FinesPage: React.FC = () => {
                       <td className="px-6 py-5">
                         <span 
                           className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm text-gray-900 dark:text-gray-100"
-                          style={fine.scooter?.display_color ? { backgroundColor: fine.scooter.display_color } : { backgroundColor: '#E5E7EB' }}
+                          style={
+                            fine.payment_status === '已處理' ? { backgroundColor: '#7DD3FC' } : // 天藍色 (sky-300)
+                            fine.payment_status === '未繳費' ? { backgroundColor: '#9CA3AF' } : // 灰色
+                            { backgroundColor: '#E5E7EB' } // 預設灰色
+                          }
                         >
                           {fine.payment_status === '未繳費' ? <AlertCircle size={12} className="mr-1" /> : <CheckCircle2 size={12} className="mr-1" />}
                           {fine.payment_status}

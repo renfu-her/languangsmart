@@ -1,5 +1,31 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 22:04:20 - 更新狀態標籤顏色 / Update Status Tag Colors
+
+### Frontend Changes
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - 更新狀態標籤的背景顏色：
+    - **待出租**：灰色 (`#9CA3AF`)
+    - **出租中**：天藍色 (`#7DD3FC`, sky-300)
+    - **保養中**：橘色 (`#FB923C`, orange-400)
+  - 狀態標籤不再使用 `scooter.display_color`，改為根據狀態使用固定顏色
+
+- **FinesPage.tsx** (`system/backend/pages/FinesPage.tsx`)
+  - 更新狀態標籤的背景顏色：
+    - **已處理**：天藍色 (`#7DD3FC`, sky-300)
+    - **未繳費**：灰色 (`#9CA3AF`)
+  - 狀態標籤不再使用 `fine.scooter?.display_color`，改為根據狀態使用固定顏色
+
+### Features
+- **統一的狀態顏色**：不同狀態使用不同的顏色，便於快速識別
+- **視覺一致性**：機車管理和罰單管理頁面的狀態顏色保持一致
+
+### Technical Details
+- 使用內聯樣式 (`style`) 設定狀態標籤的背景顏色
+- 顏色值使用 hex 格式，對應 Tailwind CSS 顏色類別
+- 文字顏色保持黑色 (`text-gray-900 dark:text-gray-100`)
+
 ## 2025-12-30 17:58:39 - 修復機車管理頁面狀態計數邏輯 / Fix Scooters Page Status Count Logic
 
 ### Frontend Changes

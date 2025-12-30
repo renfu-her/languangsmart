@@ -471,7 +471,12 @@ const ScootersPage: React.FC = () => {
                       <td className="px-6 py-5">
                          <span 
                            className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm text-gray-900 dark:text-gray-100"
-                           style={scooter.display_color ? { backgroundColor: scooter.display_color } : { backgroundColor: '#E5E7EB' }}
+                           style={
+                             scooter.status === '待出租' ? { backgroundColor: '#9CA3AF' } : // 灰色
+                             scooter.status === '出租中' ? { backgroundColor: '#7DD3FC' } : // 天藍色 (sky-300)
+                             scooter.status === '保養中' ? { backgroundColor: '#FB923C' } : // 橘色 (orange-400)
+                             { backgroundColor: '#E5E7EB' } // 預設灰色
+                           }
                          >
                            {scooter.status}
                          </span>
