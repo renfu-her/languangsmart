@@ -472,9 +472,9 @@ const ScootersPage: React.FC = () => {
                          <span 
                            className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm text-gray-900 dark:text-gray-100"
                            style={
-                             scooter.status === '待出租' ? { backgroundColor: '#9CA3AF' } : // 灰色
-                             scooter.status === '出租中' ? { backgroundColor: '#7DD3FC' } : // 天藍色 (sky-300)
-                             scooter.status === '保養中' ? { backgroundColor: '#FB923C' } : // 橘色 (orange-400)
+                             scooter.status === '待出租' ? { backgroundColor: '#D1D5DB' } : // 灰色 (gray-300)
+                             scooter.status === '出租中' ? { backgroundColor: '#BAE6FD' } : // 天藍色 (sky-200)
+                             scooter.status === '保養中' ? { backgroundColor: '#FED7AA' } : // 橘色 (orange-200)
                              { backgroundColor: '#E5E7EB' } // 預設灰色
                            }
                          >

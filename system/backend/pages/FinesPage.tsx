@@ -390,8 +390,8 @@ const FinesPage: React.FC = () => {
                         <span 
                           className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm text-gray-900 dark:text-gray-100"
                           style={
-                            fine.payment_status === '已處理' ? { backgroundColor: '#7DD3FC' } : // 天藍色 (sky-300)
-                            fine.payment_status === '未繳費' ? { backgroundColor: '#9CA3AF' } : // 灰色
+                            fine.payment_status === '已處理' ? { backgroundColor: '#BAE6FD' } : // 天藍色 (sky-200)
+                            fine.payment_status === '未繳費' ? { backgroundColor: '#D1D5DB' } : // 灰色 (gray-300)
                             { backgroundColor: '#E5E7EB' } // 預設灰色
                           }
                         >
