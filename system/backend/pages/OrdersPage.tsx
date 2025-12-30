@@ -550,35 +550,31 @@ const OrdersPage: React.FC = () => {
     return 'text-gray-400 dark:text-gray-500';
   };
 
-  // 獲取機車型號顏色（優先使用 display_color，否則根據類型）
-  const getScooterModelColor = (model: string, type: string | undefined, displayColor: string | undefined): string => {
-    // 優先使用機車設定的顯示顏色
+  // 獲取機車型號顏色（優先使用訂單中機車的 display_color，否則根據類型）
+  const getScooterModelColor = (model: string, type: string | undefined, displayColor: string | undefined): { colorClass: string; displayColor: string | null } => {
+    // 優先使用訂單中機車設定的顯示顏色（直接從 OrderResource 返回的 display_color）
     if (displayColor) {
-      return ''; // 返回空字符串，使用 inline style
+      return { colorClass: '', displayColor }; // 返回空字符串，使用 inline style
     }
     
-    // 如果沒有 display_color，檢查是否有在映射中
+    // 如果訂單中沒有 display_color，檢查是否有在映射中（作為後備）
     if (scooterColorMap[model]) {
-      return ''; // 返回空字符串，使用 inline style
+      return { colorClass: '', displayColor: scooterColorMap[model] };
     }
     
     // 如果都沒有，根據機車類型返回對應顏色
-    if (!type) {
-      return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400';
-    }
-    
+    let colorClass = 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400';
     if (type === '白牌') {
-      return 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400';
+      colorClass = 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400';
     } else if (type === '綠牌') {
-      return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+      colorClass = 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
     } else if (type === '電輔車') {
-      return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+      colorClass = 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
     } else if (type === '三輪車') {
-      return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      colorClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
     }
     
-    // 默認顏色
-    return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400';
+    return { colorClass, displayColor: null };
   };
 
   const handleEdit = (order: Order) => {
@@ -1053,10 +1049,10 @@ const OrdersPage: React.FC = () => {
                     <td className="px-4 py-4 w-[130px]">
                       <div className="flex flex-col gap-1">
                         {order.scooters.map((s, idx) => {
-                          const colorClass = getScooterModelColor(s.model, s.type, s.display_color);
-                          const displayColor = s.display_color || scooterColorMap[s.model];
+                          // 優先使用訂單中機車的 display_color（直接從 OrderResource 返回）
+                          const { colorClass, displayColor } = getScooterModelColor(s.model, s.type, s.display_color);
                           
-                          // 如果有自定義顏色，使用 inline style
+                          // 如果有自定義顏色（從訂單中的機車獲取），使用 inline style
                           if (displayColor) {
                             return (
                               <span 
