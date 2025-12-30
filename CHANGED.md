@@ -1,5 +1,56 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 15:17:17 - 為合作商添加顏色欄位並實現顏色選擇功能 / Add Color Field to Partners and Implement Color Selection
+
+### Database Changes
+
+- **Migration** (`database/migrations/2025_12_30_151200_add_color_to_partners_table.php`)
+  - 新增 migration 檔案為 `partners` 表添加 `color` 欄位
+  - 欄位類型：`string('color', 50)->nullable()`
+  - 位置：在 `photo_path` 欄位之後
+
+### Backend Changes
+
+- **Partner.php** (`app/Models/Partner.php`)
+  - 添加 `color` 到 `$fillable` 陣列
+
+- **PartnerController.php** (`app/Http/Controllers/Api/PartnerController.php`)
+  - 在 `store` 和 `update` 方法的驗證規則中添加 `color` 欄位
+  - 驗證規則：`'color' => 'nullable|string|max:50'`
+
+- **PartnerResource.php** (`app/Http/Resources/PartnerResource.php`)
+  - 在 `toArray` 方法中添加 `color` 欄位返回
+
+### Frontend Changes
+
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 更新 `Partner` interface 添加 `color: string | null`
+  - 更新 `formData` 添加 `color` 欄位
+  - 在表單中添加顏色選擇器：
+    - 16 種預設顏色選項（purple, indigo, pink, teal, cyan, violet, fuchsia, rose, emerald, blue, green, orange, red, yellow, amber, lime）
+    - 每個顏色顯示為可點擊的按鈕
+    - 選中的顏色會顯示勾選標記和邊框高亮
+    - 顯示預覽文字展示選中的顏色效果
+  - 在新增和編輯合作商時可以選擇顏色
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 添加 `partnerColorMap` state 來儲存合作商名稱到顏色的映射
+  - 添加 `useEffect` 在頁面載入時獲取合作商列表並建立顏色映射
+  - 更新 `getPartnerColor` 函數：
+    - 優先使用合作商設定的顏色
+    - 如果合作商沒有設定顏色，則使用默認灰色
+    - 移除了原本的哈希函數顏色分配邏輯
+
+### Features
+- **顏色自定義**：每個合作商可以選擇自己的顯示顏色
+- **視覺區分**：訂單列表中的合作商名稱使用各自設定的顏色顯示，更容易區分
+- **用戶友好**：顏色選擇器提供 16 種預設顏色，清晰直觀
+
+### Technical Details
+- 顏色值儲存為 Tailwind CSS 類名格式（例如：`text-purple-600 dark:text-purple-400`）
+- 訂單列表會自動使用合作商設定的顏色，無需手動更新
+- 如果合作商沒有設定顏色，會顯示默認的灰色
+
 ## 2025-12-30 15:10:15 - 更新 payment_method enum 欄位，添加缺少的三個付款方式選項 / Update payment_method Enum to Include Missing Payment Options
 
 ### Database Changes

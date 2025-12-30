@@ -16,6 +16,7 @@ class Partner extends Model
         'tax_id',
         'manager',
         'photo_path',
+        'color',
     ];
 
     /**

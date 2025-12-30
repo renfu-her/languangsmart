@@ -22,6 +22,7 @@ class PartnerResource extends JsonResource
             'tax_id' => $this->tax_id,
             'manager' => $this->manager,
             'photo_path' => $this->photo_path ? asset('storage/' . $this->photo_path) : null,
+            'color' => $this->color,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

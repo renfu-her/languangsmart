@@ -208,6 +208,7 @@ const OrdersPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(1);
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [monthsWithOrders, setMonthsWithOrders] = useState<number[]>([]);
+  const [partnerColorMap, setPartnerColorMap] = useState<Record<string, string>>({});
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -459,24 +460,33 @@ const OrdersPage: React.FC = () => {
   const getPartnerColor = (partnerName: string | null | undefined): string => {
     if (!partnerName) return 'text-gray-500 dark:text-gray-400';
     
-    // 使用簡單的哈希函數來分配顏色
-    const colors = [
-      'text-purple-600 dark:text-purple-400',
-      'text-indigo-600 dark:text-indigo-400',
-      'text-pink-600 dark:text-pink-400',
-      'text-teal-600 dark:text-teal-400',
-      'text-cyan-600 dark:text-cyan-400',
-      'text-violet-600 dark:text-violet-400',
-      'text-fuchsia-600 dark:text-fuchsia-400',
-      'text-rose-600 dark:text-rose-400',
-    ];
-    
-    let hash = 0;
-    for (let i = 0; i < partnerName.length; i++) {
-      hash = partnerName.charCodeAt(i) + ((hash << 5) - hash);
+    // 使用合作商設定的顏色，如果沒有則使用默認顏色
+    if (partnerColorMap[partnerName]) {
+      return partnerColorMap[partnerName];
     }
-    return colors[Math.abs(hash) % colors.length];
+    
+    return 'text-gray-600 dark:text-gray-400';
   };
+
+  // 獲取合作商列表並建立顏色映射
+  useEffect(() => {
+    const fetchPartners = async () => {
+      try {
+        const response = await partnersApi.list();
+        const partners = response.data || [];
+        const colorMap: Record<string, string> = {};
+        partners.forEach((partner: { name: string; color: string | null }) => {
+          if (partner.color) {
+            colorMap[partner.name] = partner.color;
+          }
+        });
+        setPartnerColorMap(colorMap);
+      } catch (error) {
+        console.error('Failed to fetch partners:', error);
+      }
+    };
+    fetchPartners();
+  }, []);
 
   // 獲取航運別顏色
   const getShippingCompanyColor = (company: string | null | undefined): string => {
