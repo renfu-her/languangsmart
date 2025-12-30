@@ -1041,22 +1041,22 @@ const OrdersPage: React.FC = () => {
                           // 優先使用訂單中機車的 display_color（直接從 OrderResource 返回）
                           const { colorClass, displayColor } = getScooterModelColor(s.model, s.type, s.display_color);
                           
-                          // 如果有自定義顏色（從訂單中的機車獲取），使用 inline style
+                          // 如果有自定義顏色（從訂單中的機車獲取），使用該顏色作為背景色，文字保持黑色
                           if (displayColor) {
                             return (
                               <span 
                                 key={idx} 
-                                className="px-2 py-0.5 rounded-lg text-[10px] w-fit font-medium bg-gray-100 dark:bg-gray-900/30"
-                                style={{ color: displayColor }}
+                                className="px-2 py-0.5 rounded-lg text-[10px] w-fit font-medium text-gray-900 dark:text-gray-100"
+                                style={{ backgroundColor: displayColor }}
                               >
                                 {s.model} x {s.count}
                               </span>
                             );
                           }
                           
-                          // 否則使用黑色（默認顏色）
+                          // 否則使用灰色背景和黑色文字（默認顏色）
                           return (
-                            <span key={idx} className={`px-2 py-0.5 rounded-lg text-[10px] w-fit font-medium ${colorClass}`}>
+                            <span key={idx} className="px-2 py-0.5 rounded-lg text-[10px] w-fit font-medium bg-gray-100 dark:bg-gray-900/30 text-gray-900 dark:text-gray-100">
                               {s.model} x {s.count}
                             </span>
                           );

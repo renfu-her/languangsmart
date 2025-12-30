@@ -1,5 +1,25 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 17:25:05 - 更新訂單管理頁面機車標籤使用 display_color 作為背景色 / Update Orders Page to Use display_color as Background Color
+
+### Frontend Changes
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 更新「租借機車」欄位顯示：
+    - 如果機車有設定 `display_color`，使用該顏色作為標籤的背景色
+    - 文字保持黑色（`text-gray-900 dark:text-gray-100`）
+    - 如果沒有 `display_color`，使用灰色背景和黑色文字
+    - 使用 `style={{ backgroundColor: displayColor }}` 來應用背景色
+
+### Features
+- **視覺區分**：不同機車的標籤使用不同的背景色，更容易識別
+- **可讀性**：文字保持黑色，確保在任何背景色下都有良好的可讀性
+
+### Technical Details
+- 使用 `style={{ backgroundColor: displayColor }}` 來應用背景色
+- 文字顏色使用 `text-gray-900 dark:text-gray-100` 確保可讀性
+- 如果沒有 `display_color`，使用 `bg-gray-100 dark:bg-gray-900/30` 作為默認背景
+
 ## 2025-12-30 17:21:28 - 在機車管理列表中使用 display_color 顯示機車型號 / Use display_color for Scooter Model in Scooters List
 
 ### Frontend Changes
