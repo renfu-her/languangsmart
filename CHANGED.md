@@ -1,5 +1,18 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 08:40:14 - 移除側邊欄空白區域 / Remove Empty Space in Sidebar
+
+### Frontend Changes
+
+- **DashboardLayout.tsx** (`system/backend/components/DashboardLayout.tsx`)
+  - 移除切換深色模式按鈕後留下的空白區域：
+    - 移除使用者資訊區域的上邊框 (`border-t`)
+    - 調整導覽列表的底部 padding（從 `py-6` 改為 `pt-6 pb-0`）
+    - 確保導覽列表和使用者資訊區域之間無多餘間距
+
+### UI Improvements
+- **消除空白**：移除切換深色模式按鈕後留下的視覺空白區域
+
 ## 2025-12-30 08:27:02 - 移除側邊欄中的切換深色模式按鈕 / Remove Dark Mode Toggle Button from Sidebar
 
 ### Frontend Changes

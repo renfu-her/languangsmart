@@ -131,7 +131,7 @@ const DashboardLayout: React.FC = () => {
         </div>
         
         {/* 導覽列表 */}
-        <nav className="flex-1 overflow-y-auto px-3 py-6 space-y-2 scrollbar-hide">
+        <nav className="flex-1 overflow-y-auto px-3 pt-6 pb-0 space-y-2 scrollbar-hide">
           {NAV_ITEMS.map((item, idx) => (
             <SidebarItem 
               key={idx} 
@@ -145,7 +145,7 @@ const DashboardLayout: React.FC = () => {
 
         {/* 使用者資訊區域 */}
         {user && (
-          <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700 bg-gray-800/50' : 'border-gray-50 bg-gray-50/30'}`}>
+          <div className={`p-4 pt-4 ${theme === 'dark' ? 'bg-gray-800/50' : 'bg-gray-50/30'}`}>
             <div className={`flex items-center transition-all duration-300 ${sidebarOpen ? 'space-x-3' : 'justify-center'} p-2`}>
               <div className={`w-9 h-9 rounded-xl ${theme === 'dark' ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-100'} border shadow-sm flex items-center justify-center flex-shrink-0 ${theme === 'dark' ? 'text-gray-300' : 'text-gray-400'}`}>
                 <User size={18} />
