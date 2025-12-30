@@ -16,11 +16,14 @@ class OrderResource extends JsonResource
     {
         $scooters = $this->whenLoaded('scooters', function () {
             return $this->scooters->groupBy('model')->map(function ($group) {
-                // 獲取該 model 的類型（如果有多個類型，取第一個）
-                $type = $group->first()->type ?? null;
+                // 獲取該 model 的類型和顯示顏色（如果有多個，取第一個）
+                $firstScooter = $group->first();
+                $type = $firstScooter->type ?? null;
+                $displayColor = $firstScooter->display_color ?? null;
                 return [
-                    'model' => $group->first()->model,
+                    'model' => $firstScooter->model,
                     'type' => $type,
+                    'display_color' => $displayColor,
                     'count' => $group->count(),
                 ];
             })->values();

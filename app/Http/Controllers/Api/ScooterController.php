@@ -73,6 +73,7 @@ class ScooterController extends Controller
             'model' => 'required|string|max:255',
             'type' => 'required|in:白牌,綠牌,電輔車,三輪車',
             'color' => 'nullable|string|max:50',
+            'display_color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'status' => 'required|in:待出租,出租中,保養中',
         ], [
             'store_id.required' => '請選擇所屬商店',
@@ -122,6 +123,7 @@ class ScooterController extends Controller
             'model' => 'required|string|max:255',
             'type' => 'required|in:白牌,綠牌,電輔車,三輪車',
             'color' => 'nullable|string|max:50',
+            'display_color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'status' => 'required|in:待出租,出租中,保養中',
         ], [
             'store_id.required' => '請選擇所屬商店',

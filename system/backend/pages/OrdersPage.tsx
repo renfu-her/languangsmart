@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown, Download, Check } from 'lucide-react';
 import { OrderStatus } from '../types';
 import AddOrderModal from '../components/AddOrderModal';
-import { ordersApi, partnersApi } from '../lib/api';
+import { ordersApi, partnersApi, scootersApi } from '../lib/api';
 import * as XLSX from 'xlsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -16,7 +16,7 @@ interface Order {
   start_time: string;
   end_time: string;
   expected_return_time: string | null;
-  scooters: Array<{ model: string; type?: string; count: number }>;
+  scooters: Array<{ model: string; type?: string; display_color?: string; count: number }>;
   shipping_company: string | null;
   ship_arrival_time: string | null;
   ship_return_time: string | null;
@@ -209,6 +209,7 @@ const OrdersPage: React.FC = () => {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [monthsWithOrders, setMonthsWithOrders] = useState<number[]>([]);
   const [partnerColorMap, setPartnerColorMap] = useState<Record<string, string>>({});
+  const [scooterColorMap, setScooterColorMap] = useState<Record<string, string>>({});
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -488,6 +489,29 @@ const OrdersPage: React.FC = () => {
     fetchPartners();
   }, []);
 
+  // 獲取機車列表並建立 model 到 display_color 的映射
+  useEffect(() => {
+    const fetchScooters = async () => {
+      try {
+        const response = await scootersApi.list();
+        const scooters = response.data || [];
+        const colorMap: Record<string, string> = {};
+        scooters.forEach((scooter: { model: string; display_color: string | null }) => {
+          if (scooter.display_color) {
+            // 如果同一個 model 有多個機車，使用第一個有顏色的
+            if (!colorMap[scooter.model]) {
+              colorMap[scooter.model] = scooter.display_color;
+            }
+          }
+        });
+        setScooterColorMap(colorMap);
+      } catch (error) {
+        console.error('Failed to fetch scooters:', error);
+      }
+    };
+    fetchScooters();
+  }, []);
+
   // 獲取航運別顏色
   const getShippingCompanyColor = (company: string | null | undefined): string => {
     if (!company) return 'text-gray-500 dark:text-gray-400';
@@ -526,13 +550,23 @@ const OrdersPage: React.FC = () => {
     return 'text-gray-400 dark:text-gray-500';
   };
 
-  // 獲取機車型號顏色（根據機車類型）
-  const getScooterModelColor = (type: string | undefined): string => {
+  // 獲取機車型號顏色（優先使用 display_color，否則根據類型）
+  const getScooterModelColor = (model: string, type: string | undefined, displayColor: string | undefined): string => {
+    // 優先使用機車設定的顯示顏色
+    if (displayColor) {
+      return ''; // 返回空字符串，使用 inline style
+    }
+    
+    // 如果沒有 display_color，檢查是否有在映射中
+    if (scooterColorMap[model]) {
+      return ''; // 返回空字符串，使用 inline style
+    }
+    
+    // 如果都沒有，根據機車類型返回對應顏色
     if (!type) {
       return 'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400';
     }
     
-    // 根據機車類型返回對應顏色
     if (type === '白牌') {
       return 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400';
     } else if (type === '綠牌') {
@@ -1018,11 +1052,30 @@ const OrdersPage: React.FC = () => {
                     <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400 font-bold">{formatDateTime(order.expected_return_time)}</td>
                     <td className="px-4 py-4 w-[130px]">
                       <div className="flex flex-col gap-1">
-                        {order.scooters.map((s, idx) => (
-                          <span key={idx} className={`px-2 py-0.5 rounded-lg text-[10px] w-fit font-medium ${getScooterModelColor(s.type)}`}>
-                            {s.model} x {s.count}
-                          </span>
-                        ))}
+                        {order.scooters.map((s, idx) => {
+                          const colorClass = getScooterModelColor(s.model, s.type, s.display_color);
+                          const displayColor = s.display_color || scooterColorMap[s.model];
+                          
+                          // 如果有自定義顏色，使用 inline style
+                          if (displayColor) {
+                            return (
+                              <span 
+                                key={idx} 
+                                className="px-2 py-0.5 rounded-lg text-[10px] w-fit font-medium bg-gray-100 dark:bg-gray-900/30"
+                                style={{ color: displayColor }}
+                              >
+                                {s.model} x {s.count}
+                              </span>
+                            );
+                          }
+                          
+                          // 否則使用類型顏色
+                          return (
+                            <span key={idx} className={`px-2 py-0.5 rounded-lg text-[10px] w-fit font-medium ${colorClass}`}>
+                              {s.model} x {s.count}
+                            </span>
+                          );
+                        })}
                       </div>
                     </td>
                     <td className="px-4 py-4 w-[160px] text-xs leading-tight">

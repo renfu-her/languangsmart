@@ -11,6 +11,7 @@ interface Scooter {
   model: string;
   type: string;
   color: string | null;
+  display_color: string | null;
   status: string;
   photo_path: string | null;
 }
@@ -87,6 +88,7 @@ const ScootersPage: React.FC = () => {
         model: scooter.model,
         type: scooter.type,
         color: scooter.color || '',
+        display_color: scooter.display_color || '',
         status: scooter.status,
       });
       setPhotoPreview(scooter.photo_path || null);
@@ -98,6 +100,7 @@ const ScootersPage: React.FC = () => {
         model: '',
         type: '白牌',
         color: '',
+        display_color: '',
         status: '待出租',
       });
       setPhotoPreview(null);
@@ -429,20 +432,18 @@ const ScootersPage: React.FC = () => {
                         </span>
                       </td>
                       <td className="px-6 py-5">
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 rounded-lg text-[10px] font-medium ${
-                            scooter.type === '白牌' ? 'bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400' : 
-                            scooter.type === '綠牌' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
-                            scooter.type === '電輔車' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                            scooter.type === '三輪車' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
-                            'bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400'
-                          }`}>
-                            {scooter.type}
-                          </span>
-                          {scooter.color && (
-                            <span className="text-xs text-gray-500 dark:text-gray-400">({scooter.color})</span>
-                          )}
-                        </div>
+                        {scooter.display_color ? (
+                          <div className="flex items-center space-x-2">
+                            <div 
+                              className="w-8 h-8 rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-sm"
+                              style={{ backgroundColor: scooter.display_color }}
+                              title={scooter.display_color}
+                            />
+                            <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{scooter.display_color}</span>
+                          </div>
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500 text-sm">未設定</span>
+                        )}
                       </td>
                       <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.store?.name || '-'}</td>
                       <td className="px-6 py-5">
@@ -557,6 +558,49 @@ const ScootersPage: React.FC = () => {
                     </select>
                     <ChevronDown size={18} className={chevronDownClasses} />
                   </div>
+                </div>
+                <div className="col-span-2">
+                  <label className={labelClasses}>
+                    顯示顏色
+                  </label>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="color"
+                        value={formData.display_color || '#6B7280'}
+                        onChange={(e) => setFormData({ ...formData, display_color: e.target.value })}
+                        className="w-16 h-16 rounded-lg border-2 border-gray-200 dark:border-gray-700 cursor-pointer"
+                        title="選擇顏色"
+                      />
+                      <div className="flex-1">
+                        <input
+                          type="text"
+                          value={formData.display_color || ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            // 驗證 hex 顏色格式
+                            if (value === '' || /^#[0-9A-Fa-f]{6}$/.test(value)) {
+                              setFormData({ ...formData, display_color: value });
+                            }
+                          }}
+                          placeholder="#6B7280"
+                          className={`${inputClasses} font-mono text-sm`}
+                          maxLength={7}
+                        />
+                        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                          輸入 hex 顏色值（例如：#FF5733），用於訂單顯示
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  {formData.display_color && (
+                    <div className="mt-3 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-600">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">預覽：</p>
+                      <p className="text-base font-bold" style={{ color: formData.display_color }}>
+                        {formData.model || '機車型號範例'}
+                      </p>
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label className={labelClasses}>

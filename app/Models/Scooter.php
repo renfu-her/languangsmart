@@ -15,6 +15,7 @@ class Scooter extends Model
         'model',
         'type',
         'color',
+        'display_color',
         'status',
         'photo_path',
     ];
