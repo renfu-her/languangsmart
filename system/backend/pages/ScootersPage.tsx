@@ -461,49 +461,19 @@ const ScootersPage: React.FC = () => {
                       <td className="px-6 py-5 font-black text-gray-900 dark:text-gray-100">
                         {scooter.plate_number}
                       </td>
-                      <td className="px-6 py-5">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-bold text-gray-900 dark:text-gray-100">
-                            {scooter.model}
-                          </span>
-                          {modelColorMap[scooter.model] && (
-                            <div className="flex items-center space-x-1.5">
-                              <div 
-                                className="w-4 h-4 rounded border border-gray-200 dark:border-gray-700 shadow-sm"
-                                style={{ backgroundColor: modelColorMap[scooter.model] }}
-                                title={modelColorMap[scooter.model]}
-                              />
-                              <span className="text-xs font-mono text-gray-500 dark:text-gray-400">
-                                {modelColorMap[scooter.model]}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                      <td className="px-6 py-5 font-bold text-gray-900 dark:text-gray-100">
+                        {scooter.model}
                       </td>
                       <td className="px-6 py-5">
-                        <div className="flex items-center space-x-2">
-                          <span className={`px-2 py-1 rounded-lg text-[10px] font-black border ${
-                            scooter.type === '白牌' ? 'bg-sky-50 text-sky-600 border-sky-100 dark:bg-sky-900/30 dark:text-sky-400 dark:border-sky-800' : 
-                            scooter.type === '綠牌' ? 'bg-green-50 text-green-600 border-green-100 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' :
-                            scooter.type === '電輔車' ? 'bg-orange-50 text-orange-600 border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800' :
-                            scooter.type === '三輪車' ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800' :
-                            'bg-gray-50 text-gray-600 border-gray-100 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800'
-                          }`}>
-                            {scooter.type}
-                          </span>
-                          {typeColorMap[scooter.type] && (
-                            <div className="flex items-center space-x-1.5">
-                              <div 
-                                className="w-4 h-4 rounded border border-gray-200 dark:border-gray-700 shadow-sm"
-                                style={{ backgroundColor: typeColorMap[scooter.type] }}
-                                title={typeColorMap[scooter.type]}
-                              />
-                              <span className="text-xs font-mono text-gray-500 dark:text-gray-400">
-                                {typeColorMap[scooter.type]}
-                              </span>
-                            </div>
-                          )}
-                        </div>
+                        <span className={`px-2 py-1 rounded-lg text-[10px] font-black border ${
+                          scooter.type === '白牌' ? 'bg-sky-50 text-sky-600 border-sky-100 dark:bg-sky-900/30 dark:text-sky-400 dark:border-sky-800' : 
+                          scooter.type === '綠牌' ? 'bg-green-50 text-green-600 border-green-100 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800' :
+                          scooter.type === '電輔車' ? 'bg-orange-50 text-orange-600 border-orange-100 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800' :
+                          scooter.type === '三輪車' ? 'bg-amber-50 text-amber-600 border-amber-100 dark:bg-amber-900/30 dark:text-amber-400 dark:border-amber-800' :
+                          'bg-gray-50 text-gray-600 border-gray-100 dark:bg-gray-900/30 dark:text-gray-400 dark:border-gray-800'
+                        }`}>
+                          {scooter.type}
+                        </span>
                       </td>
                       <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.store?.name || '-'}</td>
                       <td className="px-6 py-5">

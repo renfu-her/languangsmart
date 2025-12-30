@@ -1,5 +1,18 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 23:21:47 - 移除機車管理列表中機車型號和車款類型的顏色顯示 / Remove Color Display from Model and Type Columns in Scooters List
+
+### Frontend Changes
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - 移除「機車型號」欄位中的顏色方塊和 hex 顏色值顯示
+  - 移除「車款類型」欄位中的顏色方塊和 hex 顏色值顯示
+  - 簡化顯示，只保留機車型號文字和車款類型標籤
+
+### Features
+- **簡化顯示**：移除列表中的顏色值顯示，保持界面簡潔
+- **保留功能**：新增/編輯表單中的自動顏色設定功能仍然保留
+
 ## 2025-12-30 23:17:31 - 添加車款類型自動顏色設定功能 / Add Automatic Color Setting Based on Vehicle Type
 
 ### Frontend Changes
