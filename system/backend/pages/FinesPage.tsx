@@ -33,6 +33,7 @@ const FinesPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFine, setEditingFine] = useState<Fine | null>(null);
   const [fines, setFines] = useState<Fine[]>([]);
+  const [allFines, setAllFines] = useState<Fine[]>([]); // 儲存所有罰單用於計算計數
   const [scooters, setScooters] = useState<Scooter[]>([]);
   const [loading, setLoading] = useState(false);
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('');
@@ -68,6 +69,11 @@ const FinesPage: React.FC = () => {
   const fetchFines = async () => {
     setLoading(true);
     try {
+      // 獲取所有罰單用於計算計數
+      const allResponse = await finesApi.list();
+      setAllFines(allResponse.data || []);
+      
+      // 獲取過濾後的罰單用於顯示
       const params: any = {};
       if (paymentStatusFilter) params.payment_status = paymentStatusFilter;
       if (searchTerm) params.search = searchTerm;
@@ -236,8 +242,10 @@ const FinesPage: React.FC = () => {
     }
   };
 
-  const unpaidCount = fines.filter(f => f.payment_status === '未繳費').length;
-  const paidCount = fines.filter(f => f.payment_status === '已處理').length;
+  // 根據所有罰單計算計數（不受過濾器影響）
+  const totalCount = allFines.length;
+  const unpaidCount = allFines.filter(f => f.payment_status === '未繳費').length;
+  const paidCount = allFines.filter(f => f.payment_status === '已處理').length;
 
   return (
     <div className="px-6 pb-6 pt-0 dark:text-gray-100">
@@ -266,7 +274,7 @@ const FinesPage: React.FC = () => {
                   : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'
               }`}
             >
-              全部 {fines.length}
+              全部 {totalCount}
             </button>
             <button
               onClick={() => setPaymentStatusFilter('未繳費')}
