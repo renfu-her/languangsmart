@@ -1,5 +1,20 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 22:39:22 - 確認訂單租借機車型號對應 ScooterModelColor 的 color / Confirm Order Scooter Models Map to ScooterModelColor Color
+
+### Frontend Changes
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 更新註釋，明確說明訂單中的機車型號對應到 `ScooterModelColor` 表的 `color` 欄位
+  - 確認 `getScooterModelColor()` 函數從 `scooter_model_colors` 表獲取顏色
+  - 確認「租借機車」欄位使用 `ScooterModelColor` 表的 `color` 作為背景色
+
+### Technical Details
+- 訂單中的機車型號（`order.scooters[].model`）對應到 `scooter_model_colors` 表的 `model` 欄位
+- 顏色從 `scooter_model_colors` 表的 `color` 欄位獲取
+- 如果型號不存在，API 會自動分配顏色並存入資料庫
+- 前端通過批量 API (`scooterModelColorsApi.getColors()`) 獲取所有需要的型號顏色
+
 ## 2025-12-30 22:34:55 - 創建 Seeder 將現有機車型號寫入顏色表 / Create Seeder to Populate Existing Scooter Models to Color Table
 
 ### Database Changes

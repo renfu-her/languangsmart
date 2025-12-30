@@ -489,7 +489,7 @@ const OrdersPage: React.FC = () => {
     fetchPartners();
   }, []);
 
-  // 獲取機車型號顏色映射
+  // 獲取機車型號顏色映射（從 ScooterModelColor 表獲取）
   useEffect(() => {
     const fetchModelColors = async () => {
       try {
@@ -502,7 +502,8 @@ const OrdersPage: React.FC = () => {
         });
         
         if (allModels.size > 0) {
-          // 批量獲取所有型號的顏色
+          // 批量獲取所有型號的顏色（從 scooter_model_colors 表）
+          // API 會自動為不存在的型號分配顏色並存入資料庫
           const response = await scooterModelColorsApi.getColors(Array.from(allModels));
           setScooterColorMap(response.data || {});
         }
@@ -554,9 +555,9 @@ const OrdersPage: React.FC = () => {
     return 'text-gray-400 dark:text-gray-500';
   };
 
-  // 獲取機車型號顏色（從機車型號顏色 API 獲取）
+  // 獲取機車型號顏色（從 ScooterModelColor 表的 color 欄位獲取）
   const getScooterModelColor = (model: string): { colorClass: string; displayColor: string | null } => {
-    // 從機車型號顏色映射中獲取顏色
+    // 從機車型號顏色映射中獲取顏色（對應 scooter_model_colors 表的 color 欄位）
     if (scooterColorMap[model]) {
       return { colorClass: '', displayColor: scooterColorMap[model] };
     }
@@ -1037,10 +1038,10 @@ const OrdersPage: React.FC = () => {
                     <td className="px-4 py-4 w-[130px]">
                       <div className="flex flex-col gap-1">
                         {order.scooters.map((s, idx) => {
-                          // 從機車型號顏色 API 獲取顏色
+                          // 從 ScooterModelColor 表獲取機車型號對應的顏色
                           const { colorClass, displayColor } = getScooterModelColor(s.model);
                           
-                          // 如果有自定義顏色（從訂單中的機車獲取），使用該顏色作為背景色，文字保持黑色
+                          // 如果有顏色（從 scooter_model_colors 表的 color 欄位獲取），使用該顏色作為背景色，文字保持黑色
                           if (displayColor) {
                             return (
                               <span 
