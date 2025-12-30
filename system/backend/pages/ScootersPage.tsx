@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Plus, Search, Bike, Edit3, Trash2, X, Loader2, MoreHorizontal, ChevronDown } from 'lucide-react';
-import { scootersApi, storesApi } from '../lib/api';
+import { scootersApi, storesApi, scooterModelColorsApi } from '../lib/api';
 import { inputClasses, selectClasses, labelClasses, searchInputClasses, chevronDownClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
 
 interface Scooter {
@@ -26,6 +26,7 @@ const ScootersPage: React.FC = () => {
   const [scooters, setScooters] = useState<Scooter[]>([]);
   const [allScooters, setAllScooters] = useState<Scooter[]>([]); // 儲存所有機車用於計算計數
   const [stores, setStores] = useState<Store[]>([]);
+  const [modelColorMap, setModelColorMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -49,6 +50,33 @@ const ScootersPage: React.FC = () => {
     fetchScooters();
     fetchStores();
   }, [statusFilter, searchTerm]);
+
+  // 獲取機車型號顏色映射（從 ScooterModelColor 表獲取）
+  useEffect(() => {
+    const fetchModelColors = async () => {
+      try {
+        // 獲取所有機車中的唯一型號
+        const allModels = new Set<string>();
+        allScooters.forEach(scooter => {
+          if (scooter.model) {
+            allModels.add(scooter.model);
+          }
+        });
+        
+        if (allModels.size > 0) {
+          // 批量獲取所有型號的顏色（從 scooter_model_colors 表）
+          const response = await scooterModelColorsApi.getColors(Array.from(allModels));
+          setModelColorMap(response.data || {});
+        }
+      } catch (error) {
+        console.error('Failed to fetch model colors:', error);
+      }
+    };
+    
+    if (allScooters.length > 0) {
+      fetchModelColors();
+    }
+  }, [allScooters]);
 
   const fetchScooters = async () => {
     setLoading(true);
@@ -425,8 +453,24 @@ const ScootersPage: React.FC = () => {
                       <td className="px-6 py-5 font-black text-gray-900 dark:text-gray-100">
                         {scooter.plate_number}
                       </td>
-                      <td className="px-6 py-5 font-bold text-gray-900 dark:text-gray-100">
-                        {scooter.model}
+                      <td className="px-6 py-5">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-bold text-gray-900 dark:text-gray-100">
+                            {scooter.model}
+                          </span>
+                          {modelColorMap[scooter.model] && (
+                            <div className="flex items-center space-x-1.5">
+                              <div 
+                                className="w-4 h-4 rounded border border-gray-200 dark:border-gray-700 shadow-sm"
+                                style={{ backgroundColor: modelColorMap[scooter.model] }}
+                                title={modelColorMap[scooter.model]}
+                              />
+                              <span className="text-xs font-mono text-gray-500 dark:text-gray-400">
+                                {modelColorMap[scooter.model]}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-6 py-5">
                         <span className={`px-2 py-1 rounded-lg text-[10px] font-black border ${

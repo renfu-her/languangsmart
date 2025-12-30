@@ -1,5 +1,31 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 23:02:38 - 在機車管理列表顯示機車型號對應的顏色值 / Display Scooter Model Color Values in Scooters Management List
+
+### Frontend Changes
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - 添加 `modelColorMap` 狀態來儲存機車型號到顏色的映射
+  - 添加 `useEffect` 來獲取機車型號顏色：
+    - 從所有機車中提取唯一的型號
+    - 批量調用 `scooterModelColorsApi.getColors()` 獲取顏色
+    - 從 `scooter_model_colors` 表獲取對應的 `color` 欄位值
+  - 更新「機車型號」欄位顯示：
+    - 在機車型號旁邊顯示顏色方塊和 hex 顏色值
+    - 顏色方塊使用對應的顏色作為背景色
+    - 顯示 hex 顏色值（例如：#FF6B9D）
+    - 如果型號沒有對應的顏色，則不顯示
+
+### Features
+- **顏色顯示**：在機車管理列表中，每個機車型號旁邊顯示對應的顏色值
+- **視覺識別**：通過顏色方塊和 hex 值，快速識別機車型號的顏色
+- **自動對應**：顏色直接從 `ScooterModelColor` 表的 `color` 欄位獲取
+
+### Technical Details
+- 使用 `scooterModelColorsApi.getColors()` API 批量獲取顏色
+- 對應關係：機車型號 (`scooter.model`) → `ScooterModelColor` 表的 `model` 欄位 → `color` 欄位
+- 顏色顯示格式：顏色方塊（4x4px）+ hex 顏色值（例如：#FF6B9D）
+
 ## 2025-12-30 22:57:12 - 確認訂單管理頁面機車型號直接對應 ScooterModelColor 表顏色 / Confirm Orders Page Scooter Models Directly Map to ScooterModelColor Table Colors
 
 ### Frontend Changes
