@@ -1,5 +1,26 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 22:57:12 - 確認訂單管理頁面機車型號直接對應 ScooterModelColor 表顏色 / Confirm Orders Page Scooter Models Directly Map to ScooterModelColor Table Colors
+
+### Frontend Changes
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 確認機車型號標籤直接對應到 `ScooterModelColor` 表的顏色
+  - 移除編輯功能相關代碼（點擊事件、顏色選擇器彈窗等）
+  - 機車型號標籤僅顯示顏色，不提供編輯功能
+  - 顏色直接從 `scooter_model_colors` 表的 `color` 欄位獲取並顯示
+
+### Features
+- **直接對應**：訂單中的機車型號直接對應到 `ScooterModelColor` 表的 `color` 欄位
+- **自動顯示**：根據資料表中的顏色自動顯示，無需手動設定
+- **簡潔設計**：只顯示顏色，不提供編輯功能
+
+### Technical Details
+- 訂單中的機車型號 (`order.scooters[].model`) 對應到 `scooter_model_colors` 表的 `model` 欄位
+- 查詢資料表獲取對應的 `color` 欄位值
+- 使用該顏色作為機車型號標籤的背景色
+- 如果型號不存在，API 會自動分配顏色並存入資料庫
+
 ## 2025-12-30 22:47:57 - 確認並強化機車型號顏色對應關係說明 / Confirm and Strengthen Scooter Model Color Mapping Documentation
 
 ### Frontend Changes
