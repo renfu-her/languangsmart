@@ -1,5 +1,29 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 22:08:41 - 調整狀態標籤顏色為更淡的版本 / Adjust Status Tag Colors to Lighter Shades
+
+### Frontend Changes
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - 調整狀態標籤的背景顏色為更淡的版本：
+    - **待出租**：灰色 (`#D1D5DB`, gray-300) - 從 gray-400 調整
+    - **出租中**：天藍色 (`#BAE6FD`, sky-200) - 從 sky-300 調整
+    - **保養中**：橘色 (`#FED7AA`, orange-200) - 從 orange-400 調整
+
+- **FinesPage.tsx** (`system/backend/pages/FinesPage.tsx`)
+  - 調整狀態標籤的背景顏色為更淡的版本：
+    - **已處理**：天藍色 (`#BAE6FD`, sky-200) - 從 sky-300 調整
+    - **未繳費**：灰色 (`#D1D5DB`, gray-300) - 從 gray-400 調整
+
+### Features
+- **更柔和的視覺效果**：使用更淡的顏色，提供更舒適的視覺體驗
+- **保持可讀性**：文字顏色保持黑色，確保在淡色背景上仍然清晰可讀
+
+### Technical Details
+- 顏色值調整為更淡的 Tailwind CSS 顏色類別（200-300 範圍）
+- 使用內聯樣式 (`style`) 設定狀態標籤的背景顏色
+- 文字顏色保持黑色 (`text-gray-900 dark:text-gray-100`)
+
 ## 2025-12-30 22:04:20 - 更新狀態標籤顏色 / Update Status Tag Colors
 
 ### Frontend Changes
