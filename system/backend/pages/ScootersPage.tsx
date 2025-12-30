@@ -279,7 +279,7 @@ const ScootersPage: React.FC = () => {
   }, [scooters]);
 
   return (
-    <div className="p-6 dark:text-gray-100">
+    <div className="px-6 pb-6 pt-0 dark:text-gray-100">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">機車管理</h1>

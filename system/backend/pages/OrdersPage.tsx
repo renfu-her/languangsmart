@@ -728,7 +728,7 @@ const OrdersPage: React.FC = () => {
   };
 
   return (
-    <div className="p-6 max-w-full dark:text-gray-100">
+    <div className="px-6 pb-6 pt-0 max-w-full dark:text-gray-100">
       <div className="flex flex-col gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">訂單管理</h1>

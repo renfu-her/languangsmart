@@ -189,7 +189,7 @@ const AdminsPage: React.FC = () => {
   }, [openDropdownId]);
 
   return (
-    <div className="p-6 dark:text-gray-100">
+    <div className="px-6 pb-6 pt-0 dark:text-gray-100">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">系統管理者管理</h1>

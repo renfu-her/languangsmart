@@ -1,5 +1,44 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 08:46:40 - 將切換深淺模式按鈕加回左側邊欄 / Add Dark/Light Mode Toggle Button Back to Sidebar
+
+### Frontend Changes
+
+- **DashboardLayout.tsx** (`system/backend/components/DashboardLayout.tsx`)
+  - 將切換深淺模式按鈕加回左側邊欄：
+    - 位於導覽列表下方、使用者資訊區域上方
+    - 側邊欄展開時顯示「切換淺色模式」或「切換深色模式」文字
+    - 側邊欄收合時只顯示圖標（太陽/月亮）
+    - 使用與之前相同的樣式和功能
+
+### UI Improvements
+- **功能恢復**：切換深淺模式功能重新可用
+- **位置優化**：按鈕位於左側邊欄，方便訪問
+
+## 2025-12-30 08:45:24 - 移除所有管理頁面上方的空白區域 / Remove Top Padding from All Management Pages
+
+### Frontend Changes
+
+- **DashboardLayout.tsx** (`system/backend/components/DashboardLayout.tsx`)
+  - 移除空的 header 元素
+    - 刪除高度為 `h-16` 的空 header，讓內容直接從頂部開始顯示
+
+- **所有管理頁面** (`system/backend/pages/*.tsx`)
+  - 移除所有管理頁面頂部的 padding：
+    - **OrdersPage.tsx**: 從 `p-6` 改為 `px-6 pb-6 pt-0`
+    - **PartnersPage.tsx**: 從 `p-6` 改為 `px-6 pb-6 pt-0`
+    - **StoresPage.tsx**: 從 `p-6` 改為 `px-6 pb-6 pt-0`
+    - **FinesPage.tsx**: 從 `p-6` 改為 `px-6 pb-6 pt-0`
+    - **MembersPage.tsx**: 從 `p-6` 改為 `px-6 pb-6 pt-0`
+    - **ScootersPage.tsx**: 從 `p-6` 改為 `px-6 pb-6 pt-0`
+    - **AdminsPage.tsx**: 從 `p-6` 改為 `px-6 pb-6 pt-0`
+    - **AccessoriesPage.tsx**: 從 `p-6` 改為 `px-6 pb-6 pt-0`
+    - **BannersPage.tsx**: 從 `p-6` 改為 `px-6 pb-6 pt-0`
+
+### UI Improvements
+- **最大化內容區域**：移除所有管理頁面上方的空白，讓內容更靠近頂部
+- **統一體驗**：所有管理頁面現在都從頂部開始顯示，無額外空白
+
 ## 2025-12-30 08:40:14 - 移除側邊欄空白區域 / Remove Empty Space in Sidebar
 
 ### Frontend Changes
