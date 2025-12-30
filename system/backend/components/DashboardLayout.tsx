@@ -143,22 +143,6 @@ const DashboardLayout: React.FC = () => {
           ))}
         </nav>
 
-        {/* 切換深淺模式按鈕 */}
-        <div className={`px-3 pb-3 ${sidebarOpen ? '' : 'px-2'}`}>
-          <button
-            onClick={toggleTheme}
-            className={`w-full p-2.5 rounded-xl transition-all flex items-center ${sidebarOpen ? 'justify-start space-x-3 px-3' : 'justify-center'} ${theme === 'dark' ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-50 text-gray-600'}`}
-            title={theme === 'dark' ? '切換為淺色模式' : '切換為深色模式'}
-          >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            {sidebarOpen && (
-              <span className="text-sm font-medium animate-in fade-in duration-300">
-                {theme === 'dark' ? '切換淺色模式' : '切換深色模式'}
-              </span>
-            )}
-          </button>
-        </div>
-
         {/* 使用者資訊區域 */}
         {user && (
           <div className={`p-4 border-t ${theme === 'dark' ? 'border-gray-700 bg-gray-800/50' : 'border-gray-50 bg-gray-50/30'}`}>

@@ -1,5 +1,16 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-30 08:27:02 - 移除側邊欄中的切換深色模式按鈕 / Remove Dark Mode Toggle Button from Sidebar
+
+### Frontend Changes
+
+- **DashboardLayout.tsx** (`system/backend/components/DashboardLayout.tsx`)
+  - 移除側邊欄中的「切換深色模式」按鈕
+    - 刪除位於導覽列表下方、使用者資訊區域上方的切換深淺模式按鈕區域
+
+### UI Improvements
+- **簡化側邊欄**：移除切換深色模式按鈕，簡化界面
+
 ## 2025-12-30 08:22:27 - 為訂單管理表格添加顏色區分 / Add Color Coding to Order Management Table
 
 ### Frontend Changes
