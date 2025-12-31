@@ -1,5 +1,31 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-31 17:12:44 - 配置前端構建輸出到 public 目錄（根路徑 /）/ Configure Frontend Build Output to public Directory (Root Path /)
+
+### Build Configuration Changes
+
+- **vite.config.ts** (`system/frontend/vite.config.ts`)
+  - 添加 `base: '/'` 配置：前端應用對應根路徑 `/`
+  - 添加 `build.outDir` 配置：構建輸出到 `public/` 目錄
+  - 設置 `build.emptyOutDir: false`：不清空 public 目錄，保留 Laravel 的 `index.php`、`favicon.ico` 等文件
+  - 添加 `rollupOptions` 配置：優化構建輸出，將 node_modules 分離為 vendor chunks
+
+### Features
+- **路徑對應**：
+  - `system/frontend` 構建到 `public/` → 對應 `/` 路徑（前端首頁）
+  - `system/backend` 構建到 `public/backend/` → 對應 `/backend` 路徑（後台管理系統）
+- **構建優化**：自動將 React、React Router 等依賴分離為獨立的 vendor chunks，提升加載性能
+
+### Technical Details
+- **構建輸出目錄**：
+  - Frontend: `public/` (對應 Nginx 的 `/` 路徑)
+  - Backend: `public/backend/` (對應 Nginx 的 `/backend` 路徑)
+- **構建命令**：
+  ```bash
+  cd system/frontend && pnpm run build  # 構建前端到 public/
+  cd system/backend && pnpm run build   # 構建後台到 public/backend/
+  ```
+
 ## 2025-12-31 09:15:17 - 修復罰單管理和機車清單 dark mode 下狀態標籤文字顏色 / Fix Text Color in Dark Mode for Status Tags in Fines and Scooters Pages
 
 ### Frontend Changes
