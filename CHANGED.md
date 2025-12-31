@@ -1,5 +1,33 @@
 # 變更記錄 (Change Log)
 
+## 2025-12-31 08:43:42 - 更新訂單管理頁面使用車款類型顏色 / Update Orders Page to Use Vehicle Type Colors
+
+### Frontend Changes
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 移除從 `ScooterModelColor` 表獲取顏色的邏輯
+  - 添加 `typeColorMap` 定義車款類型對應的顏色（與機車管理頁面一致）：
+    - **白牌**：天藍色 (`#7DD3FC`, sky-300)
+    - **綠牌**：綠色 (`#86EFAC`, green-300)
+    - **電輔車**：橘色 (`#FED7AA`, orange-200)
+    - **三輪車**：黃色 (`#FDE047`, yellow-300)
+  - 更新 `getScooterModelColor` 函數：
+    - 改為根據機車的車款類型 (`s.type`) 獲取顏色
+    - 不再使用 `scooterModelColorsApi` API
+    - 直接從 `typeColorMap` 獲取對應的顏色
+  - 移除 `scooterColorMap` 狀態和相關的 `useEffect`
+  - 移除 `scooterModelColorsApi` 的 import
+
+### Features
+- **統一顏色邏輯**：訂單管理和機車管理使用相同的車款類型顏色對應規則
+- **簡化實現**：不再需要查詢資料庫，直接使用前端定義的顏色映射
+- **即時顯示**：顏色直接從訂單中的機車類型獲取，無需額外 API 調用
+
+### Technical Details
+- 對應關係：訂單中的機車型號 → 機車的車款類型 (`order.scooters[].type`) → `typeColorMap[type]` → 顏色值
+- 訂單資源 (`OrderResource`) 已經包含機車的 `type` 欄位
+- 顏色值使用 hex 格式（例如：#7DD3FC）
+
 ## 2025-12-30 23:21:47 - 移除機車管理列表中機車型號和車款類型的顏色顯示 / Remove Color Display from Model and Type Columns in Scooters List
 
 ### Frontend Changes
