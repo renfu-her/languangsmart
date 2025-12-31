@@ -478,7 +478,7 @@ const ScootersPage: React.FC = () => {
                       <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.store?.name || '-'}</td>
                       <td className="px-6 py-5">
                          <span 
-                           className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm text-gray-900 dark:text-gray-100"
+                           className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black shadow-sm text-gray-900 dark:text-gray-900"
                            style={
                              scooter.status === '待出租' ? { backgroundColor: '#D1D5DB' } : // 灰色 (gray-300)
                              scooter.status === '出租中' ? { backgroundColor: '#BAE6FD' } : // 天藍色 (sky-200)
