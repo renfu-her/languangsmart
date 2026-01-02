@@ -126,14 +126,13 @@ const Contact: React.FC = () => {
                     </div>
                   )}
                 </div>
-              </div>
 
-              {location?.description && (
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <p className="text-gray-600 leading-relaxed">{location.description}</p>
-                </div>
-              )}
-            </div>
+                {location?.description && (
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <p className="text-gray-600 leading-relaxed">{location.description}</p>
+                  </div>
+                )}
+              </div>
 
             {/* 聯絡表單 */}
             <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100">
