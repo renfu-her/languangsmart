@@ -61,21 +61,21 @@ const BannerCarousel: React.FC = () => {
               {/* Banner 內容 */}
               <div className="absolute inset-0 flex items-center">
                 <div className="container mx-auto px-6 md:px-12">
-                  <div className="max-w-2xl">
-                    <h2 className="text-white/80 text-sm md:text-base font-medium tracking-wider uppercase mb-4">
+                  <div className="max-w-md">
+                    <h2 className="text-white/80 text-xs md:text-sm font-medium tracking-wider uppercase mb-2">
                       {banner.subtitle}
                     </h2>
-                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 serif">
+                    <h1 className="text-2xl md:text-4xl font-bold text-white mb-4 serif">
                       {banner.title}
                     </h1>
                     {banner.link && banner.buttonText && (
                       <Link
                         to={banner.link}
-                        className="inline-flex items-center gap-2 bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-teal-500 hover:text-white transition-all group"
+                        className="inline-flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full text-sm font-bold hover:bg-teal-500 hover:text-white transition-all group"
                       >
                         {banner.buttonText}
                         <ChevronRight 
-                          size={20} 
+                          size={18} 
                           className="group-hover:translate-x-1 transition-transform"
                         />
                       </Link>
