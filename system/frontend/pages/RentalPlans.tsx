@@ -47,25 +47,43 @@ const RentalPlans: React.FC = () => {
             <div className="text-gray-400">載入中...</div>
           </div>
         </section>
+      ) : plans.length === 0 ? (
+        <section className="py-20 px-6">
+          <div className="flex justify-center items-center">
+            <div className="text-gray-400">目前沒有可用的租車方案</div>
+          </div>
+        </section>
       ) : (
         <section className="py-20 px-6">
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 md:gap-24">
-            {plans.map((plan) => (
+            {plans.map((plan, index) => (
               <div key={plan.id} className="flex flex-col items-center">
                 <div className="relative w-full aspect-square mb-12">
                   <div className="absolute inset-0 bg-gray-50 rounded-[100px] -z-10 transform -rotate-3"></div>
                   <div className="w-full h-full rounded-[100px] overflow-hidden shadow-2xl">
-                    <img
-                      src={plan.image_path ? `/storage/${plan.image_path}` : 'https://via.placeholder.com/800x800'}
-                      alt={plan.model}
-                      className="w-full h-full object-cover"
-                    />
+                    {plan.image_path ? (
+                      <img
+                        src={`/storage/${plan.image_path}`}
+                        alt={plan.model || `租車方案 ${index + 1}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          // 如果圖片載入失敗，使用 placeholder
+                          (e.target as HTMLImageElement).src = `https://picsum.photos/seed/rental-${plan.id}/800/800`;
+                        }}
+                      />
+                    ) : (
+                      <img
+                        src={`https://picsum.photos/seed/rental-${plan.id}/800/800`}
+                        alt={plan.model || `租車方案 ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
                   </div>
                   
                   {/* Price Badge */}
                   <div className="absolute bottom-[-20px] left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-white shadow-xl flex flex-col items-center justify-center p-6 text-center border-4 border-white">
-                    <span className="text-xs font-bold uppercase tracking-widest text-gray-800">{plan.model}</span>
-                    <span className="text-3xl font-bold serif text-black">${plan.price}</span>
+                    <span className="text-xs font-bold uppercase tracking-widest text-gray-800">{plan.model || '未命名方案'}</span>
+                    <span className="text-3xl font-bold serif text-black">${plan.price || 0}</span>
                   </div>
                 </div>
               </div>
