@@ -26,3 +26,12 @@ export interface Guesthouse {
   description: string;
   image: string;
 }
+
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle?: string;
+  image: string;
+  link?: string;
+  buttonText?: string;
+}

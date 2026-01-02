@@ -1,0 +1,128 @@
+
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { BANNERS } from '../constants';
+
+const BannerCarousel: React.FC = () => {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+
+  // 自動輪播
+  useEffect(() => {
+    if (!isAutoPlaying) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % BANNERS.length);
+    }, 5000); // 每 5 秒切換一次
+
+    return () => clearInterval(interval);
+  }, [isAutoPlaying]);
+
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index);
+    setIsAutoPlaying(false); // 手動切換時暫停自動播放
+    setTimeout(() => setIsAutoPlaying(true), 10000); // 10 秒後恢復自動播放
+  };
+
+  const goToPrevious = () => {
+    setCurrentIndex((prev) => (prev - 1 + BANNERS.length) % BANNERS.length);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 10000);
+  };
+
+  const goToNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % BANNERS.length);
+    setIsAutoPlaying(false);
+    setTimeout(() => setIsAutoPlaying(true), 10000);
+  };
+
+  return (
+    <section className="relative w-full h-[400px] md:h-[500px] overflow-hidden bg-gray-100">
+      {/* Banner 容器 */}
+      <div className="relative w-full h-full">
+        {BANNERS.map((banner, index) => (
+          <div
+            key={banner.id}
+            className={`absolute inset-0 transition-opacity duration-700 ${
+              index === currentIndex ? 'opacity-100 z-10' : 'opacity-0 z-0'
+            }`}
+          >
+            <div className="relative w-full h-full">
+              {/* Banner 圖片 */}
+              <img
+                src={banner.image}
+                alt={banner.title}
+                className="w-full h-full object-cover"
+              />
+              {/* 遮罩層 */}
+              <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
+              
+              {/* Banner 內容 */}
+              <div className="absolute inset-0 flex items-center">
+                <div className="container mx-auto px-6 md:px-12">
+                  <div className="max-w-2xl">
+                    <h2 className="text-white/80 text-sm md:text-base font-medium tracking-wider uppercase mb-4">
+                      {banner.subtitle}
+                    </h2>
+                    <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 serif">
+                      {banner.title}
+                    </h1>
+                    {banner.link && banner.buttonText && (
+                      <Link
+                        to={banner.link}
+                        className="inline-flex items-center gap-2 bg-white text-black px-8 py-4 rounded-full font-bold hover:bg-teal-500 hover:text-white transition-all group"
+                      >
+                        {banner.buttonText}
+                        <ChevronRight 
+                          size={20} 
+                          className="group-hover:translate-x-1 transition-transform"
+                        />
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* 左側箭頭 */}
+      <button
+        onClick={goToPrevious}
+        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-black p-3 rounded-full shadow-lg transition-all hover:scale-110"
+        aria-label="Previous banner"
+      >
+        <ChevronLeft size={24} />
+      </button>
+
+      {/* 右側箭頭 */}
+      <button
+        onClick={goToNext}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/80 hover:bg-white text-black p-3 rounded-full shadow-lg transition-all hover:scale-110"
+        aria-label="Next banner"
+      >
+        <ChevronRight size={24} />
+      </button>
+
+      {/* 指示器 */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        {BANNERS.map((_, index) => (
+          <button
+            key={index}
+            onClick={() => goToSlide(index)}
+            className={`h-2 rounded-full transition-all ${
+              index === currentIndex
+                ? 'bg-white w-8'
+                : 'bg-white/50 w-2 hover:bg-white/75'
+            }`}
+            aria-label={`Go to banner ${index + 1}`}
+          />
+        ))}
+      </div>
+    </section>
+  );
+};
+
+export default BannerCarousel;

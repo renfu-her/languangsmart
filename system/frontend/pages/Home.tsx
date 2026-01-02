@@ -2,10 +2,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
+import BannerCarousel from '../components/BannerCarousel';
 
 const Home: React.FC = () => {
   return (
     <div className="animate-in fade-in duration-700">
+      {/* Banner Carousel */}
+      <BannerCarousel />
+
       {/* Hero Section */}
       <section className="relative h-[80vh] flex items-center justify-center overflow-hidden">
         {/* Decorative background blobs */}

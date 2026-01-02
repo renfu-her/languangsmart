@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavItem, ScooterPlan, FAQItem, Guesthouse } from './types';
+import { NavItem, ScooterPlan, FAQItem, Guesthouse, Banner } from './types';
 
 export const NAV_ITEMS: NavItem[] = [
   { label: '關於我們', path: '/about' },
@@ -63,6 +63,33 @@ export const GUESTHOUSES: Guesthouse[] = [
     name: '特色老屋 B',
     description: '結合現代裝潢與在地文化，給您溫馨的家。',
     image: 'https://picsum.photos/seed/house2/600/400',
+  },
+];
+
+export const BANNERS: Banner[] = [
+  {
+    id: 'banner-1',
+    title: '開幕慶典',
+    subtitle: '線上預約即享 8 折優惠',
+    image: 'https://picsum.photos/seed/banner1/1600/600',
+    link: '/booking',
+    buttonText: '立即預約',
+  },
+  {
+    id: 'banner-2',
+    title: '環保騎乘',
+    subtitle: '探索小琉球自然美景',
+    image: 'https://picsum.photos/seed/banner2/1600/600',
+    link: '/rental',
+    buttonText: '查看方案',
+  },
+  {
+    id: 'banner-3',
+    title: '優質服務',
+    subtitle: '專業團隊為您提供最佳體驗',
+    image: 'https://picsum.photos/seed/banner3/1600/600',
+    link: '/guidelines',
+    buttonText: '了解更多',
   },
 ];
 
