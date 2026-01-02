@@ -57,13 +57,9 @@ const RentalPlans: React.FC = () => {
         <section className="py-20 px-6">
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 md:gap-24">
             {plans.map((plan, index) => {
-              // 左邊（奇數索引）永遠高過右邊，左邊高度 600px，右邊高度較低
-              const isLeft = index % 2 === 0;
-              const heightClass = isLeft ? 'h-[600px]' : 'h-[500px]';
-              
               return (
                 <div key={plan.id} className="flex flex-col items-center">
-                  <div className={`relative w-full ${heightClass} mb-12 bg-gray-200 rounded-[100px] flex items-center justify-center`}>
+                  <div className="relative w-full h-[500px] mb-12 bg-gray-200 rounded-[100px] flex items-center justify-center">
                     <div className="text-center">
                       <div className="text-xs font-bold uppercase tracking-widest text-gray-800 mb-2">{plan.model || '未命名方案'}</div>
                       <div className="text-3xl font-bold serif text-black">${plan.price || 0}</div>
