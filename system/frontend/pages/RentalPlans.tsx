@@ -57,13 +57,13 @@ const RentalPlans: React.FC = () => {
         <section className="py-20 px-6">
           <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-16 md:gap-24">
             {plans.map((plan, index) => {
-              // 左邊（奇數索引）和右邊（偶數索引）都使用固定高度 350px
+              // 左邊（奇數索引）向上移動，右邊（偶數索引）向下移動，形成不平行效果
               const isLeft = index % 2 === 0;
-              const translateClass = isLeft ? '' : 'md:translate-y-12';
+              const translateClass = isLeft ? 'md:-translate-y-16' : 'md:translate-y-16';
               
               return (
                 <div key={plan.id} className={`flex flex-col items-center ${translateClass} transition-transform duration-300`}>
-                  <div className="relative w-full h-[350px] mb-12">
+                  <div className="relative w-full h-[450px] mb-12">
                     <div className="absolute inset-0 bg-gray-50 rounded-[100px] -z-10 transform -rotate-3"></div>
                     <div className="w-full h-full rounded-[100px] overflow-hidden shadow-2xl">
                       {plan.image_path ? (
