@@ -6,7 +6,6 @@ export const NAV_ITEMS: NavItem[] = [
   { label: '關於我們', path: '/about' },
   { label: '租車方案', path: '/rental' },
   { label: '租車須知', path: '/guidelines' },
-  { label: '線上預約', path: '/booking' },
   { label: '交通位置', path: '/location' },
   { label: '民宿推薦', path: '/guesthouses' },
   { label: '聯絡我們', path: '/contact' },
