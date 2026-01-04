@@ -121,10 +121,10 @@ const Location: React.FC = () => {
                   )}
                 </div>
 
-                <div className="h-full min-h-[500px] bg-gray-200 rounded-[50px] overflow-hidden relative shadow-inner">
+                <div className="w-full h-[600px] md:h-[700px] bg-gray-200 rounded-[50px] overflow-hidden relative shadow-inner">
                   {location.map_embed ? (
                     <div 
-                      className="w-full h-full"
+                      className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
                       dangerouslySetInnerHTML={{ __html: location.map_embed }}
                     />
                   ) : (
@@ -132,7 +132,7 @@ const Location: React.FC = () => {
                       地圖未設定
                     </div>
                   )}
-                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-lg border border-white max-w-[200px]">
+                  <div className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-lg border border-white max-w-[200px] z-10">
                     <p className="text-xs font-bold mb-1">歡迎光臨</p>
                     <p className="text-[10px] text-gray-500">位於市中心熱門地段，預約完成後歡迎直接前往門市領車。</p>
                   </div>
