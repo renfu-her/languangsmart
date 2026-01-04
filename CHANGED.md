@@ -2,6 +2,16 @@
 
 ## 2026-01-04 15:45:00 - 添加民宿詳細頁面 / Add Guesthouse Detail Page
 
+### Backend Changes
+
+- **api.php** (`routes/api.php`)
+  - 將 `GET /guesthouses/{guesthouse}` 路由移到公開區域（從 auth:sanctum middleware 中移出）
+  - 前端現在可以公開訪問民宿詳細資訊
+
+- **GuesthouseController.php** (`app/Http/Controllers/Api/GuesthouseController.php`)
+  - 更新 `show` 方法：僅返回啟用的民宿
+  - 如果民宿未啟用，返回 404 錯誤
+
 ### Frontend Changes
 
 - **api.ts** (`system/frontend/lib/api.ts`)

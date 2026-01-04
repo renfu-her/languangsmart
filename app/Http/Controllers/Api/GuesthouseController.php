@@ -81,6 +81,13 @@ class GuesthouseController extends Controller
      */
     public function show(Guesthouse $guesthouse): JsonResponse
     {
+        // For public access, only return active guesthouses
+        if (!$guesthouse->is_active) {
+            return response()->json([
+                'message' => 'Guesthouse not found',
+            ], 404);
+        }
+
         return response()->json([
             'data' => $guesthouse,
         ]);

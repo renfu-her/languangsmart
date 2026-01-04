@@ -165,9 +165,9 @@ Route::prefix('locations')->group(function () {
 // Guesthouses API (Public for frontend, Protected for admin)
 Route::prefix('guesthouses')->group(function () {
     Route::get('/', [GuesthouseController::class, 'index']); // Public
+    Route::get('/{guesthouse}', [GuesthouseController::class, 'show']); // Public
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/', [GuesthouseController::class, 'store']);
-        Route::get('/{guesthouse}', [GuesthouseController::class, 'show']);
         Route::put('/{guesthouse}', [GuesthouseController::class, 'update']);
         Route::delete('/{guesthouse}', [GuesthouseController::class, 'destroy']);
         Route::post('/{guesthouse}/upload-image', [GuesthouseController::class, 'uploadImage']);
