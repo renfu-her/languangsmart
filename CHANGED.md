@@ -3815,3 +3815,12 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 使用 `cellspacing="0" cellpadding="0" border="0"` 確保表格間距一致
 - 保持原有的視覺設計和顏色方案
 
+---
+
+## 2026-01-04 22:16:23 - 更新 LINE @ 連結網址
+
+### 變更內容
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 更新 LINE @ 連結網址從 `https://line.me` 改為 `https://lin.ee/7Fr9eko`
+  - 連結已設定 `target="_blank"` 和 `rel="noopener noreferrer"`，會在新分頁開啟
+

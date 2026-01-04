@@ -61,7 +61,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
 
-            <a href="https://line.me" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-[#1a1a1a] text-white px-5 py-3 rounded-full hover:bg-black transition-all group">
+            <a href="https://lin.ee/7Fr9eko" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-[#1a1a1a] text-white px-5 py-3 rounded-full hover:bg-black transition-all group">
               <div className="flex items-center gap-3">
                 <MessageCircle size={18} />
                 <div className="flex flex-col">
