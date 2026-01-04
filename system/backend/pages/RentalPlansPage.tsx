@@ -172,51 +172,83 @@ const RentalPlansPage: React.FC = () => {
         <div className="flex justify-center items-center py-12">
           <Loader2 className="animate-spin text-orange-600" size={32} />
         </div>
+      ) : plans.length === 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
+          <p className="text-gray-500 dark:text-gray-400">目前沒有租車方案</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {plans.map((plan) => (
-            <div key={plan.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-              <div className="aspect-video relative bg-gray-100 dark:bg-gray-700">
-                {plan.image_path ? (
-                  <img
-                    src={`/storage/${plan.image_path}`}
-                    alt={plan.model}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon className="text-gray-400" size={48} />
-                  </div>
-                )}
-                {!plan.is_active && (
-                  <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold">
-                    已停用
-                  </div>
-                )}
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-1">{plan.model}</h3>
-                <p className="text-2xl font-bold text-orange-600 mb-4">${plan.price}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-500 dark:text-gray-400">排序: {plan.sort_order}</span>
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => handleOpenModal(plan)}
-                      className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                    >
-                      <Edit2 size={18} />
-                    </button>
-                    <button
-                      onClick={() => handleDelete(plan.id)}
-                      className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                <tr>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">圖片</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">型號</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">價格</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">排序</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">狀態</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 text-center">操作</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {plans.map((plan) => (
+                  <tr key={plan.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="px-6 py-4">
+                      {plan.image_path ? (
+                        <div className="w-20 h-12 rounded overflow-hidden">
+                          <img
+                            src={`/storage/${plan.image_path}`}
+                            alt={plan.model}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-20 h-12 rounded bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                          <ImageIcon className="text-gray-400" size={20} />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{plan.model}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-bold text-orange-600">${plan.price}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{plan.sort_order}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {plan.is_active ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          啟用
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                          停用
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => handleOpenModal(plan)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(plan.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Trash2, Edit2, Image as ImageIcon, X, Loader2 } from 'lucide-react';
+import { Plus, Trash2, Edit2, Image as ImageIcon, X, Loader2, Search } from 'lucide-react';
 import { bannersApi } from '../lib/api';
-import { inputClasses, labelClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
+import { inputClasses, labelClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses, searchInputClasses } from '../styles';
 
 interface Banner {
   id: number;
@@ -19,6 +19,7 @@ const BannersPage: React.FC = () => {
   const [editingBanner, setEditingBanner] = useState<Banner | null>(null);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     title: '',
     subtitle: '',
@@ -33,12 +34,12 @@ const BannersPage: React.FC = () => {
 
   useEffect(() => {
     fetchBanners();
-  }, []);
+  }, [searchTerm]);
 
   const fetchBanners = async () => {
     setLoading(true);
     try {
-      const response = await bannersApi.list();
+      const response = await bannersApi.list(searchTerm ? { search: searchTerm } : undefined);
       setBanners(response.data || []);
     } catch (error) {
       console.error('Failed to fetch banners:', error);
@@ -159,69 +160,112 @@ const BannersPage: React.FC = () => {
           className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
         >
           <Plus size={18} />
-          <span>上傳新看板</span>
+          <span>新增輪播圖</span>
         </button>
+      </div>
+
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="搜尋標題..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className={searchInputClasses}
+          />
+        </div>
       </div>
 
       {loading ? (
         <div className="flex justify-center items-center py-12">
           <Loader2 className="animate-spin text-orange-600" size={32} />
         </div>
+      ) : banners.length === 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
+          <p className="text-gray-500 dark:text-gray-400">目前沒有輪播圖</p>
+        </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {banners.map((banner) => (
-            <div key={banner.id} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden group">
-              <div className="aspect-[16/9] relative bg-gray-100 dark:bg-gray-700">
-                {banner.image_path ? (
-                  <img
-                    src={`/storage/${banner.image_path}`}
-                    className="w-full h-full object-cover"
-                    alt={banner.title}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <ImageIcon className="text-gray-400" size={48} />
-                  </div>
-                )}
-                <div className="absolute top-2 left-2 bg-black/60 text-white px-2 py-1 rounded text-[10px] font-bold">
-                  順序: {banner.sort_order}
-                </div>
-                {!banner.is_active && (
-                  <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded text-[10px] font-bold">
-                    已停用
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-3">
-                  <button
-                    onClick={() => handleOpenModal(banner)}
-                    className="p-2 bg-white rounded-full text-gray-800 hover:bg-orange-50 hover:text-orange-600 transition-colors"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(banner.id)}
-                    className="p-2 bg-white rounded-full text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-              <div className="p-4">
-                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-100">{banner.title}</h3>
-                {banner.subtitle && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{banner.subtitle}</p>
-                )}
-              </div>
-            </div>
-          ))}
-
-          <button
-            onClick={() => handleOpenModal()}
-            className="border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-orange-300 dark:hover:border-orange-600 transition-all text-gray-400 dark:text-gray-500 hover:text-orange-500 dark:hover:text-orange-400"
-          >
-            <Plus size={32} className="mb-2" />
-            <span className="text-sm font-medium">點擊上傳新橫幅</span>
-          </button>
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                <tr>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">圖片</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">標題</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">副標題</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">連結</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">按鈕文字</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">排序</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">狀態</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 text-center">操作</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {banners.map((banner) => (
+                  <tr key={banner.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="px-6 py-4">
+                      {banner.image_path ? (
+                        <div className="w-20 h-12 rounded overflow-hidden">
+                          <img
+                            src={`/storage/${banner.image_path}`}
+                            alt={banner.title}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-20 h-12 rounded bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                          <ImageIcon className="text-gray-400" size={20} />
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{banner.title}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{banner.subtitle || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{banner.link || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{banner.button_text || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{banner.sort_order}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {banner.is_active ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          啟用
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                          停用
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => handleOpenModal(banner)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(banner.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

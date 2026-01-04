@@ -166,46 +166,73 @@ const GuidelinesPage: React.FC = () => {
         <div className="flex justify-center items-center py-12">
           <Loader2 className="animate-spin text-orange-600" size={32} />
         </div>
+      ) : guidelines.length === 0 ? (
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-12 text-center">
+          <p className="text-gray-500 dark:text-gray-400">目前沒有問答內容</p>
+        </div>
       ) : (
-        <div className="space-y-4">
-          {guidelines.map((guideline) => (
-            <div
-              key={guideline.id}
-              className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm p-6"
-            >
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded text-xs font-bold">
-                      {guideline.category}
-                    </span>
-                    {!guideline.is_active && (
-                      <span className="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded text-xs font-bold">
-                        已停用
+        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
+                <tr>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">分類</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">問題</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">答案</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">排序</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">狀態</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 text-center">操作</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {guidelines.map((guideline) => (
+                  <tr key={guideline.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                    <td className="px-6 py-4">
+                      <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded text-xs font-bold">
+                        {guideline.category}
                       </span>
-                    )}
-                    <span className="text-xs text-gray-500 dark:text-gray-400">排序: {guideline.sort_order}</span>
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-2">{guideline.question}</h3>
-                  <p className="text-gray-600 dark:text-gray-300 whitespace-pre-wrap">{guideline.answer}</p>
-                </div>
-                <div className="flex space-x-2 ml-4">
-                  <button
-                    onClick={() => handleOpenModal(guideline)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
-                  >
-                    <Edit2 size={18} />
-                  </button>
-                  <button
-                    onClick={() => handleDelete(guideline.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{guideline.question}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{guideline.answer}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{guideline.sort_order}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      {guideline.is_active ? (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          啟用
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+                          停用
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => handleOpenModal(guideline)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                        >
+                          <Edit2 size={18} />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(guideline.id)}
+                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                        >
+                          <Trash2 size={18} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
