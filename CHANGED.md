@@ -3791,3 +3791,27 @@ php artisan db:seed --class=ScooterModelColorSeeder
   - 驗證碼輸入框位於備註欄位之後、提交按鈕之前
   - 確保驗證碼輸入框在所有屏幕尺寸上都是全寬顯示
 
+---
+
+## 2026-01-04 22:06:45 - 郵件模板改用 table 佈局
+
+### 變更內容
+- **contact.blade.php** (`resources/views/emails/contact.blade.php`)
+  - 將郵件模板從 div 佈局改為 table 佈局
+  - 使用內聯樣式（inline styles）替代 CSS class
+  - 使用 `role="presentation"` 屬性提升語義和可訪問性
+  - 保持視覺效果一致，確保在各種郵件客戶端中的兼容性
+
+- **booking.blade.php** (`resources/views/emails/booking.blade.php`)
+  - 將郵件模板從 div 佈局改為 table 佈局
+  - 使用內聯樣式（inline styles）替代 CSS class
+  - 使用 `role="presentation"` 屬性提升語義和可訪問性
+  - 保持視覺效果一致，確保在各種郵件客戶端中的兼容性
+
+### 技術細節
+- 使用 table 佈局是郵件開發的最佳實踐，因為許多郵件客戶端對現代 CSS 支持有限
+- 所有樣式都使用內聯樣式，確保在各種郵件客戶端中正確顯示
+- 使用 `bgcolor` 屬性作為背景顏色的備選方案
+- 使用 `cellspacing="0" cellpadding="0" border="0"` 確保表格間距一致
+- 保持原有的視覺設計和顏色方案
+
