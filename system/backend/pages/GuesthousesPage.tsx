@@ -8,6 +8,7 @@ interface Guesthouse {
   id: number;
   name: string;
   description: string | null;
+  short_description: string | null;
   image_path: string | null;
   link: string | null;
   sort_order: number;
@@ -23,6 +24,7 @@ const GuesthousesPage: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    short_description: '',
     link: '',
     sort_order: 0,
     is_active: true,
@@ -54,6 +56,7 @@ const GuesthousesPage: React.FC = () => {
       setFormData({
         name: guesthouse.name,
         description: guesthouse.description || '',
+        short_description: guesthouse.short_description || '',
         link: guesthouse.link || '',
         sort_order: guesthouse.sort_order,
         is_active: guesthouse.is_active,
@@ -64,6 +67,7 @@ const GuesthousesPage: React.FC = () => {
       setFormData({
         name: '',
         description: '',
+        short_description: '',
         link: '',
         sort_order: 0,
         is_active: true,
@@ -80,6 +84,7 @@ const GuesthousesPage: React.FC = () => {
     setFormData({
       name: '',
       description: '',
+      short_description: '',
       link: '',
       sort_order: 0,
       is_active: true,
@@ -189,7 +194,7 @@ const GuesthousesPage: React.FC = () => {
                 <tr>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">圖片</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">名稱</th>
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">描述</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">簡短說明</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">連結</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">排序</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">狀態</th>
@@ -218,7 +223,7 @@ const GuesthousesPage: React.FC = () => {
                       <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{guesthouse.name}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{guesthouse.description || '無描述'}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{guesthouse.short_description || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       {guesthouse.link ? (
@@ -292,6 +297,18 @@ const GuesthousesPage: React.FC = () => {
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className={inputClasses}
                   placeholder="例如: 海景民宿 A"
+                />
+              </div>
+
+              <div>
+                <label className={labelClasses}>簡短說明</label>
+                <input
+                  type="text"
+                  value={formData.short_description}
+                  onChange={(e) => setFormData({ ...formData, short_description: e.target.value })}
+                  className={inputClasses}
+                  placeholder="輸入簡短說明..."
+                  maxLength={255}
                 />
               </div>
 

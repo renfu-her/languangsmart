@@ -7,6 +7,7 @@ interface Guesthouse {
   id: number;
   name: string;
   description: string | null;
+  short_description: string | null;
   image_path: string | null;
   link: string | null;
 }
@@ -59,14 +60,11 @@ const Guesthouses: React.FC = () => {
                 </div>
                 <div className="p-8">
                   <h3 className="text-2xl font-bold mb-3 serif">{gh.name}</h3>
-                  {gh.description ? (
-                    <div 
-                      className="text-gray-500 text-sm mb-6 leading-relaxed prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: gh.description }}
-                    />
-                  ) : (
-                    <p className="text-gray-500 text-sm mb-6 leading-relaxed">無描述</p>
-                  )}
+                  <div className="mb-6 min-h-[1.5rem]">
+                    {gh.short_description && (
+                      <p className="text-gray-500 text-sm leading-relaxed">{gh.short_description}</p>
+                    )}
+                  </div>
                   {gh.link ? (
                     <a
                       href={gh.link}

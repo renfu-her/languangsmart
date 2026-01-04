@@ -12,6 +12,7 @@ class Guesthouse extends Model
     protected $fillable = [
         'name',
         'description',
+        'short_description',
         'image_path',
         'link',
         'sort_order',

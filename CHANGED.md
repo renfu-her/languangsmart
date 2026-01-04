@@ -1,5 +1,45 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-04 15:39:01 - 民宿推薦添加簡短說明欄位，移除列表中的描述顯示 / Add Short Description Field to Guesthouses, Remove Description from Lists
+
+### Database Changes
+
+- **Migration** (`database/migrations/2026_01_04_153901_add_short_description_to_guesthouses_table.php`) - 新建
+  - 添加 `short_description` 欄位到 `guesthouses` 表
+  - 欄位類型：`string`，可為空，最大長度 255
+
+### Backend Changes
+
+- **Guesthouse.php** (`app/Models/Guesthouse.php`)
+  - 添加 `short_description` 到 `$fillable` 陣列
+
+- **GuesthouseController.php** (`app/Http/Controllers/Api/GuesthouseController.php`)
+  - 添加 `short_description` 到驗證規則（`nullable|string|max:255`）
+  - 更新搜索邏輯，包含 `short_description` 欄位
+
+- **GuesthousesPage.tsx** (`system/backend/pages/GuesthousesPage.tsx`)
+  - 移除列表中的「描述」欄位
+  - 添加「簡短說明」欄位到列表（顯示 `short_description`）
+  - 在表單中添加「簡短說明」輸入框（文字框，最大長度 255）
+  - 保留「描述」欄位在表單中（使用 CKEditor）
+
+### Frontend Changes
+
+- **Guesthouses.tsx** (`system/frontend/pages/Guesthouses.tsx`)
+  - 移除描述顯示
+  - 添加簡短說明顯示（如果有就顯示，沒有隱藏但保持高度一致）
+  - 使用 `min-h-[1.5rem]` 確保高度一致
+
+### Features
+- **簡短說明**：添加簡短說明欄位，使用簡單的文字框（不是 CKEditor）
+- **列表優化**：後端和前端列表都不顯示描述，只顯示簡短說明
+- **高度一致**：前端即使沒有簡短說明也保持相同高度
+
+### Technical Details
+- **欄位類型**：`short_description` 為 `string` 類型，可為空，最大長度 255
+- **API 更新**：API 現在包含 `short_description` 欄位
+- **搜索功能**：搜索現在也包含簡短說明欄位
+
 ## 2026-01-04 15:31:03 - 為 CKEditor 5 添加圖片上傳功能 / Add Image Upload Functionality to CKEditor 5
 
 ### Backend Changes
