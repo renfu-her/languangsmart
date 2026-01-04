@@ -3676,6 +3676,90 @@ php artisan db:seed --class=ScooterModelColorSeeder
 
 ---
 
+## 2026-01-04 21:57:23 - 線上預約表單增加電子郵件、必填標記和驗證碼功能
+
+### 功能需求
+- 增加電子郵件欄位（需要寄信給使用者）
+- 姓名、預約日期、Email 必須填寫（加上紅色 * 標記）
+- 添加驗證碼功能
+- 提交後發送郵件給用戶和管理員
+
+### Frontend Changes
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 導入必要的圖標和 API：`RefreshCw`, `Loader2`, `publicApi`
+  - 添加 `Captcha` 介面定義
+  - 在狀態中添加 `email`、`captcha` 和 `isLoadingCaptcha`
+  - 在 `formData` 中添加 `email` 和 `captchaAnswer` 欄位
+  - 添加 `fetchCaptcha()` 函數：獲取驗證碼圖片
+  - 在 `useEffect` 中自動載入驗證碼
+  - 更新 `handleSubmit()` 函數：
+    - 驗證驗證碼是否存在和完整
+    - 調用 `publicApi.booking.send()` 提交預約
+    - 驗證碼錯誤時重新獲取驗證碼
+    - 成功提交後重新獲取驗證碼並清空表單
+  - 表單欄位更新：
+    - **姓名**：添加紅色 * 標記（必填）
+    - **電子信箱**：新增欄位，添加紅色 * 標記（必填）
+    - **預約日期**：添加紅色 * 標記（必填）
+    - **聯絡電話**：改為非必填（移除 required）
+    - **驗證碼**：新增驗證碼圖片顯示和輸入框（放在備註後面）
+      - 驗證碼圖片顯示（可點擊刷新）
+      - 刷新按鈕
+      - 輸入框強制大寫，排除 O 和 0，最多 6 位數
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - 在 `publicApi` 中添加 `booking` 物件
+  - 添加 `booking.send()` 方法：提交預約表單
+
+### Backend Changes
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`) - 新建
+  - 創建預約表單控制器
+  - `send()` 方法：處理表單驗證和驗證碼驗證
+  - 驗證規則：
+    - `name`：必填
+    - `email`：必填，email 格式
+    - `phone`：選填
+    - `scooterType`：必填
+    - `date`：必填，日期格式
+    - `days`：必填
+    - `note`：選填
+    - `captcha_id` 和 `captcha_answer`：必填
+  - 驗證碼驗證邏輯（與聯絡表單相同）
+  - 發送郵件給兩個收件人：填寫表單的人和管理員（zau1110216@gmail.com）
+
+- **BookingMail.php** (`app/Mail/BookingMail.php`) - 新建
+  - 創建預約郵件類
+  - 郵件標題：「【蘭光租賃中心】線上預約確認」
+  - 設置 Reply-To 為表單提交者的信箱
+
+- **booking.blade.php** (`resources/views/emails/booking.blade.php`) - 新建
+  - 創建預約郵件模板視圖
+  - 美觀的 HTML 郵件格式
+  - 顯示所有預約資訊（姓名、信箱、電話、車款、預約日期、租借天數、備註）
+  - 包含發送時間資訊
+  - 提示訊息：「預約完成後，我們將有專人與您電話聯繫確認詳情。」
+
+- **api.php** (`routes/api.php`)
+  - 添加 `POST /api/booking` 路由（公開路由）：處理預約表單提交
+
+### Features
+- **郵件發送**：預約表單提交後自動發送郵件給用戶和管理員
+- **美觀格式**：使用 HTML 郵件模板，呈現專業的郵件格式
+- **Reply-To 設置**：郵件設置 Reply-To 為表單提交者的信箱，方便直接回覆
+- **驗證碼保護**：使用與聯絡表單相同的驗證碼系統，防止垃圾提交
+- **錯誤處理**：完整的錯誤處理和用戶友好的錯誤訊息
+- **表單驗證**：後端驗證表單資料確保資料完整性
+
+### Technical Details
+- 使用現有的 CaptchaController，無需重複實現驗證碼生成邏輯
+- 驗證碼存儲在 Cache 中，5 分鐘過期
+- 郵件發送給兩個收件人：用戶和管理員
+- API 端點：`POST /api/booking`
+
+---
+
 ## 2026-01-04 21:44:12 - 聯絡表單郵件發送給兩個收件人
 
 ### 變更內容

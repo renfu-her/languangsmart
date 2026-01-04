@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\GuesthouseController;
 use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\ContactController;
+use App\Http\Controllers\Api\BookingController;
 
 // Auth Routes (Public)
 Route::post('/login', [AuthController::class, 'login']);
@@ -32,6 +33,9 @@ Route::post('/captcha/verify', [CaptchaController::class, 'verify']);
 // Contact Routes (Public)
 Route::post('/contact', [ContactController::class, 'send']);
 Route::post('/contact/test', [ContactController::class, 'test']); // 測試郵件發送
+
+// Booking Routes (Public)
+Route::post('/booking', [BookingController::class, 'send']);
 
 // Upload Routes (Protected for admin)
 Route::middleware('auth:sanctum')->group(function () {

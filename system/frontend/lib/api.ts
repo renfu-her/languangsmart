@@ -87,6 +87,10 @@ export const publicApi = {
     send: (data: { name: string; email: string; phone?: string; message: string; captcha_id: string; captcha_answer: string }) => 
       api.post('/contact', data),
   },
+  booking: {
+    send: (data: { name: string; email: string; phone?: string; scooterType: string; date: string; days: string; note?: string; captcha_id: string; captcha_answer: string }) => 
+      api.post('/booking', data),
+  },
   captcha: {
     generate: () => api.get('/captcha/generate'),
     verify: (captchaId: string, answer: string) => api.post('/captcha/verify', { captcha_id: captchaId, answer }),
