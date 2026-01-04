@@ -31,7 +31,7 @@ export const NAV_ITEMS = [
   },
   { 
     title: '網站內容管理', 
-    icon: <ImageIcon size={20} />, 
+    icon: <Home size={20} />, 
     children: [
       { name: '首頁 Banner', path: '/banners' },
       { name: '租車方案', path: '/rental-plans' },
