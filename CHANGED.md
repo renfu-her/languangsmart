@@ -1,5 +1,42 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-04 15:18:08 - 為民宿推薦描述添加 CKEditor 5 富文本編輯功能 / Add CKEditor 5 Rich Text Editor for Guesthouse Description
+
+### Backend Changes
+
+- **package.json** (`system/backend/package.json`)
+  - 添加 `@ckeditor/ckeditor5-react@^11.0.1`：CKEditor 5 React 組件
+  - 添加 `ckeditor5@^46.0.0`：CKEditor 5 核心包
+
+- **CKEditor.tsx** (`system/backend/components/CKEditor.tsx`) - 新建
+  - 創建可重用的 CKEditor 5 組件
+  - 支援富文本編輯功能：標題、粗體、斜體、下劃線、刪除線、字體大小、字體顏色、背景色、列表、對齊、連結、引用、表格等
+  - 支援繁體中文界面
+  - 支援禁用狀態動態切換
+  - 最小高度 200px
+
+- **GuesthousesPage.tsx** (`system/backend/pages/GuesthousesPage.tsx`)
+  - 將描述欄位的 `textarea` 替換為 `CKEditorComponent`
+  - 保留編輯功能，現在支援富文本格式
+
+### Frontend Changes
+
+- **Guesthouses.tsx** (`system/frontend/pages/Guesthouses.tsx`)
+  - 更新描述顯示方式：使用 `dangerouslySetInnerHTML` 渲染 HTML 內容
+  - 添加 `prose` 類別以確保 HTML 內容正確顯示
+
+### Features
+- **富文本編輯**：民宿推薦描述現在支援完整的富文本編輯功能
+- **HTML 渲染**：前端正確顯示富文本格式的內容
+- **編輯功能保留**：原有的編輯功能完全保留，只是增強了編輯能力
+
+### Technical Details
+- **編輯器配置**：
+  - 使用 ClassicEditor 模式
+  - 支援多種格式化選項
+  - 繁體中文界面
+- **前端渲染**：使用 `dangerouslySetInnerHTML` 和 Tailwind CSS `prose` 類別來渲染 HTML 內容
+
 ## 2025-12-31 17:12:44 - 配置前端構建輸出到 public 目錄（根路徑 /）/ Configure Frontend Build Output to public Directory (Root Path /)
 
 ### Build Configuration Changes

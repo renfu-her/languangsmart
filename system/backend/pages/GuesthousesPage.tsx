@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import { guesthousesApi } from '../lib/api';
 import { inputClasses, labelClasses, searchInputClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
+import CKEditorComponent from '../components/CKEditor';
 
 interface Guesthouse {
   id: number;
@@ -296,13 +297,13 @@ const GuesthousesPage: React.FC = () => {
 
               <div>
                 <label className={labelClasses}>描述</label>
-                <textarea
-                  rows={4}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  className={inputClasses}
-                  placeholder="輸入民宿描述..."
-                />
+                <div className="mt-1">
+                  <CKEditorComponent
+                    value={formData.description}
+                    onChange={(data) => setFormData({ ...formData, description: data })}
+                    placeholder="輸入民宿描述..."
+                  />
+                </div>
               </div>
 
               <div>

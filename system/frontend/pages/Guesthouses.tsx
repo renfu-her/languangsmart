@@ -59,7 +59,14 @@ const Guesthouses: React.FC = () => {
                 </div>
                 <div className="p-8">
                   <h3 className="text-2xl font-bold mb-3 serif">{gh.name}</h3>
-                  <p className="text-gray-500 text-sm mb-6 leading-relaxed">{gh.description || '無描述'}</p>
+                  {gh.description ? (
+                    <div 
+                      className="text-gray-500 text-sm mb-6 leading-relaxed prose prose-sm max-w-none"
+                      dangerouslySetInnerHTML={{ __html: gh.description }}
+                    />
+                  ) : (
+                    <p className="text-gray-500 text-sm mb-6 leading-relaxed">無描述</p>
+                  )}
                   {gh.link ? (
                     <a
                       href={gh.link}
