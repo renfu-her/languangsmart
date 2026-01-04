@@ -61,9 +61,9 @@ const Location: React.FC = () => {
         <section className="container mx-auto px-6 max-w-6xl py-12">
           <div className="space-y-16">
             {locations.map((location) => (
-              <div key={location.id} className="space-y-8">
+              <div key={location.id} className="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
                 {/* 上方：交通位置和地址資訊 */}
-                <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100">
+                <div className="p-8">
                   <h3 className="text-2xl font-bold mb-6 serif">{location.name}</h3>
                   <div className="space-y-6">
                     {location.address && (
@@ -110,8 +110,11 @@ const Location: React.FC = () => {
                   </div>
                 </div>
 
+                {/* 分隔線 */}
+                <div className="border-t border-gray-200"></div>
+
                 {/* 下方：Google 地圖嵌入 */}
-                <div className="w-full h-[500px] md:h-[600px] bg-gray-200 rounded-[50px] overflow-hidden shadow-inner">
+                <div className="w-full h-[500px] md:h-[600px] bg-gray-200 overflow-hidden">
                   {location.map_embed ? (
                     <div 
                       className="w-full h-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:border-0"
