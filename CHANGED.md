@@ -3676,6 +3676,18 @@ php artisan db:seed --class=ScooterModelColorSeeder
 
 ---
 
+## 2026-01-04 21:44:12 - 聯絡表單郵件發送給兩個收件人
+
+### 變更內容
+- **ContactController.php** (`app/Http/Controllers/Api/ContactController.php`)
+  - 修改 `send()` 方法，郵件同時發送給兩個收件人：
+    1. 填寫表單的人（表單提交者的 email）
+    2. 管理員信箱（zau1110216@gmail.com）
+  - 使用兩次 `Mail::to()` 調用，分別發送郵件給兩個收件人
+  - 兩封郵件內容相同，都是聯絡表單的內容
+
+---
+
 ## 2026-01-04 21:36:23 - 移除聯絡表單郵件標題中的姓名
 
 ### 變更內容

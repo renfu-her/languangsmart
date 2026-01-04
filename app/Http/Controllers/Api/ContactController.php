@@ -57,8 +57,9 @@ class ContactController extends Controller
             // 移除驗證碼相關欄位，只保留郵件需要的資料
             unset($data['captcha_id'], $data['captcha_answer']);
             
-            // 發送郵件到指定信箱
-            Mail::to('renfu.her@gmail.com')->send(new ContactMail($data));
+            // 發送郵件給兩個收件人：填寫表單的人和管理員
+            Mail::to($data['email'])->send(new ContactMail($data));
+            Mail::to('zau1110216@gmail.com')->send(new ContactMail($data));
 
             // 驗證成功後刪除驗證碼
             Cache::forget("captcha_{$captchaId}");
