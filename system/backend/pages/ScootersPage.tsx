@@ -514,7 +514,9 @@ const ScootersPage: React.FC = () => {
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={handleCloseModal} />
           <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-3xl relative animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col">
             <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">新增機車設備</h2>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">
+                {editingScooter ? '編輯機車設備' : '新增機車設備'}
+              </h2>
               <button onClick={handleCloseModal} className="p-2 hover:bg-gray-100 rounded-full text-gray-400">
                  <X size={20} />
               </button>
