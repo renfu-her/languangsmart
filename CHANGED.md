@@ -1,12 +1,55 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-04 21:15:07 - 更新郵件接收地址 / Update Email Recipient Address
+
+### Backend Changes
+
+- **ContactController.php** (`app/Http/Controllers/Api/ContactController.php`)
+  - 更新郵件接收地址：從 `zau1110216@gmail.com` 更改為 `renfu.her@gmail.com`
+  - 影響方法：`send()` 和 `test()` 方法
+
+---
+
+## 2026-01-04 21:15:07 - 添加測試郵件發送端點 / Add Test Email Endpoint
+
+### Backend Changes
+
+- **ContactController.php** (`app/Http/Controllers/Api/ContactController.php`)
+  - 新增 `test()` 方法：提供測試郵件發送功能
+  - 可選參數：name, email, phone, message
+  - 如果未提供參數，使用預設測試資料
+
+- **api.php** (`routes/api.php`)
+  - 添加 `POST /api/contact/test` 路由（公開路由）：測試郵件發送功能
+
+### Testing
+可以使用以下方式測試郵件發送功能：
+
+```bash
+# 使用預設測試資料
+curl -X POST http://localhost:8000/api/contact/test
+
+# 使用自訂測試資料
+curl -X POST http://localhost:8000/api/contact/test \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "測試名稱",
+    "email": "test@example.com",
+    "phone": "0912345678",
+    "message": "測試訊息內容"
+  }'
+```
+
+---
+
 ## 2026-01-04 20:35:00 - 實作聯絡表單郵件發送功能（Gmail） / Implement Contact Form Email Sending (Gmail)
 
 ### Backend Changes
 
 - **ContactController.php** (`app/Http/Controllers/Api/ContactController.php`) - 新建
   - 創建聯絡表單控制器
-  - 處理表單驗證（姓名、信箱、電話、訊息）
+  - `send()` 方法：處理表單驗證（姓名、信箱、電話、訊息）並發送郵件
+  - `test()` 方法：測試郵件發送功能，使用預設或提供的測試資料
   - 使用 ContactMail 類發送郵件到指定信箱（zau1110216@gmail.com）
   - 錯誤處理和日誌記錄
 
@@ -23,7 +66,8 @@
   - 包含發送時間資訊
 
 - **api.php** (`routes/api.php`)
-  - 添加 `POST /api/contact` 路由（公開路由）
+  - 添加 `POST /api/contact` 路由（公開路由）：處理聯絡表單提交
+  - 添加 `POST /api/contact/test` 路由（公開路由）：測試郵件發送功能
 
 ### Frontend Changes
 
@@ -61,7 +105,27 @@ MAIL_FROM_NAME="${APP_NAME}"
 - **SMTP 配置**：使用 Gmail SMTP (smtp.gmail.com:587) 發送郵件
 - **郵件模板**：使用 Blade 模板引擎創建 HTML 郵件
 - **安全性**：使用應用程式密碼而非一般密碼進行認證
-- **API 端點**：`POST /api/contact` 接收表單資料並發送郵件
+- **API 端點**：
+  - `POST /api/contact`：接收表單資料並發送郵件
+  - `POST /api/contact/test`：測試郵件發送功能（可選參數：name, email, phone, message）
+
+### Testing
+可以使用以下方式測試郵件發送功能：
+
+```bash
+# 使用預設測試資料
+curl -X POST http://localhost:8000/api/contact/test
+
+# 使用自訂測試資料
+curl -X POST http://localhost:8000/api/contact/test \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "測試名稱",
+    "email": "test@example.com",
+    "phone": "0912345678",
+    "message": "測試訊息內容"
+  }'
+```
 
 ## 2026-01-04 20:30:00 - 改進前台頁面空資料顯示訊息 / Improve Empty Data Messages for Frontend Pages
 

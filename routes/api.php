@@ -31,6 +31,7 @@ Route::post('/captcha/verify', [CaptchaController::class, 'verify']);
 
 // Contact Routes (Public)
 Route::post('/contact', [ContactController::class, 'send']);
+Route::post('/contact/test', [ContactController::class, 'test']); // 測試郵件發送
 
 // Upload Routes (Protected for admin)
 Route::middleware('auth:sanctum')->group(function () {
