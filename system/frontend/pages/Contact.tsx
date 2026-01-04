@@ -5,17 +5,17 @@ import { publicApi } from '../lib/api';
 
 interface LocationData {
   id: number;
-  title: string | null;
+  name: string;
   address: string | null;
   phone: string | null;
   hours: string | null;
   description: string | null;
   image_path: string | null;
-  map_url: string | null;
+  map_embed: string | null;
 }
 
 const Contact: React.FC = () => {
-  const [location, setLocation] = useState<LocationData | null>(null);
+  const [locations, setLocations] = useState<LocationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
@@ -26,18 +26,19 @@ const Contact: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const fetchLocation = async () => {
+    const fetchLocations = async () => {
       try {
-        const response = await publicApi.location.get();
-        setLocation(response.data);
+        const response = await publicApi.locations.list();
+        setLocations(response.data || []);
       } catch (error) {
-        console.error('Failed to fetch location:', error);
+        console.error('Failed to fetch locations:', error);
+        setLocations([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchLocation();
+    fetchLocations();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -78,61 +79,64 @@ const Contact: React.FC = () => {
             {/* 聯絡資訊 */}
             <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100">
               <h3 className="text-2xl font-bold mb-6 serif">聯絡資訊</h3>
-                <div className="space-y-6">
-                  {location?.address && (
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-[#f0f9f6] text-teal-600 rounded-full flex items-center justify-center shrink-0">
-                        <MapPin size={20} />
-                      </div>
-                      <div>
-                        <p className="font-bold mb-1">地址</p>
-                        <p className="text-gray-600">{location.address}</p>
-                      </div>
-                    </div>
-                  )}
-                  {location?.phone && (
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-[#fff4f9] text-pink-600 rounded-full flex items-center justify-center shrink-0">
-                        <Phone size={20} />
-                      </div>
-                      <div>
-                        <p className="font-bold mb-1">電話</p>
-                        <a href={`tel:${location.phone}`} className="text-gray-600 hover:text-teal-600 transition-colors">
-                          {location.phone}
-                        </a>
-                      </div>
-                    </div>
-                  )}
+              <div className="space-y-6">
+                {locations.length > 0 && locations[0].address && (
                   <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 bg-[#f0f3f9] text-blue-600 rounded-full flex items-center justify-center shrink-0">
-                      <Mail size={20} />
+                    <div className="w-10 h-10 bg-[#f0f9f6] text-teal-600 rounded-full flex items-center justify-center shrink-0">
+                      <MapPin size={20} />
                     </div>
                     <div>
-                      <p className="font-bold mb-1">電子信箱</p>
-                      <a href="mailto:info@languang-rental.com" className="text-gray-600 hover:text-teal-600 transition-colors">
-                        info@languang-rental.com
+                      <p className="font-bold mb-1">地址</p>
+                      <p className="text-gray-600">{locations[0].address}</p>
+                    </div>
+                  </div>
+                )}
+                {locations.length > 0 && locations[0].phone && (
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-[#fff4f9] text-pink-600 rounded-full flex items-center justify-center shrink-0">
+                      <Phone size={20} />
+                    </div>
+                    <div>
+                      <p className="font-bold mb-1">電話</p>
+                      <a href={`tel:${locations[0].phone}`} className="text-gray-600 hover:text-teal-600 transition-colors">
+                        {locations[0].phone}
                       </a>
                     </div>
                   </div>
-                  {location?.hours && (
-                    <div className="flex items-start gap-4">
-                      <div className="w-10 h-10 bg-[#f0f3f9] text-blue-600 rounded-full flex items-center justify-center shrink-0">
-                        <MapPin size={20} />
-                      </div>
-                      <div>
-                        <p className="font-bold mb-1">營業時間</p>
-                        <p className="text-gray-600">{location.hours}</p>
-                      </div>
-                    </div>
-                  )}
+                )}
+                <div className="flex items-start gap-4">
+                  <div className="w-10 h-10 bg-[#f0f3f9] text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                    <Mail size={20} />
+                  </div>
+                  <div>
+                    <p className="font-bold mb-1">電子信箱</p>
+                    <a href="mailto:info@languang-rental.com" className="text-gray-600 hover:text-teal-600 transition-colors">
+                      info@languang-rental.com
+                    </a>
+                  </div>
                 </div>
-
-                {location?.description && (
-                  <div className="mt-6 pt-6 border-t border-gray-200">
-                    <p className="text-gray-600 leading-relaxed">{location.description}</p>
+                {locations.length > 0 && locations[0].hours && (
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 bg-[#f0f3f9] text-blue-600 rounded-full flex items-center justify-center shrink-0">
+                      <MapPin size={20} />
+                    </div>
+                    <div>
+                      <p className="font-bold mb-1">營業時間</p>
+                      <p className="text-gray-600">{locations[0].hours}</p>
+                    </div>
                   </div>
                 )}
               </div>
+
+              {locations.length > 0 && locations[0].description && (
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div 
+                    className="text-gray-600 leading-relaxed prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: locations[0].description }}
+                  />
+                </div>
+              )}
+            </div>
 
             {/* 聯絡表單 */}
             <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100">
@@ -216,6 +220,19 @@ const Contact: React.FC = () => {
           </div>
         </section>
       )}
+
+      {/* 底部：蘭光租賃中心 */}
+      <section className="container mx-auto px-6 max-w-4xl py-12">
+        <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 text-center">
+          <h3 className="text-2xl font-bold mb-2 serif">蘭光租賃中心</h3>
+          <p className="text-[10px] uppercase tracking-widest text-gray-500 font-medium mb-4">LANGUANG RENTAL</p>
+          {locations.length > 0 && locations[0].address ? (
+            <p className="text-gray-600">地址：{locations[0].address}</p>
+          ) : (
+            <p className="text-gray-600">地址：屏東縣琉球鄉相埔路86之5</p>
+          )}
+        </div>
+      </section>
     </div>
   );
 };
