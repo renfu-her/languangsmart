@@ -1,12 +1,11 @@
 
 import React, { useState } from 'react';
-import { SCOOTER_PLANS } from '../constants';
 
 const Booking: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    plan: 'viva-mix',
+    scooterType: '白牌',
     date: '',
     days: '1',
     note: ''
@@ -14,7 +13,7 @@ const Booking: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    alert(`預約已提交！\n姓名：${formData.name}\n預約車款：${formData.plan}`);
+    alert(`預約已提交！\n姓名：${formData.name}\n預約車款：${formData.scooterType}`);
   };
 
   return (
@@ -61,10 +60,13 @@ const Booking: React.FC = () => {
                 <label className="block text-sm font-bold text-gray-700 mb-2">選擇車款</label>
                 <select 
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all"
-                  value={formData.plan}
-                  onChange={e => setFormData({...formData, plan: e.target.value})}
+                  value={formData.scooterType}
+                  onChange={e => setFormData({...formData, scooterType: e.target.value})}
                 >
-                  {SCOOTER_PLANS.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                  <option value="白牌">白牌 (Heavy)</option>
+                  <option value="綠牌">綠牌 (Light)</option>
+                  <option value="電輔車">電輔車 (E-Bike)</option>
+                  <option value="三輪車">三輪車 (Tricycle)</option>
                 </select>
               </div>
             </div>
