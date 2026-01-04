@@ -196,19 +196,6 @@ const Contact: React.FC = () => {
           </div>
         </section>
       )}
-
-      {/* 底部：蘭光租賃中心 */}
-      <section className="container mx-auto px-6 max-w-4xl py-12">
-        <div className="bg-white p-8 rounded-[40px] shadow-sm border border-gray-100 text-center">
-          <h3 className="text-2xl font-bold mb-2 serif">蘭光租賃中心</h3>
-          <p className="text-[10px] uppercase tracking-widest text-gray-500 font-medium mb-4">LANGUANG RENTAL</p>
-          {locations.length > 0 && locations[0].address ? (
-            <p className="text-gray-600">地址：{locations[0].address}</p>
-          ) : (
-            <p className="text-gray-600">地址：屏東縣琉球鄉相埔路86之5</p>
-          )}
-        </div>
-      </section>
     </div>
   );
 };
