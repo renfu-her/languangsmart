@@ -244,22 +244,10 @@ const BookingsPage: React.FC = () => {
                       <span className="text-sm text-gray-600 dark:text-gray-400">{booking.rental_days}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
-                          {getStatusIcon(booking.status)}
-                          {booking.status}
-                        </span>
-                        <select
-                          value={booking.status}
-                          onChange={(e) => handleStatusChange(booking.id, e.target.value as '執行中' | '已經回覆' | '取消')}
-                          className="text-xs px-2 py-1 bg-transparent border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 dark:text-gray-200"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          <option value="執行中">執行中</option>
-                          <option value="已經回覆">已經回覆</option>
-                          <option value="取消">取消</option>
-                        </select>
-                      </div>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                        {getStatusIcon(booking.status)}
+                        {booking.status}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">
