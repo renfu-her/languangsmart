@@ -19,7 +19,7 @@ class ContactController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255',
+            'lineId' => 'required|string|max:255',
             'phone' => 'nullable|string|max:20',
             'message' => 'required|string|max:5000',
             'captcha_id' => 'required|string',
@@ -57,8 +57,7 @@ class ContactController extends Controller
             // 移除驗證碼相關欄位，只保留郵件需要的資料
             unset($data['captcha_id'], $data['captcha_answer']);
             
-            // 發送郵件給兩個收件人：填寫表單的人和管理員
-            Mail::to($data['email'])->send(new ContactMail($data));
+            // 發送郵件給管理員（因為沒有 email，無法發送給用戶）
             Mail::to('zau1110216@gmail.com')->send(new ContactMail($data));
 
             // 驗證成功後刪除驗證碼
@@ -85,7 +84,7 @@ class ContactController extends Controller
         try {
             $testData = [
                 'name' => $request->input('name', '測試使用者'),
-                'email' => $request->input('email', 'test@example.com'),
+                'lineId' => $request->input('lineId', '@623czmsm'),
                 'phone' => $request->input('phone', '0912345678'),
                 'message' => $request->input('message', '這是一封測試郵件，用於測試郵件發送功能是否正常運作。'),
             ];

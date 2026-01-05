@@ -3848,3 +3848,68 @@ php artisan db:seed --class=ScooterModelColorSeeder
   - 所有連結都添加 hover 效果（hover:text-teal-600），提升用戶體驗
   - Footer 資訊順序：地址（有連結） → LINE ID（有連結） → 電話（有連結）
 
+---
+
+## 2026-01-05 17:38:25 - 將電子信箱欄位改為 LINE ID
+
+### 功能需求
+- 將聯絡表單和線上預約表單中的「電子信箱」欄位改為「LINE ID」
+- 更新相關的 API 驗證規則
+- 更新郵件模板顯示
+- 調整郵件發送邏輯（因為沒有 email，只發送給管理員）
+
+### Frontend Changes
+
+- **Contact.tsx** (`system/frontend/pages/Contact.tsx`)
+  - 將表單欄位從 `email` 改為 `lineId`
+  - 標籤從「電子信箱」改為「LINE ID」
+  - 輸入框類型從 `type="email"` 改為 `type="text"`
+  - Placeholder 改為「請輸入您的 LINE ID（例如：@623czmsm）」
+  - 更新表單提交時傳遞的資料欄位
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 將表單欄位從 `email` 改為 `lineId`
+  - 標籤從「電子信箱」改為「LINE ID」
+  - 輸入框類型從 `type="email"` 改為 `type="text"`
+  - Placeholder 改為「請輸入您的 LINE ID（例如：@623czmsm）」
+  - 更新表單提交時傳遞的資料欄位
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - 更新 `contact.send()` 方法的類型定義：`email` 改為 `lineId`
+  - 更新 `booking.send()` 方法的類型定義：`email` 改為 `lineId`
+
+### Backend Changes
+
+- **ContactController.php** (`app/Http/Controllers/Api/ContactController.php`)
+  - 驗證規則從 `'email' => 'required|email|max:255'` 改為 `'lineId' => 'required|string|max:255'`
+  - 移除 email 驗證規則（不再需要 email 格式驗證）
+  - 更新郵件發送邏輯：移除發送給用戶的郵件（因為沒有 email），只發送給管理員
+  - 更新 `test()` 方法：測試資料中的 `email` 改為 `lineId`
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 驗證規則從 `'email' => 'required|email|max:255'` 改為 `'lineId' => 'required|string|max:255'`
+  - 移除 email 驗證規則（不再需要 email 格式驗證）
+  - 更新郵件發送邏輯：移除發送給用戶的郵件（因為沒有 email），只發送給管理員
+
+- **ContactMail.php** (`app/Mail/ContactMail.php`)
+  - 移除 `replyTo` 設置（因為沒有 email 地址）
+
+- **BookingMail.php** (`app/Mail/BookingMail.php`)
+  - 移除 `replyTo` 設置（因為沒有 email 地址）
+
+### Email Template Changes
+
+- **contact.blade.php** (`resources/views/emails/contact.blade.php`)
+  - 將「電子信箱」標籤改為「LINE ID」
+  - 將 `{{ $data['email'] }}` 改為 `{{ $data['lineId'] }}`
+
+- **booking.blade.php** (`resources/views/emails/booking.blade.php`)
+  - 將「電子信箱」標籤改為「LINE ID」
+  - 將 `{{ $data['email'] }}` 改為 `{{ $data['lineId'] }}`
+
+### 影響範圍
+- 聯絡表單和線上預約表單不再收集 email，改為收集 LINE ID
+- 郵件只發送給管理員（zau1110216@gmail.com），不再發送給用戶
+- 郵件中顯示 LINE ID 而非電子信箱
+- 郵件不再設置 Reply-To（因為沒有 email 地址）
+

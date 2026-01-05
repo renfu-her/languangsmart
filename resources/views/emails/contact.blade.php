@@ -44,20 +44,20 @@
                                     </td>
                                 </tr>
                                 
-                                <!-- 電子信箱 -->
+                                <!-- LINE ID -->
                                 <tr>
                                     <td style="padding-bottom: 20px;">
                                         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                             <tr>
                                                 <td style="padding-bottom: 5px;">
-                                                    <span style="font-weight: bold; color: #374151; font-size: 14px;">電子信箱：</span>
+                                                    <span style="font-weight: bold; color: #374151; font-size: 14px;">LINE ID：</span>
                                                 </td>
                                             </tr>
                                             <tr>
                                                 <td>
                                                     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #ffffff; border: 1px solid #e5e7eb; border-radius: 4px;">
                                                         <tr>
-                                                            <td style="padding: 10px; color: #6b7280; font-size: 14px;">{{ $data['email'] }}</td>
+                                                            <td style="padding: 10px; color: #6b7280; font-size: 14px;">{{ $data['lineId'] }}</td>
                                                         </tr>
                                                     </table>
                                                 </td>

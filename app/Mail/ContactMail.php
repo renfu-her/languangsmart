@@ -31,9 +31,6 @@ class ContactMail extends Mailable
     {
         return new Envelope(
             subject: '【蘭光租賃中心】聯絡表單',
-            replyTo: [
-                new Address($this->data['email'], $this->data['name'] ?? ''),
-            ],
         );
     }
 

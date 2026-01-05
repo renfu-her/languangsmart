@@ -24,7 +24,7 @@ const Contact: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    lineId: '',
     phone: '',
     message: '',
     captchaAnswer: '',
@@ -83,14 +83,14 @@ const Contact: React.FC = () => {
     try {
       await publicApi.contact.send({
         name: formData.name,
-        email: formData.email,
+        lineId: formData.lineId,
         phone: formData.phone,
         message: formData.message,
         captcha_id: captcha.captcha_id,
         captcha_answer: formData.captchaAnswer.toUpperCase().trim(),
       });
       alert('感謝您的訊息！我們會盡快與您聯繫。');
-      setFormData({ name: '', email: '', phone: '', message: '', captchaAnswer: '' });
+      setFormData({ name: '', lineId: '', phone: '', message: '', captchaAnswer: '' });
       fetchCaptcha(); // 重新獲取驗證碼
     } catch (error: any) {
       console.error('Failed to send contact form:', error);
@@ -183,17 +183,17 @@ const Contact: React.FC = () => {
                 </div>
 
                 <div>
-                  <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                    電子信箱 <span className="text-red-500">*</span>
+                  <label htmlFor="lineId" className="block text-sm font-medium text-gray-700 mb-2">
+                    LINE ID <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="email"
-                    id="email"
+                    type="text"
+                    id="lineId"
                     required
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                    value={formData.lineId}
+                    onChange={(e) => setFormData({ ...formData, lineId: e.target.value })}
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition-all"
-                    placeholder="your.email@example.com"
+                    placeholder="請輸入您的 LINE ID（例如：@623czmsm）"
                   />
                 </div>
 

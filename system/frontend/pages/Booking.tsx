@@ -11,7 +11,7 @@ interface Captcha {
 const Booking: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
+    lineId: '',
     phone: '',
     scooterType: '白牌',
     date: '',
@@ -60,7 +60,7 @@ const Booking: React.FC = () => {
     try {
       await publicApi.booking.send({
         name: formData.name,
-        email: formData.email,
+        lineId: formData.lineId,
         phone: formData.phone,
         scooterType: formData.scooterType,
         date: formData.date,
@@ -72,7 +72,7 @@ const Booking: React.FC = () => {
       alert('預約已成功提交！我們會盡快與您聯繫確認詳情。');
       setFormData({ 
         name: '', 
-        email: '', 
+        lineId: '', 
         phone: '', 
         scooterType: '白牌', 
         date: '', 
@@ -127,15 +127,15 @@ const Booking: React.FC = () => {
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  電子信箱 <span className="text-red-500">*</span>
+                  LINE ID <span className="text-red-500">*</span>
                 </label>
                 <input 
-                  type="email" 
+                  type="text" 
                   required
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all" 
-                  placeholder="your.email@example.com"
-                  value={formData.email}
-                  onChange={e => setFormData({...formData, email: e.target.value})}
+                  placeholder="請輸入您的 LINE ID（例如：@623czmsm）"
+                  value={formData.lineId}
+                  onChange={e => setFormData({...formData, lineId: e.target.value})}
                 />
               </div>
               <div>

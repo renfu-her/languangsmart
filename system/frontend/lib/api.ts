@@ -84,11 +84,11 @@ export const publicApi = {
     get: (id: string | number) => api.get(`/guesthouses/${id}`),
   },
   contact: {
-    send: (data: { name: string; email: string; phone?: string; message: string; captcha_id: string; captcha_answer: string }) => 
+    send: (data: { name: string; lineId: string; phone?: string; message: string; captcha_id: string; captcha_answer: string }) => 
       api.post('/contact', data),
   },
   booking: {
-    send: (data: { name: string; email: string; phone?: string; scooterType: string; date: string; days: string; note?: string; captcha_id: string; captcha_answer: string }) => 
+    send: (data: { name: string; lineId: string; phone?: string; scooterType: string; date: string; days: string; note?: string; captcha_id: string; captcha_answer: string }) => 
       api.post('/booking', data),
   },
   captcha: {
