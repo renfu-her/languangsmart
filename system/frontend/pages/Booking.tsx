@@ -128,6 +128,9 @@ const Booking: React.FC = () => {
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   LINE ID <span className="text-red-500">*</span>
+                  <span className="ml-2 text-xs text-gray-500 font-normal">
+                    （<a href="https://line.me/R/ti/p/@623czmsm?oat_content=url&ts=01042332" target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:text-teal-700 underline">請加入 LINE 好友，點此連結</a>）
+                  </span>
                 </label>
                 <input 
                   type="text" 
