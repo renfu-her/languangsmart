@@ -38,10 +38,10 @@ Route::post('/contact/test', [ContactController::class, 'test']); // 測試郵�
 Route::post('/booking', [BookingController::class, 'send']); // Public: 前端提交預約
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bookings', [BookingController::class, 'index']); // Backend: 列表
-    Route::get('/bookings/{booking}', [BookingController::class, 'show']); // Backend: 詳情
-    Route::put('/bookings/{booking}', [BookingController::class, 'update']); // Backend: 更新
-    Route::patch('/bookings/{booking}/status', [BookingController::class, 'updateStatus']); // Backend: 更新狀態
-    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy']); // Backend: 刪除
+    Route::get('/bookings/{booking}', [BookingController::class, 'show'])->where('booking', '[0-9]+'); // Backend: 詳情
+    Route::put('/bookings/{booking}', [BookingController::class, 'update'])->where('booking', '[0-9]+'); // Backend: 更新
+    Route::patch('/bookings/{booking}/status', [BookingController::class, 'updateStatus'])->where('booking', '[0-9]+'); // Backend: 更新狀態
+    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->where('booking', '[0-9]+'); // Backend: 刪除
 });
 
 // Upload Routes (Protected for admin)

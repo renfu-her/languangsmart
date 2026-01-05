@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Search, Edit2, Trash2, X, Loader2, ChevronDown, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, Edit2, Trash2, X, Loader2, Calendar, MessageCircle, Phone, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { bookingsApi } from '../lib/api';
 import { inputClasses, labelClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
 
@@ -34,10 +34,6 @@ const BookingsPage: React.FC = () => {
     note: '',
     status: '執行中' as '執行中' | '已經回覆' | '取消',
   });
-  const [openStatusDropdownId, setOpenStatusDropdownId] = useState<number | null>(null);
-  const [statusDropdownPosition, setStatusDropdownPosition] = useState<{ top: number; right: number } | null>(null);
-  const statusButtonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
-  const statusDropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   useEffect(() => {
     fetchBookings();
@@ -46,10 +42,9 @@ const BookingsPage: React.FC = () => {
   const fetchBookings = async () => {
     setLoading(true);
     try {
-      const params: { search?: string; status?: string } = {};
+      const params: any = {};
       if (searchTerm) params.search = searchTerm;
       if (statusFilter) params.status = statusFilter;
-      
       const response = await bookingsApi.list(params);
       setBookings(response.data || []);
     } catch (error) {
@@ -97,9 +92,16 @@ const BookingsPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      const submitData = {
+        ...formData,
+        phone: formData.phone || null,
+        note: formData.note || null,
+      };
+
       if (editingBooking) {
-        await bookingsApi.update(editingBooking.id, formData);
+        await bookingsApi.update(editingBooking.id, submitData);
       }
+
       await fetchBookings();
       handleCloseModal();
     } catch (error: any) {
@@ -120,11 +122,10 @@ const BookingsPage: React.FC = () => {
     }
   };
 
-  const handleStatusChange = async (id: number, newStatus: '執行中' | '已經回覆' | '取消') => {
+  const handleStatusChange = async (id: number, status: '執行中' | '已經回覆' | '取消') => {
     try {
-      await bookingsApi.updateStatus(id, newStatus);
+      await bookingsApi.updateStatus(id, status);
       await fetchBookings();
-      setOpenStatusDropdownId(null);
     } catch (error: any) {
       console.error('Failed to update status:', error);
       alert(error.message || '更新狀態失敗');
@@ -144,37 +145,18 @@ const BookingsPage: React.FC = () => {
     }
   };
 
-  // 處理狀態下拉選單位置
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (openStatusDropdownId !== null) {
-        const buttonRef = statusButtonRefs.current[openStatusDropdownId];
-        const dropdownRef = statusDropdownRefs.current[openStatusDropdownId];
-        
-        if (buttonRef && dropdownRef && 
-            !buttonRef.contains(event.target as Node) && 
-            !dropdownRef.contains(event.target as Node)) {
-          setOpenStatusDropdownId(null);
-        }
-      }
-    };
-
-    if (openStatusDropdownId !== null) {
-      document.addEventListener('mousedown', handleClickOutside);
-      const buttonRef = statusButtonRefs.current[openStatusDropdownId];
-      if (buttonRef) {
-        const rect = buttonRef.getBoundingClientRect();
-        setStatusDropdownPosition({
-          top: rect.bottom + 4,
-          right: window.innerWidth - rect.right,
-        });
-      }
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case '執行中':
+        return <Clock size={14} className="mr-1" />;
+      case '已經回覆':
+        return <CheckCircle size={14} className="mr-1" />;
+      case '取消':
+        return <XCircle size={14} className="mr-1" />;
+      default:
+        return null;
     }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
-  }, [openStatusDropdownId]);
+  };
 
   if (loading && bookings.length === 0) {
     return (
@@ -204,13 +186,13 @@ const BookingsPage: React.FC = () => {
             placeholder="搜尋姓名、LINE ID、電話..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200"
+            className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200"
           />
         </div>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-4 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all dark:text-gray-200"
+          className="px-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all dark:text-gray-200"
         >
           <option value="">全部狀態</option>
           <option value="執行中">執行中</option>
@@ -262,38 +244,21 @@ const BookingsPage: React.FC = () => {
                       <span className="text-sm text-gray-600 dark:text-gray-400">{booking.rental_days}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="relative">
-                        <button
-                          ref={(el) => (statusButtonRefs.current[booking.id] = el)}
-                          onClick={() => setOpenStatusDropdownId(openStatusDropdownId === booking.id ? null : booking.id)}
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(booking.status)} cursor-pointer hover:opacity-80 transition-opacity`}
-                        >
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(booking.status)}`}>
+                          {getStatusIcon(booking.status)}
                           {booking.status}
-                          <ChevronDown size={12} className="ml-1" />
-                        </button>
-                        {openStatusDropdownId === booking.id && (
-                          <div
-                            ref={(el) => (statusDropdownRefs.current[booking.id] = el)}
-                            className="absolute z-50 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg min-w-[120px]"
-                            style={{
-                              top: statusDropdownPosition?.top || 0,
-                              right: statusDropdownPosition?.right || 0,
-                            }}
-                          >
-                            {(['執行中', '已經回覆', '取消'] as const).map((status) => (
-                              <button
-                                key={status}
-                                onClick={() => handleStatusChange(booking.id, status)}
-                                className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center justify-between ${
-                                  booking.status === status ? 'text-orange-600 dark:text-orange-400' : 'text-gray-700 dark:text-gray-300'
-                                }`}
-                              >
-                                {status}
-                                {booking.status === status && <Check size={14} />}
-                              </button>
-                            ))}
-                          </div>
-                        )}
+                        </span>
+                        <select
+                          value={booking.status}
+                          onChange={(e) => handleStatusChange(booking.id, e.target.value as '執行中' | '已經回覆' | '取消')}
+                          className="text-xs px-2 py-1 bg-transparent border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-1 focus:ring-orange-500 dark:text-gray-200"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <option value="執行中">執行中</option>
+                          <option value="已經回覆">已經回覆</option>
+                          <option value="取消">取消</option>
+                        </select>
                       </div>
                     </td>
                     <td className="px-6 py-4">
@@ -344,120 +309,111 @@ const BookingsPage: React.FC = () => {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 overflow-y-auto flex-1">
-              <div className="space-y-4">
-                <div>
-                  <label className={labelClasses}>姓名 *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className={inputClasses}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClasses}>LINE ID *</label>
-                  <input
-                    type="text"
-                    required
-                    value={formData.line_id}
-                    onChange={(e) => setFormData({ ...formData, line_id: e.target.value })}
-                    className={inputClasses}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClasses}>電話</label>
-                  <input
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className={inputClasses}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClasses}>車款 *</label>
-                  <select
-                    required
-                    value={formData.scooter_type}
-                    onChange={(e) => setFormData({ ...formData, scooter_type: e.target.value })}
-                    className={inputClasses}
-                  >
-                    <option value="">請選擇</option>
-                    <option value="白牌">白牌 (Heavy)</option>
-                    <option value="綠牌">綠牌 (Light)</option>
-                    <option value="電輔車">電輔車 (E-Bike)</option>
-                    <option value="三輪車">三輪車 (Tricycle)</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className={labelClasses}>預約日期 *</label>
-                  <input
-                    type="date"
-                    required
-                    value={formData.booking_date}
-                    onChange={(e) => setFormData({ ...formData, booking_date: e.target.value })}
-                    className={inputClasses}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClasses}>租借天數 *</label>
-                  <select
-                    required
-                    value={formData.rental_days}
-                    onChange={(e) => setFormData({ ...formData, rental_days: e.target.value })}
-                    className={inputClasses}
-                  >
-                    <option value="">請選擇</option>
-                    <option value="1">1 天 (24小時)</option>
-                    <option value="2">2 天 1 夜</option>
-                    <option value="3">3 天 2 夜</option>
-                    <option value="4">4 天以上</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className={labelClasses}>備註</label>
-                  <textarea
-                    value={formData.note}
-                    onChange={(e) => setFormData({ ...formData, note: e.target.value })}
-                    className={inputClasses}
-                    rows={4}
-                  />
-                </div>
-
-                <div>
-                  <label className={labelClasses}>狀態 *</label>
-                  <select
-                    required
-                    value={formData.status}
-                    onChange={(e) => setFormData({ ...formData, status: e.target.value as '執行中' | '已經回覆' | '取消' })}
-                    className={inputClasses}
-                  >
-                    <option value="執行中">執行中</option>
-                    <option value="已經回覆">已經回覆</option>
-                    <option value="取消">取消</option>
-                  </select>
-                </div>
+            <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-4">
+              <div>
+                <label className={labelClasses}>姓名 *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className={inputClasses}
+                />
               </div>
 
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className={modalCancelButtonClasses}
+              <div>
+                <label className={labelClasses}>LINE ID *</label>
+                <input
+                  type="text"
+                  required
+                  value={formData.line_id}
+                  onChange={(e) => setFormData({ ...formData, line_id: e.target.value })}
+                  className={inputClasses}
+                />
+              </div>
+
+              <div>
+                <label className={labelClasses}>電話</label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className={inputClasses}
+                />
+              </div>
+
+              <div>
+                <label className={labelClasses}>車款 *</label>
+                <select
+                  required
+                  value={formData.scooter_type}
+                  onChange={(e) => setFormData({ ...formData, scooter_type: e.target.value })}
+                  className={inputClasses}
                 >
+                  <option value="">請選擇</option>
+                  <option value="白牌">白牌 (Heavy)</option>
+                  <option value="綠牌">綠牌 (Light)</option>
+                  <option value="電輔車">電輔車 (E-Bike)</option>
+                  <option value="三輪車">三輪車 (Tricycle)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClasses}>預約日期 *</label>
+                <input
+                  type="date"
+                  required
+                  value={formData.booking_date}
+                  onChange={(e) => setFormData({ ...formData, booking_date: e.target.value })}
+                  className={inputClasses}
+                />
+              </div>
+
+              <div>
+                <label className={labelClasses}>租借天數 *</label>
+                <select
+                  required
+                  value={formData.rental_days}
+                  onChange={(e) => setFormData({ ...formData, rental_days: e.target.value })}
+                  className={inputClasses}
+                >
+                  <option value="">請選擇</option>
+                  <option value="1">1 天 (24小時)</option>
+                  <option value="2">2 天 1 夜</option>
+                  <option value="3">3 天 2 夜</option>
+                  <option value="4">4 天以上</option>
+                </select>
+              </div>
+
+              <div>
+                <label className={labelClasses}>備註</label>
+                <textarea
+                  value={formData.note}
+                  onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                  rows={4}
+                  className={inputClasses}
+                />
+              </div>
+
+              <div>
+                <label className={labelClasses}>狀態 *</label>
+                <select
+                  required
+                  value={formData.status}
+                  onChange={(e) => setFormData({ ...formData, status: e.target.value as '執行中' | '已經回覆' | '取消' })}
+                  className={inputClasses}
+                >
+                  <option value="執行中">執行中</option>
+                  <option value="已經回覆">已經回覆</option>
+                  <option value="取消">取消</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button type="button" onClick={handleCloseModal} className={modalCancelButtonClasses}>
                   取消
                 </button>
-                <button
-                  type="submit"
-                  className={modalSubmitButtonClasses}
-                >
+                <button type="submit" className={modalSubmitButtonClasses}>
                   儲存
                 </button>
               </div>

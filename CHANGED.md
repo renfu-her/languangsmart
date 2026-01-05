@@ -3913,3 +3913,94 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 郵件中顯示 LINE ID 而非電子信箱
 - 郵件不再設置 Reply-To（因為沒有 email 地址）
 
+---
+
+## 2026-01-05 20:44:45 - 預約功能增加資料庫儲存和後端管理
+
+### 功能需求
+- 預約提交後儲存到資料庫
+- 添加 status 欄位，預設為「執行中」
+- 狀態選項：執行中、已經回覆、取消
+- 在後端管理系統中添加預約管理功能
+
+### Database Changes
+
+- **create_bookings_table.php** (`database/migrations/2026_01_05_173900_create_bookings_table.php`) - 新建
+  - 創建 `bookings` 資料表
+  - 欄位：
+    - `id`：主鍵
+    - `name`：姓名
+    - `line_id`：LINE ID
+    - `phone`：電話（可為空）
+    - `scooter_type`：車款
+    - `booking_date`：預約日期
+    - `rental_days`：租借天數
+    - `note`：備註（可為空）
+    - `status`：狀態（enum: 執行中、已經回覆、取消），預設為「執行中」
+    - `created_at`、`updated_at`：時間戳記
+
+### Backend Changes
+
+- **Booking.php** (`app/Models/Booking.php`) - 新建
+  - 創建 Booking 模型
+  - 定義 fillable 欄位
+  - 設定 `booking_date` 為 date cast
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 更新 `send()` 方法：在發送郵件前先儲存到資料庫
+  - 新增 `index()` 方法：後端列表（支援搜尋和狀態篩選）
+  - 新增 `show()` 方法：後端查看詳情
+  - 新增 `update()` 方法：後端更新預約資料
+  - 新增 `updateStatus()` 方法：後端更新狀態
+  - 新增 `destroy()` 方法：後端刪除預約
+
+- **api.php** (`routes/api.php`)
+  - 添加後端預約管理路由（需要認證）：
+    - `GET /api/bookings`：列表
+    - `GET /api/bookings/{booking}`：詳情
+    - `PUT /api/bookings/{booking}`：更新
+    - `PATCH /api/bookings/{booking}/status`：更新狀態
+    - `DELETE /api/bookings/{booking}`：刪除
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 添加 `bookingsApi` 物件
+  - 包含所有後端管理方法
+
+### Frontend Backend Changes
+
+- **BookingsPage.tsx** (`system/backend/pages/BookingsPage.tsx`) - 新建
+  - 創建後端預約管理頁面
+  - 功能：
+    - 預約列表顯示（表格形式）
+    - 搜尋功能（姓名、LINE ID、電話）
+    - 狀態篩選（執行中、已經回覆、取消）
+    - 狀態快速切換（下拉選單）
+    - 編輯預約資料（Modal 表單）
+    - 刪除預約（確認對話框）
+    - 狀態顏色標示：
+      - 執行中：藍色
+      - 已經回覆：綠色
+      - 取消：紅色
+  - 表格欄位：姓名、LINE ID、電話、車款、預約日期、租借天數、狀態、建立時間、操作
+
+- **App.tsx** (`system/backend/App.tsx`)
+  - 添加 BookingsPage 的 lazy load
+  - 添加 `/bookings` 路由
+
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 在「網站內容管理」區塊的最下面添加「預約管理」連結
+  - 路徑：`/bookings`
+
+### Features
+- **資料庫儲存**：所有預約都會儲存到資料庫
+- **狀態管理**：預設狀態為「執行中」，可在後端修改為「已經回覆」或「取消」
+- **後端管理**：完整的 CRUD 功能（創建、讀取、更新、刪除）
+- **搜尋和篩選**：支援搜尋和狀態篩選
+- **快速狀態切換**：在列表中直接切換狀態
+
+### Technical Details
+- 預約提交時自動儲存到資料庫，狀態預設為「執行中」
+- 後端管理頁面位於「網站內容管理」區塊的最下面
+- 狀態欄位使用 enum 類型，確保資料一致性
+- API 路由使用 `auth:sanctum` middleware 保護
+
