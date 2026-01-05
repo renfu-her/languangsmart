@@ -19,7 +19,6 @@ const GuidelinesPage = React.lazy(() => import('./pages/GuidelinesPage'));
 const LocationsPage = React.lazy(() => import('./pages/LocationsPage'));
 const GuesthousesPage = React.lazy(() => import('./pages/GuesthousesPage'));
 const BookingsPage = React.lazy(() => import('./pages/BookingsPage'));
-const BookingsPage = React.lazy(() => import('./pages/BookingsPage'));
 
 const LoadingFallback: React.FC = () => (
   <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
