@@ -34,8 +34,15 @@ Route::post('/captcha/verify', [CaptchaController::class, 'verify']);
 Route::post('/contact', [ContactController::class, 'send']);
 Route::post('/contact/test', [ContactController::class, 'test']); // 測試郵件發送
 
-// Booking Routes (Public)
-Route::post('/booking', [BookingController::class, 'send']);
+// Booking Routes
+Route::post('/booking', [BookingController::class, 'send']); // Public: 前端提交預約
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/bookings', [BookingController::class, 'index']); // Backend: 列表
+    Route::get('/bookings/{booking}', [BookingController::class, 'show']); // Backend: 詳情
+    Route::put('/bookings/{booking}', [BookingController::class, 'update']); // Backend: 更新
+    Route::patch('/bookings/{booking}/status', [BookingController::class, 'updateStatus']); // Backend: 更新狀態
+    Route::delete('/bookings/{booking}', [BookingController::class, 'destroy']); // Backend: 刪除
+});
 
 // Upload Routes (Protected for admin)
 Route::middleware('auth:sanctum')->group(function () {

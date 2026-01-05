@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\BookingMail;
+use App\Models\Booking;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
@@ -57,8 +58,20 @@ class BookingController extends Controller
 
         try {
             $data = $validator->validated();
-            // 移除驗證碼相關欄位，只保留郵件需要的資料
+            // 移除驗證碼相關欄位
             unset($data['captcha_id'], $data['captcha_answer']);
+            
+            // 儲存到資料庫
+            $booking = Booking::create([
+                'name' => $data['name'],
+                'line_id' => $data['lineId'],
+                'phone' => $data['phone'] ?? null,
+                'scooter_type' => $data['scooterType'],
+                'booking_date' => $data['date'],
+                'rental_days' => $data['days'],
+                'note' => $data['note'] ?? null,
+                'status' => '執行中', // 預設狀態為「執行中」
+            ]);
             
             // 發送郵件給管理員（因為沒有 email，無法發送給用戶）
             Mail::to('zau1110216@gmail.com')->send(new BookingMail($data));
@@ -77,5 +90,112 @@ class BookingController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
+    }
+
+    /**
+     * Display a listing of bookings (for backend admin)
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $query = Booking::query();
+
+        // Search
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('line_id', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($request->has('status')) {
+            $query->where('status', $request->get('status'));
+        }
+
+        // Order by created_at desc
+        $bookings = $query->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'data' => $bookings,
+        ]);
+    }
+
+    /**
+     * Display the specified booking.
+     */
+    public function show(Booking $booking): JsonResponse
+    {
+        return response()->json([
+            'data' => $booking,
+        ]);
+    }
+
+    /**
+     * Update the specified booking in storage.
+     */
+    public function update(Request $request, Booking $booking): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'line_id' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'scooter_type' => 'required|string|max:50',
+            'booking_date' => 'required|date',
+            'rental_days' => 'required|string|max:20',
+            'note' => 'nullable|string|max:1000',
+            'status' => 'required|in:執行中,已經回覆,取消',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $booking->update($validator->validated());
+
+        return response()->json([
+            'message' => 'Booking updated successfully',
+            'data' => $booking,
+        ]);
+    }
+
+    /**
+     * Update booking status.
+     */
+    public function updateStatus(Request $request, Booking $booking): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:執行中,已經回覆,取消',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $booking->update(['status' => $request->get('status')]);
+
+        return response()->json([
+            'message' => 'Booking status updated successfully',
+            'data' => $booking,
+        ]);
+    }
+
+    /**
+     * Remove the specified booking from storage.
+     */
+    public function destroy(Booking $booking): JsonResponse
+    {
+        $booking->delete();
+
+        return response()->json([
+            'message' => 'Booking deleted successfully',
+        ]);
     }
 }

@@ -295,3 +295,13 @@ export const guesthousesApi = {
     api.uploadFile(`/guesthouses/${id}/upload-image`, file, 'image'),
 };
 
+export const bookingsApi = {
+  list: (params?: { search?: string; status?: string }) =>
+    api.get('/bookings', params),
+  get: (id: string | number) => api.get(`/bookings/${id}`),
+  update: (id: string | number, data: any) => api.put(`/bookings/${id}`, data),
+  updateStatus: (id: string | number, status: string) =>
+    api.patch(`/bookings/${id}/status`, { status }),
+  delete: (id: string | number) => api.delete(`/bookings/${id}`),
+};
+
