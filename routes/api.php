@@ -33,6 +33,13 @@ Route::post('/captcha/verify', [CaptchaController::class, 'verify']);
 // Contact Routes (Public)
 Route::post('/contact', [ContactController::class, 'send']);
 Route::post('/contact/test', [ContactController::class, 'test']); // 測試郵件發送
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/contacts', [ContactController::class, 'index']); // Backend: 列表
+    Route::get('/contacts/{contact}', [ContactController::class, 'show'])->where('contact', '[0-9]+'); // Backend: 詳情
+    Route::put('/contacts/{contact}', [ContactController::class, 'update'])->where('contact', '[0-9]+'); // Backend: 更新
+    Route::patch('/contacts/{contact}/status', [ContactController::class, 'updateStatus'])->where('contact', '[0-9]+'); // Backend: 更新狀態
+    Route::delete('/contacts/{contact}', [ContactController::class, 'destroy'])->where('contact', '[0-9]+'); // Backend: 刪除
+});
 
 // Booking Routes
 Route::post('/booking', [BookingController::class, 'send']); // Public: 前端提交預約

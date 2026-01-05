@@ -305,3 +305,13 @@ export const bookingsApi = {
   delete: (id: string | number) => api.delete(`/bookings/${id}`),
 };
 
+export const contactsApi = {
+  list: (params?: { search?: string; status?: string }) =>
+    api.get('/contacts', params),
+  get: (id: string | number) => api.get(`/contacts/${id}`),
+  update: (id: string | number, data: any) => api.put(`/contacts/${id}`, data),
+  updateStatus: (id: string | number, status: string) =>
+    api.patch(`/contacts/${id}/status`, { status }),
+  delete: (id: string | number) => api.delete(`/contacts/${id}`),
+};
+

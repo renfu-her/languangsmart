@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\ContactMail;
+use App\Models\Contact;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
@@ -54,8 +55,17 @@ class ContactController extends Controller
 
         try {
             $data = $validator->validated();
-            // 移除驗證碼相關欄位，只保留郵件需要的資料
+            // 移除驗證碼相關欄位
             unset($data['captcha_id'], $data['captcha_answer']);
+            
+            // 儲存到資料庫
+            $contact = Contact::create([
+                'name' => $data['name'],
+                'line_id' => $data['lineId'],
+                'phone' => $data['phone'] ?? null,
+                'message' => $data['message'],
+                'status' => '執行中',
+            ]);
             
             // 發送郵件給管理員（因為沒有 email，無法發送給用戶）
             Mail::to('zau1110216@gmail.com')->send(new ContactMail($data));
@@ -104,5 +114,110 @@ class ContactController extends Controller
                 'error' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Display a listing of contacts (for backend admin)
+     */
+    public function index(Request $request): JsonResponse
+    {
+        $query = Contact::query();
+
+        // Search
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                  ->orWhere('line_id', 'like', "%{$search}%")
+                  ->orWhere('phone', 'like', "%{$search}%")
+                  ->orWhere('message', 'like', "%{$search}%");
+            });
+        }
+
+        // Filter by status
+        if ($request->has('status')) {
+            $query->where('status', $request->get('status'));
+        }
+
+        // Order by created_at desc
+        $contacts = $query->orderBy('created_at', 'desc')->get();
+
+        return response()->json([
+            'data' => $contacts,
+        ]);
+    }
+
+    /**
+     * Display the specified contact.
+     */
+    public function show(Contact $contact): JsonResponse
+    {
+        return response()->json([
+            'data' => $contact,
+        ]);
+    }
+
+    /**
+     * Update the specified contact in storage.
+     */
+    public function update(Request $request, Contact $contact): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:255',
+            'line_id' => 'required|string|max:255',
+            'phone' => 'nullable|string|max:20',
+            'message' => 'required|string|max:5000',
+            'status' => 'required|in:執行中,已經回覆,取消',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $contact->update($validator->validated());
+
+        return response()->json([
+            'message' => 'Contact updated successfully',
+            'data' => $contact,
+        ]);
+    }
+
+    /**
+     * Update contact status.
+     */
+    public function updateStatus(Request $request, Contact $contact): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'status' => 'required|in:執行中,已經回覆,取消',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $contact->update(['status' => $request->get('status')]);
+
+        return response()->json([
+            'message' => 'Contact status updated successfully',
+            'data' => $contact,
+        ]);
+    }
+
+    /**
+     * Remove the specified contact from storage.
+     */
+    public function destroy(Contact $contact): JsonResponse
+    {
+        $contact->delete();
+
+        return response()->json([
+            'message' => 'Contact deleted successfully',
+        ]);
     }
 }

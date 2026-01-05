@@ -4004,3 +4004,90 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 狀態欄位使用 enum 類型，確保資料一致性
 - API 路由使用 `auth:sanctum` middleware 保護
 
+---
+
+## 2026-01-05 22:12:38 - 聯絡我們功能增加資料庫儲存和後端管理
+
+### 功能需求
+- 聯絡我們提交後儲存到資料庫
+- 添加 status 欄位，預設為「執行中」
+- 狀態選項：執行中、已經回覆、取消
+- 在後端管理系統中添加聯絡管理功能
+- 功能與預約管理相同
+
+### Database Changes
+
+- **create_contacts_table.php** (`database/migrations/2026_01_05_221011_create_contacts_table.php`) - 新建
+  - 創建 `contacts` 資料表
+  - 欄位：
+    - `id`：主鍵
+    - `name`：姓名
+    - `line_id`：LINE ID
+    - `phone`：電話（可為空）
+    - `message`：訊息內容
+    - `status`：狀態（enum: 執行中、已經回覆、取消），預設為「執行中」
+    - `created_at`、`updated_at`：時間戳記
+
+### Backend Changes
+
+- **Contact.php** (`app/Models/Contact.php`) - 新建
+  - 創建 Contact 模型
+  - 定義 fillable 欄位
+
+- **ContactController.php** (`app/Http/Controllers/Api/ContactController.php`)
+  - 更新 `send()` 方法：在發送郵件前先儲存到資料庫
+  - 新增 `index()` 方法：後端列表（支援搜尋和狀態篩選）
+  - 新增 `show()` 方法：後端查看詳情
+  - 新增 `update()` 方法：後端更新聯絡資料
+  - 新增 `updateStatus()` 方法：後端更新狀態
+  - 新增 `destroy()` 方法：後端刪除聯絡
+
+- **api.php** (`routes/api.php`)
+  - 添加後端聯絡管理路由（需要認證）：
+    - `GET /api/contacts`：列表
+    - `GET /api/contacts/{contact}`：詳情
+    - `PUT /api/contacts/{contact}`：更新
+    - `PATCH /api/contacts/{contact}/status`：更新狀態
+    - `DELETE /api/contacts/{contact}`：刪除
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 添加 `contactsApi` 物件
+  - 包含所有後端管理方法
+
+### Frontend Backend Changes
+
+- **ContactsPage.tsx** (`system/backend/pages/ContactsPage.tsx`) - 新建
+  - 創建後端聯絡管理頁面
+  - 功能：
+    - 聯絡列表顯示（表格形式）
+    - 搜尋功能（姓名、LINE ID、電話、訊息內容）
+    - 狀態篩選（執行中、已經回覆、取消）
+    - 編輯聯絡資料（Modal 表單）
+    - 刪除聯絡（確認對話框）
+    - 狀態顏色標示：
+      - 執行中：藍色
+      - 已經回覆：綠色
+      - 取消：紅色
+  - 表格欄位：姓名、LINE ID、電話、訊息內容、狀態、建立時間、操作
+
+- **App.tsx** (`system/backend/App.tsx`)
+  - 添加 ContactsPage 的 lazy load
+  - 添加 `/contacts` 路由
+
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 在「網站內容管理」區塊的最下面添加「聯絡管理」連結
+  - 路徑：`/contacts`
+
+### Features
+- **資料庫儲存**：所有聯絡訊息都會儲存到資料庫
+- **狀態管理**：預設狀態為「執行中」，可在後端修改為「已經回覆」或「取消」
+- **後端管理**：完整的 CRUD 功能（創建、讀取、更新、刪除）
+- **搜尋和篩選**：支援搜尋和狀態篩選
+- **與預約管理一致**：功能結構與預約管理相同
+
+### Technical Details
+- 聯絡提交時自動儲存到資料庫，狀態預設為「執行中」
+- 後端管理頁面位於「網站內容管理」區塊的最下面
+- 狀態欄位使用 enum 類型，確保資料一致性
+- API 路由使用 `auth:sanctum` middleware 保護
+
