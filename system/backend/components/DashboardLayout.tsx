@@ -121,7 +121,7 @@ const DashboardLayout: React.FC = () => {
         {/* Logo 區域 */}
         <div className={`p-4 flex items-center transition-all duration-300 ${sidebarOpen ? 'space-x-3' : 'justify-center'}`}>
           <img 
-            src="./favicon.png" 
+            src="/favicon.png" 
             alt="蘭光電動機車 Logo" 
             className="w-10 h-10 rounded-xl object-contain flex-shrink-0"
           />

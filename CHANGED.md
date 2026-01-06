@@ -4504,3 +4504,17 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 租車類型會以列表形式顯示（例如：VIVA MIX 白牌 x 1）
 - 所有新欄位都有適當的條件判斷，避免顯示空值
 
+
+---
+
+## 2026-01-06 14:23:26 - 修正後端 favicon 路徑
+
+### 變更內容
+- **DashboardLayout.tsx** (`system/backend/components/DashboardLayout.tsx`)
+  - 將 favicon 圖片路徑從 `./favicon.png` 改為 `/favicon.png`
+  - 統一使用絕對路徑，與前端保持一致
+
+### 說明
+- 後端選單 Logo 現在使用 `/favicon.png` 作為路徑
+- 與前端和後端 index.html 中的 favicon 路徑保持一致
+
