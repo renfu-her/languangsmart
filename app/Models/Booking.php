@@ -15,12 +15,23 @@ class Booking extends Model
         'phone',
         'scooter_type',
         'booking_date',
+        'end_date',
         'rental_days',
+        'shipping_company',
+        'ship_arrival_time',
+        'adults',
+        'children',
+        'scooters',
         'note',
         'status',
     ];
 
     protected $casts = [
         'booking_date' => 'date',
+        'end_date' => 'date',
+        'ship_arrival_time' => 'datetime',
+        'scooters' => 'array',
+        'adults' => 'integer',
+        'children' => 'integer',
     ];
 }

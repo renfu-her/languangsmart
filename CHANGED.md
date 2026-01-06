@@ -4332,3 +4332,51 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 價格說明現在顯示在麵包屑下方，符合用戶要求的布局
 - 內容順序更符合閱讀邏輯
 
+
+---
+
+## 2026-01-06 12:29:01 - 重寫線上預約表單，參考 77go 格式
+
+### 變更內容
+
+#### Frontend Changes
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 完全重寫預約表單，參考 77go 的線上預約格式
+  - 在表單上方添加注意事項區塊，包含 5 條注意事項
+  - 新增表單欄位：
+    - 承租人姓名（必填）
+    - Line（必填，但後端改為可選）
+    - 行動電話（必填）
+    - 預約日期（必填）
+    - 結束日期（必填）
+    - 船運公司（下拉選單：泰富、藍白、聯營、大福）
+    - 船班時間（來）（必填）
+    - 人數：大人、小孩（12歲以下）
+    - 所需租車類型/數量（可動態添加多個，參考 77go）
+  - 表單採用兩欄布局，左欄和右欄分別放置不同欄位
+  - 租車類型/數量支援動態添加和刪除
+  - 保持驗證碼功能
+
+#### Backend Changes
+- **Migration** (`database/migrations/2026_01_06_122833_add_fields_to_bookings_table.php`)
+  - 新增欄位：`end_date`, `shipping_company`, `ship_arrival_time`, `adults`, `children`, `scooters` (JSON)
+  - 修改 `status` enum，新增「預約中」狀態，預設為「預約中」
+
+- **Booking.php** (`app/Models/Booking.php`)
+  - 更新 `$fillable` 陣列，添加新欄位
+  - 更新 `$casts`，添加日期時間和 JSON 轉換
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 更新驗證規則，支援新欄位
+  - Line 改為可選欄位（nullable）
+  - 行動電話改為必填
+  - 預設狀態改為「預約中」
+  - 更新所有狀態相關的 enum 值
+
+### 說明
+- 預約表單現在完全符合 77go 的格式和功能
+- 注意事項顯示在表單上方，方便用戶查看
+- 除 Line 和人數外，其他欄位都是必填
+- 預約提交後狀態為「預約中」，等待後端確認
+- 後續需要實現：後端訂單管理頁面的通知功能，以及確認後轉為訂單的功能
+

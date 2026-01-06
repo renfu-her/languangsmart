@@ -20,11 +20,17 @@ class BookingController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
-            'lineId' => 'required|string|max:255',
-            'phone' => 'nullable|string|max:20',
-            'scooterType' => 'required|string|max:50',
-            'date' => 'required|date',
-            'days' => 'required|string|max:20',
+            'lineId' => 'nullable|string|max:255', // 改為可選
+            'phone' => 'required|string|max:20',
+            'appointmentDate' => 'required|date',
+            'endDate' => 'required|date|after_or_equal:appointmentDate',
+            'shippingCompany' => 'required|in:泰富,藍白,聯營,大福',
+            'shipArrivalTime' => 'required|date',
+            'adults' => 'nullable|integer|min:0',
+            'children' => 'nullable|integer|min:0',
+            'scooters' => 'required|array|min:1',
+            'scooters.*.model' => 'required|string|max:255',
+            'scooters.*.count' => 'required|integer|min:1',
             'note' => 'nullable|string|max:1000',
             'captcha_id' => 'required|string',
             'captcha_answer' => 'required|string|size:6',
@@ -64,13 +70,17 @@ class BookingController extends Controller
             // 儲存到資料庫
             $booking = Booking::create([
                 'name' => $data['name'],
-                'line_id' => $data['lineId'],
-                'phone' => $data['phone'] ?? null,
-                'scooter_type' => $data['scooterType'],
-                'booking_date' => $data['date'],
-                'rental_days' => $data['days'],
+                'line_id' => $data['lineId'] ?? null,
+                'phone' => $data['phone'],
+                'booking_date' => $data['appointmentDate'],
+                'end_date' => $data['endDate'],
+                'shipping_company' => $data['shippingCompany'],
+                'ship_arrival_time' => $data['shipArrivalTime'],
+                'adults' => $data['adults'] ?? null,
+                'children' => $data['children'] ?? null,
+                'scooters' => $data['scooters'],
                 'note' => $data['note'] ?? null,
-                'status' => '執行中', // 預設狀態為「執行中」
+                'status' => '預約中', // 預設狀態為「預約中」
             ]);
             
             // 發送郵件給管理員（因為沒有 email，無法發送給用戶）
@@ -145,7 +155,7 @@ class BookingController extends Controller
             'booking_date' => 'required|date',
             'rental_days' => 'required|string|max:20',
             'note' => 'nullable|string|max:1000',
-            'status' => 'required|in:執行中,已經回覆,取消',
+            'status' => 'required|in:預約中,執行中,已經回覆,取消',
         ]);
 
         if ($validator->fails()) {
@@ -169,7 +179,7 @@ class BookingController extends Controller
     public function updateStatus(Request $request, Booking $booking): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:執行中,已經回覆,取消',
+            'status' => 'required|in:預約中,執行中,已經回覆,取消',
         ]);
 
         if ($validator->fails()) {
