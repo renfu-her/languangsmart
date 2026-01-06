@@ -212,7 +212,7 @@ const RentalPlansPage: React.FC = () => {
                       <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{plan.model}</span>
                     </td>
                     <td className="px-6 py-4">
-                      <span className="text-sm font-bold text-orange-600">${plan.price}</span>
+                      <span className="text-sm font-bold text-orange-600">${Math.floor(plan.price)} / 24H</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">{plan.sort_order}</span>
