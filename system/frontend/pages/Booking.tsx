@@ -306,7 +306,6 @@ const Booking: React.FC = () => {
                       value={formData.adults}
                       onChange={e => setFormData({...formData, adults: e.target.value})}
                     />
-                    <span className="text-sm text-gray-500 mt-1 block">人</span>
                   </div>
                   <div>
                     <label className="block text-base font-bold text-gray-700 mb-1">小孩（12歲以下）</label>
@@ -318,7 +317,6 @@ const Booking: React.FC = () => {
                       value={formData.children}
                       onChange={e => setFormData({...formData, children: e.target.value})}
                     />
-                    <span className="text-sm text-gray-500 mt-1 block">人</span>
                   </div>
                 </div>
               </div>
