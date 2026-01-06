@@ -4573,3 +4573,38 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 如果是 Carbon 物件，使用 `format('Y-m-d')` 格式化為日期字串
 - 然後再連接時間部分（如 ' 08:00:00' 或 ' 18:00:00'）
 
+
+---
+
+## 2026-01-06 14:57:33 - 移除租車方案頁面的「價格」/24H 文字
+
+### 變更內容
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 移除「價格」/24H 文字
+  - 保留「隨車附安全帽，並提供衛生帽套供使用」和注意事項
+
+### 說明
+- 租車方案頁面現在不再顯示「價格」/24H 文字
+- 其他內容保持不變
+
+
+---
+
+## 2026-01-06 15:00:58 - 修改租車方案價格顯示格式
+
+### 變更內容
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 價格顯示改為整數（使用 `Math.floor` 去除小數點）
+  - 價格後面加上 "/ 24H"
+  - 從 `${plan.price || 0}` 改為 `${Math.floor(plan.price || 0)} / 24H`
+
+- **RentalPlansPage.tsx** (`system/backend/pages/RentalPlansPage.tsx`)
+  - 價格顯示改為整數（使用 `Math.floor` 去除小數點）
+  - 價格後面加上 "/ 24H"
+  - 從 `${plan.price}` 改為 `${Math.floor(plan.price)} / 24H`
+
+### 說明
+- 所有租車方案的價格顯示現在都是整數格式，不顯示小數點
+- 價格後面統一顯示 "/ 24H" 表示每 24 小時的價格
+- 例如：原本顯示 `$400.00` 現在顯示 `$400 / 24H`
+
