@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Loader2 } from 'lucide-react';
+import { RefreshCw, Loader2, Plus, X } from 'lucide-react';
 import { publicApi } from '../lib/api';
 
 interface Captcha {
@@ -8,14 +8,24 @@ interface Captcha {
   image: string; // Base64 encoded image
 }
 
+interface ScooterSelection {
+  id: string;
+  model: string;
+  count: number;
+}
+
 const Booking: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     lineId: '',
     phone: '',
-    scooterType: '白牌',
-    date: '',
-    days: '1',
+    appointmentDate: '',
+    endDate: '',
+    shippingCompany: '',
+    shipArrivalTime: '',
+    adults: '',
+    children: '',
+    scooters: [] as ScooterSelection[],
     note: '',
     captchaAnswer: '',
   });
@@ -42,6 +52,29 @@ const Booking: React.FC = () => {
     }
   };
 
+  const addScooter = () => {
+    setFormData(prev => ({
+      ...prev,
+      scooters: [...prev.scooters, { id: Date.now().toString(), model: '', count: 1 }]
+    }));
+  };
+
+  const removeScooter = (id: string) => {
+    setFormData(prev => ({
+      ...prev,
+      scooters: prev.scooters.filter(s => s.id !== id)
+    }));
+  };
+
+  const updateScooter = (id: string, field: 'model' | 'count', value: string | number) => {
+    setFormData(prev => ({
+      ...prev,
+      scooters: prev.scooters.map(s => 
+        s.id === id ? { ...s, [field]: value } : s
+      )
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -55,6 +88,11 @@ const Booking: React.FC = () => {
       return;
     }
 
+    if (formData.scooters.length === 0) {
+      alert('請至少選擇一種租車類型');
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -62,9 +100,13 @@ const Booking: React.FC = () => {
         name: formData.name,
         lineId: formData.lineId,
         phone: formData.phone,
-        scooterType: formData.scooterType,
-        date: formData.date,
-        days: formData.days,
+        appointmentDate: formData.appointmentDate,
+        endDate: formData.endDate,
+        shippingCompany: formData.shippingCompany,
+        shipArrivalTime: formData.shipArrivalTime,
+        adults: formData.adults,
+        children: formData.children,
+        scooters: formData.scooters,
         note: formData.note,
         captcha_id: captcha.captcha_id,
         captcha_answer: formData.captchaAnswer.toUpperCase().trim(),
@@ -74,18 +116,21 @@ const Booking: React.FC = () => {
         name: '', 
         lineId: '', 
         phone: '', 
-        scooterType: '白牌', 
-        date: '', 
-        days: '1', 
+        appointmentDate: '',
+        endDate: '',
+        shippingCompany: '',
+        shipArrivalTime: '',
+        adults: '',
+        children: '',
+        scooters: [],
         note: '',
         captchaAnswer: '',
       });
-      fetchCaptcha(); // 重新獲取驗證碼
+      fetchCaptcha();
     } catch (error: any) {
       console.error('Failed to submit booking:', error);
       const errorMessage = error.response?.data?.message || '提交預約時發生錯誤，請稍後再試。';
       alert(errorMessage);
-      // 如果驗證碼錯誤，重新獲取驗證碼
       if (error.response?.status === 422) {
         fetchCaptcha();
       }
@@ -108,13 +153,26 @@ const Booking: React.FC = () => {
         </div>
       </header>
 
-      <div className="container mx-auto px-6 max-w-4xl -mt-10 relative z-20">
+      <div className="container mx-auto px-6 max-w-6xl -mt-10 relative z-20">
         <div className="bg-white rounded-[40px] shadow-2xl p-8 md:p-12">
+          {/* 注意事項 */}
+          <div className="mb-8 bg-gray-50 rounded-xl p-6 border-l-4 border-teal-600">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">注意事項</h3>
+            <ol className="space-y-2 text-sm text-gray-700 leading-relaxed">
+              <li>1. 歡迎透過下列表單向店家確認租賃日期</li>
+              <li>2. 填寫表單後不代表預約成功，店家將再透過email或電話與您聯絡</li>
+              <li>3. 若24小時內未接到我們的回傳mail或聯絡電話，請主動與我們聯絡，不便之處敬請見諒！</li>
+              <li>4. 如需直接訂購請直撥0911306011來電訂車</li>
+              <li>5. ID搜尋@623czmsm加入官方LINE更能快速確認訂單</li>
+            </ol>
+          </div>
+
           <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-8">
+            {/* 左欄 */}
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  姓名 <span className="text-red-500">*</span>
+                  承租人姓名 <span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="text" 
@@ -125,9 +183,10 @@ const Booking: React.FC = () => {
                   onChange={e => setFormData({...formData, name: e.target.value})}
                 />
               </div>
+
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  LINE ID <span className="text-red-500">*</span>
+                  Line <span className="text-red-500">*</span>
                   <span className="ml-2 text-xs text-gray-500 font-normal">
                     （<a href="https://line.me/R/ti/p/@623czmsm?oat_content=url&ts=01042332" target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:text-teal-700 underline">請加入 LINE 好友，點此連結</a>）
                   </span>
@@ -141,32 +200,21 @@ const Booking: React.FC = () => {
                   onChange={e => setFormData({...formData, lineId: e.target.value})}
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">聯絡電話</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  行動電話 <span className="text-red-500">*</span>
+                </label>
                 <input 
                   type="tel" 
+                  required
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all" 
                   placeholder="請輸入手機號碼"
                   value={formData.phone}
                   onChange={e => setFormData({...formData, phone: e.target.value})}
                 />
               </div>
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">選擇車款</label>
-                <select 
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all"
-                  value={formData.scooterType}
-                  onChange={e => setFormData({...formData, scooterType: e.target.value})}
-                >
-                  <option value="白牌">白牌 (Heavy)</option>
-                  <option value="綠牌">綠牌 (Light)</option>
-                  <option value="電輔車">電輔車 (E-Bike)</option>
-                  <option value="三輪車">三輪車 (Tricycle)</option>
-                </select>
-              </div>
-            </div>
 
-            <div className="space-y-6">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   預約日期 <span className="text-red-500">*</span>
@@ -175,27 +223,146 @@ const Booking: React.FC = () => {
                   type="date" 
                   required
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all"
-                  value={formData.date}
-                  onChange={e => setFormData({...formData, date: e.target.value})}
+                  value={formData.appointmentDate}
+                  onChange={e => setFormData({...formData, appointmentDate: e.target.value})}
                 />
               </div>
+
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">租借天數</label>
-                <select 
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  結束日期 <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="date" 
+                  required
                   className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all"
-                  value={formData.days}
-                  onChange={e => setFormData({...formData, days: e.target.value})}
+                  value={formData.endDate}
+                  onChange={e => setFormData({...formData, endDate: e.target.value})}
+                  min={formData.appointmentDate}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  船運公司 <span className="text-red-500">*</span>
+                </label>
+                <select 
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all"
+                  value={formData.shippingCompany}
+                  onChange={e => setFormData({...formData, shippingCompany: e.target.value})}
                 >
-                  <option value="1">1 天 (24小時)</option>
-                  <option value="2">2 天 1 夜</option>
-                  <option value="3">3 天 2 夜</option>
-                  <option value="4">4 天以上</option>
+                  <option value="">請選擇船運公司</option>
+                  <option value="泰富">泰富</option>
+                  <option value="藍白">藍白</option>
+                  <option value="聯營">聯營</option>
+                  <option value="大福">大福</option>
                 </select>
               </div>
+
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">備註</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  船班時間（來） <span className="text-red-500">*</span>
+                </label>
+                <input 
+                  type="datetime-local" 
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all"
+                  value={formData.shipArrivalTime}
+                  onChange={e => setFormData({...formData, shipArrivalTime: e.target.value})}
+                />
+              </div>
+            </div>
+
+            {/* 右欄 */}
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  人數
+                </label>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">大人</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all" 
+                      placeholder="0"
+                      value={formData.adults}
+                      onChange={e => setFormData({...formData, adults: e.target.value})}
+                    />
+                    <span className="text-xs text-gray-500 mt-1 block">人</span>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-600 mb-1">小孩（12歲以下）</label>
+                    <input 
+                      type="number" 
+                      min="0"
+                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all" 
+                      placeholder="0"
+                      value={formData.children}
+                      onChange={e => setFormData({...formData, children: e.target.value})}
+                    />
+                    <span className="text-xs text-gray-500 mt-1 block">人</span>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  所需租車類型/數量 <span className="text-red-500">*</span>
+                </label>
+                <div className="space-y-3">
+                  {formData.scooters.map((scooter) => (
+                    <div key={scooter.id} className="flex gap-3 items-end">
+                      <div className="flex-1">
+                        <select 
+                          required
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all"
+                          value={scooter.model}
+                          onChange={e => updateScooter(scooter.id, 'model', e.target.value)}
+                        >
+                          <option value="">請選擇車型</option>
+                          <option value="VIVA MIX 白牌">VIVA MIX 白牌</option>
+                          <option value="VIVA 綠牌">VIVA 綠牌</option>
+                          <option value="電輔車">電輔車</option>
+                          <option value="三輪車">三輪車</option>
+                        </select>
+                      </div>
+                      <div className="w-24">
+                        <input 
+                          type="number" 
+                          min="1"
+                          required
+                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all"
+                          value={scooter.count}
+                          onChange={e => updateScooter(scooter.id, 'count', parseInt(e.target.value) || 1)}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeScooter(scooter.id)}
+                        className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all"
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={addScooter}
+                    className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium text-sm"
+                  >
+                    <Plus size={18} />
+                    增加租車類型
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">需求說明</label>
                 <textarea 
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all h-24 resize-none"
+                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all h-32 resize-none"
                   placeholder="如有特殊需求請告知"
                   value={formData.note}
                   onChange={e => setFormData({...formData, note: e.target.value})}
@@ -203,6 +370,7 @@ const Booking: React.FC = () => {
               </div>
             </div>
 
+            {/* 驗證碼 */}
             <div className="md:col-span-2">
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -240,7 +408,6 @@ const Booking: React.FC = () => {
                   required
                   value={formData.captchaAnswer}
                   onChange={(e) => {
-                    // 只允許字母和數字，排除 O 和 0，最多 6 位，強制大寫
                     const value = e.target.value.toUpperCase().replace(/[O0]/g, '').slice(0, 6);
                     setFormData({ ...formData, captchaAnswer: value });
                   }}
@@ -253,13 +420,14 @@ const Booking: React.FC = () => {
               </div>
             </div>
 
+            {/* 提交按鈕 */}
             <div className="md:col-span-2 pt-6">
               <button 
                 type="submit"
-                disabled={submitting || !captcha}
+                disabled={submitting || !captcha || formData.scooters.length === 0}
                 className="w-full bg-black text-white py-5 rounded-full font-bold text-lg hover:bg-teal-700 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {submitting ? '提交中...' : '確認預約'}
+                {submitting ? '提交中...' : '確認送出'}
               </button>
               <p className="mt-4 text-center text-xs text-gray-400">
                 預約完成後，我們將有專人與您電話聯繫確認詳情。
