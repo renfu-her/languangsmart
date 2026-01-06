@@ -50,7 +50,8 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
             </Link>
 
-            <Link to="/booking" className="flex items-center justify-between bg-[#1a1a1a] text-white px-5 py-3 rounded-full hover:bg-black transition-all group">
+            {/* 預約查詢功能暫時隱藏 */}
+            {/* <Link to="/booking" className="flex items-center justify-between bg-[#1a1a1a] text-white px-5 py-3 rounded-full hover:bg-black transition-all group">
               <div className="flex items-center gap-3">
                 <Search size={18} />
                 <div className="flex flex-col">
@@ -59,7 +60,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
               </div>
               <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 transition-opacity" />
-            </Link>
+            </Link> */}
 
             <a href="https://line.me/R/ti/p/@623czmsm?oat_content=url&ts=01042332" target="_blank" rel="noopener noreferrer" className="flex items-center justify-between bg-[#1a1a1a] text-white px-5 py-3 rounded-full hover:bg-black transition-all group">
               <div className="flex items-center gap-3">
