@@ -4968,3 +4968,18 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 修正了構建錯誤：`Unexpected closing "aside" tag does not match opening "div" tag`
 - 現在標籤結構正確：外層容器 `<div>` → Logo → nav → 按鈕區域 `<div>` → 關閉按鈕區域 `</div>` → 關閉外層容器 `</div>` → 關閉 `</aside>`
 
+
+---
+
+## 2026-01-06 20:50:20 - 將按鈕移到框外
+
+### 變更內容
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 將「線上預約」和「LINE @」按鈕從帶邊框的白色框內移到框外
+  - 按鈕現在位於 `<aside>` 內，但在帶邊框的 `<div>` 外面
+  - 移除了按鈕區域的 `mt-8`，改為直接放在框下方
+
+### 說明
+- 現在結構為：帶邊框的白色框（Logo + 選單）→ 按鈕區域（線上預約、LINE @）
+- 按鈕不再包含在白色框內，視覺上更清晰分離
+
