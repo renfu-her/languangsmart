@@ -4380,3 +4380,100 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 預約提交後狀態為「預約中」，等待後端確認
 - 後續需要實現：後端訂單管理頁面的通知功能，以及確認後轉為訂單的功能
 
+
+---
+
+## 2026-01-06 14:02:45 - 實現後端訂單管理頁面的通知功能和預約轉訂單功能
+
+### 變更內容
+
+#### Backend API Changes
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 新增 `pendingCount()` 方法：獲取未確認預約數量（status = '預約中'）
+  - 新增 `pending()` 方法：獲取未確認預約列表
+  - 新增 `convertToOrder()` 方法：將預約轉為訂單
+    - 驗證預約狀態必須為「預約中」
+    - 自動生成訂單編號（由 Order 模型自動處理）
+    - 從預約資料複製到訂單（承租人、日期、船運資訊等）
+    - 關聯選擇的機車
+    - 更新預約狀態為「執行中」
+    - 使用資料庫事務確保資料一致性
+
+- **routes/api.php** (`routes/api.php`)
+  - 新增路由：`GET /bookings/pending` - 獲取未確認預約列表
+  - 新增路由：`GET /bookings/pending/count` - 獲取未確認預約數量
+  - 新增路由：`POST /bookings/{booking}/convert-to-order` - 將預約轉為訂單
+
+#### Frontend Backend Changes
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 在 `bookingsApi` 中新增：
+    - `pending()` - 獲取未確認預約列表
+    - `pendingCount()` - 獲取未確認預約數量
+    - `convertToOrder()` - 將預約轉為訂單
+
+- **ConvertBookingModal.tsx** (`system/backend/components/ConvertBookingModal.tsx`) - 新建
+  - 創建預約轉訂單的 Modal 組件
+  - 顯示預約資訊（只讀）
+  - 表單欄位：
+    - 合作商（可選）
+    - 付款方式（必填）
+    - 付款金額（必填）
+    - 選擇機車（必填，可多選）
+  - 提交後調用 API 轉換訂單
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 添加通知功能（鈴鐺圖標）：
+    - 在頁面頂部顯示未確認預約數量
+    - 每 30 秒自動刷新數量
+    - 點擊「查看預約」按鈕顯示/隱藏預約列表
+  - 添加未確認預約列表區域：
+    - 顯示所有「預約中」狀態的預約
+    - 顯示預約詳細資訊（承租人、電話、日期、船運資訊、租車類型等）
+    - 每個預約有「確認轉為訂單」按鈕
+  - 整合 ConvertBookingModal：
+    - 點擊「確認轉為訂單」打開 Modal
+    - 填寫必要資訊後轉換為訂單
+    - 轉換成功後自動刷新預約列表和訂單列表
+
+### 功能說明
+1. **通知功能**：
+   - 後端訂單管理頁面頂部顯示鈴鐺圖標和未確認預約數量
+   - 數量會自動更新（每 30 秒）
+   - 點擊「查看預約」可展開/收起預約列表
+
+2. **預約轉訂單流程**：
+   - 在未確認預約列表中點擊「確認轉為訂單」
+   - 打開 Modal，顯示預約資訊（只讀）
+   - 填寫必要資訊：合作商（可選）、付款方式、付款金額、選擇機車
+   - 提交後，系統會：
+     - 創建新訂單（自動生成訂單編號）
+     - 從預約複製相關資訊
+     - 關聯選擇的機車
+     - 更新預約狀態為「執行中」
+     - 自動刷新預約列表和訂單列表
+
+### 技術細節
+- 使用資料庫事務確保轉換過程的資料一致性
+- 訂單編號由 Order 模型的 boot 方法自動生成
+- 預約狀態從「預約中」更新為「執行中」
+- 轉換後的訂單狀態為「已預訂」
+
+
+---
+
+## 2026-01-06 14:04:39 - 修正 bookings 表欄位問題
+
+### 變更內容
+- **Migration** (`database/migrations/2026_01_06_140500_make_scooter_type_and_rental_days_nullable_in_bookings_table.php`) - 新建
+  - 將 `scooter_type` 欄位改為可選（nullable）
+  - 將 `rental_days` 欄位改為可選（nullable）
+  - 因為新的表單使用 `scooters` JSON 欄位來儲存多個租車類型，舊的 `scooter_type` 和 `rental_days` 欄位已不再使用
+
+### 問題修正
+- 修正錯誤：`Field 'scooter_type' doesn't have a default value`
+- 新表單不再使用 `scooter_type` 和 `rental_days` 欄位，改為使用 `scooters` JSON 欄位
+- 為了向後兼容，將這些欄位改為可選，避免插入資料時出錯
+
+### 說明
+執行此 migration 後，預約表單可以正常提交，不會再出現 `scooter_type` 欄位錯誤。
+

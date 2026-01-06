@@ -303,6 +303,10 @@ export const bookingsApi = {
   updateStatus: (id: string | number, status: string) =>
     api.patch(`/bookings/${id}/status`, { status }),
   delete: (id: string | number) => api.delete(`/bookings/${id}`),
+  pending: () => api.get('/bookings/pending'),
+  pendingCount: () => api.get('/bookings/pending/count'),
+  convertToOrder: (id: string | number, data: any) =>
+    api.post(`/bookings/${id}/convert-to-order`, data),
 };
 
 export const contactsApi = {

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown, Download, Check } from 'lucide-react';
+import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown, Download, Check, Bell } from 'lucide-react';
 import { OrderStatus } from '../types';
 import AddOrderModal from '../components/AddOrderModal';
-import { ordersApi, partnersApi, scootersApi } from '../lib/api';
+import ConvertBookingModal from '../components/ConvertBookingModal';
+import { ordersApi, partnersApi, scootersApi, bookingsApi } from '../lib/api';
 import * as XLSX from 'xlsx';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
@@ -210,6 +211,12 @@ const OrdersPage: React.FC = () => {
   const [monthsWithOrders, setMonthsWithOrders] = useState<number[]>([]);
   const [partnerColorMap, setPartnerColorMap] = useState<Record<string, string>>({});
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
+  const [pendingBookingsCount, setPendingBookingsCount] = useState(0);
+  const [pendingBookings, setPendingBookings] = useState<any[]>([]);
+  const [showPendingBookings, setShowPendingBookings] = useState(false);
+  const [convertingBookingId, setConvertingBookingId] = useState<number | null>(null);
+  const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState<any | null>(null);
 
   // 車款類型對應的顏色（與機車管理頁面一致）
   const typeColorMap: Record<string, string> = {
@@ -278,6 +285,29 @@ const OrdersPage: React.FC = () => {
   useEffect(() => {
     fetchMonthsWithOrders(selectedYear);
   }, [selectedYear]);
+
+  // Fetch pending bookings count and list
+  const fetchPendingBookings = async () => {
+    try {
+      const [countResponse, listResponse] = await Promise.all([
+        bookingsApi.pendingCount(),
+        bookingsApi.pending(),
+      ]);
+      setPendingBookingsCount(countResponse.count || 0);
+      setPendingBookings(listResponse.data || []);
+    } catch (error) {
+      console.error('Failed to fetch pending bookings:', error);
+      setPendingBookingsCount(0);
+      setPendingBookings([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchPendingBookings();
+    // 每 30 秒刷新一次未確認預約數量
+    const interval = setInterval(fetchPendingBookings, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   // Fetch orders
   useEffect(() => {
@@ -738,8 +768,122 @@ const OrdersPage: React.FC = () => {
     setExpandedRemarkId(expandedRemarkId === orderId ? null : orderId);
   };
 
+  // 處理預約轉訂單
+  const handleConvertBookingClick = (booking: any) => {
+    setSelectedBooking(booking);
+    setIsConvertModalOpen(true);
+  };
+
+  const handleConvertSuccess = async () => {
+    await fetchPendingBookings();
+    // 重新載入訂單列表
+    const response = await ordersApi.list({
+      month: selectedMonthString,
+      search: searchTerm || undefined,
+      page: currentPage,
+    });
+    const ordersData = response.data || [];
+    setOrders(Array.isArray(ordersData) ? ordersData : []);
+    setSelectedBooking(null);
+    setIsConvertModalOpen(false);
+  };
+
   return (
     <div className="px-6 pb-6 pt-0 max-w-full dark:text-gray-100">
+      {/* 未確認預約通知區域 */}
+      {pendingBookingsCount > 0 && (
+        <div className="mb-6 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="relative">
+                <Bell size={24} className="text-orange-600 dark:text-orange-400" />
+                {pendingBookingsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center font-bold">
+                    {pendingBookingsCount}
+                  </span>
+                )}
+              </div>
+              <div>
+                <p className="text-sm font-bold text-orange-800 dark:text-orange-300">
+                  有 {pendingBookingsCount} 筆未確認的預約訂單
+                </p>
+                <p className="text-xs text-orange-600 dark:text-orange-400">
+                  點擊下方按鈕查看並確認預約
+                </p>
+              </div>
+            </div>
+            <button
+              onClick={() => setShowPendingBookings(!showPendingBookings)}
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors"
+            >
+              {showPendingBookings ? '隱藏' : '查看預約'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 未確認預約列表 */}
+      {showPendingBookings && pendingBookings.length > 0 && (
+        <div className="mb-6 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+            <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100">未確認預約列表</h2>
+          </div>
+          <div className="divide-y divide-gray-200 dark:divide-gray-700">
+            {pendingBookings.map((booking) => (
+              <div key={booking.id} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <span className="font-bold text-gray-800 dark:text-gray-100">{booking.name}</span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400">{booking.phone}</span>
+                      {booking.line_id && (
+                        <span className="text-sm text-gray-500 dark:text-gray-400">LINE: {booking.line_id}</span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-sm text-gray-600 dark:text-gray-400">
+                      <div>
+                        <span className="font-medium">預約日期：</span>
+                        <span>{new Date(booking.booking_date).toLocaleDateString('zh-TW')}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">結束日期：</span>
+                        <span>{booking.end_date ? new Date(booking.end_date).toLocaleDateString('zh-TW') : '-'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">船運公司：</span>
+                        <span>{booking.shipping_company || '-'}</span>
+                      </div>
+                      <div>
+                        <span className="font-medium">船班時間：</span>
+                        <span>{booking.ship_arrival_time ? new Date(booking.ship_arrival_time).toLocaleString('zh-TW') : '-'}</span>
+                      </div>
+                    </div>
+                    {booking.scooters && Array.isArray(booking.scooters) && booking.scooters.length > 0 && (
+                      <div className="mt-2">
+                        <span className="font-medium text-sm text-gray-600 dark:text-gray-400">租車類型：</span>
+                        <div className="flex flex-wrap gap-2 mt-1">
+                          {booking.scooters.map((scooter: any, idx: number) => (
+                            <span key={idx} className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded text-xs">
+                              {scooter.model} x {scooter.count}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleConvertBookingClick(booking)}
+                    className="ml-4 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors"
+                  >
+                    確認轉為訂單
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100">訂單管理</h1>
@@ -1243,6 +1387,16 @@ const OrdersPage: React.FC = () => {
       })()}
 
       <StatsModal isOpen={isStatsModalOpen} onClose={() => setIsStatsModalOpen(false)} stats={stats} />
+
+      <ConvertBookingModal
+        isOpen={isConvertModalOpen}
+        onClose={() => {
+          setIsConvertModalOpen(false);
+          setSelectedBooking(null);
+        }}
+        booking={selectedBooking}
+        onSuccess={handleConvertSuccess}
+      />
       <ChartModal isOpen={isChartModalOpen} onClose={() => setIsChartModalOpen(false)} stats={stats} />
       
       {/* 狀態下拉選單使用 fixed 定位，避免被表格 overflow 裁剪 */}

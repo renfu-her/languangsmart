@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Mail\BookingMail;
 use App\Models\Booking;
+use App\Models\Order;
+use App\Models\Scooter;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -207,5 +210,107 @@ class BookingController extends Controller
         return response()->json([
             'message' => 'Booking deleted successfully',
         ]);
+    }
+
+    /**
+     * Get count of pending bookings (status = '預約中')
+     */
+    public function pendingCount(): JsonResponse
+    {
+        $count = Booking::where('status', '預約中')->count();
+
+        return response()->json([
+            'count' => $count,
+        ]);
+    }
+
+    /**
+     * Get list of pending bookings (status = '預約中')
+     */
+    public function pending(): JsonResponse
+    {
+        $bookings = Booking::where('status', '預約中')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'data' => $bookings,
+        ]);
+    }
+
+    /**
+     * Convert booking to order
+     */
+    public function convertToOrder(Request $request, Booking $booking): JsonResponse
+    {
+        if ($booking->status !== '預約中') {
+            return response()->json([
+                'message' => '只能將「預約中」的預約轉為訂單',
+            ], 422);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'partner_id' => 'nullable|exists:partners,id',
+            'payment_method' => 'required|in:現金,月結,日結,匯款,刷卡,行動支付',
+            'payment_amount' => 'required|numeric|min:0',
+            'scooter_ids' => 'required|array|min:1',
+            'scooter_ids.*' => 'exists:scooters,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // 計算開始和結束時間
+            $startTime = $booking->ship_arrival_time ?: $booking->booking_date . ' 08:00:00';
+            $endTime = $booking->end_date ? ($booking->end_date . ' 18:00:00') : ($booking->booking_date . ' 18:00:00');
+
+            $scooterIds = $request->get('scooter_ids');
+
+            // 創建訂單（訂單編號會由 Order 模型的 boot 方法自動生成）
+            $order = Order::create([
+                'partner_id' => $request->get('partner_id') ?: null,
+                'tenant' => $booking->name,
+                'appointment_date' => $booking->booking_date,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'expected_return_time' => $booking->end_date ? ($booking->end_date . ' 18:00:00') : null,
+                'phone' => $booking->phone,
+                'shipping_company' => $booking->shipping_company,
+                'ship_arrival_time' => $booking->ship_arrival_time,
+                'ship_return_time' => null,
+                'payment_method' => $request->get('payment_method'),
+                'payment_amount' => $request->get('payment_amount'),
+                'status' => '已預訂',
+                'remark' => $booking->note,
+            ]);
+
+            // 關聯機車
+            $order->scooters()->sync($scooterIds);
+
+            // 更新預約狀態為「執行中」
+            $booking->update(['status' => '執行中']);
+
+            DB::commit();
+
+            return response()->json([
+                'message' => '預約已成功轉為訂單',
+                'data' => $order,
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Convert booking to order error: ' . $e->getMessage());
+
+            return response()->json([
+                'message' => '轉換訂單時發生錯誤',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
     }
 }
