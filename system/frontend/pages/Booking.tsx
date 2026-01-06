@@ -160,10 +160,10 @@ const Booking: React.FC = () => {
             <h3 className="text-lg font-bold text-gray-800 mb-4">注意事項</h3>
             <ol className="space-y-2 text-sm text-gray-700 leading-relaxed">
               <li>1. 歡迎透過下列表單向店家確認租賃日期</li>
-              <li>2. 填寫表單後不代表預約成功，店家將再透過email或電話與您聯絡</li>
-              <li>3. 若24小時內未接到我們的回傳mail或聯絡電話，請主動與我們聯絡，不便之處敬請見諒！</li>
-              <li>4. 如需直接訂購請直撥0911306011來電訂車</li>
-              <li>5. ID搜尋@623czmsm加入官方LINE更能快速確認訂單</li>
+              <li>2. 填寫表單後<span className="text-red-600 font-bold text-base">不代表預約成功</span>，店家將再透過email或電話與您聯絡</li>
+              <li>3. 若<span className="text-red-600 font-bold text-base">24小時內</span>未接到我們的回傳mail或聯絡電話，請主動與我們聯絡，不便之處敬請見諒！</li>
+              <li>4. 如需直接訂購請直撥<span className="text-red-600 font-bold text-base">0911306011</span>來電訂車</li>
+              <li>5. ID搜尋<span className="text-red-600 font-bold text-base">@623czmsm</span>加入官方LINE更能快速確認訂單</li>
             </ol>
           </div>
 
