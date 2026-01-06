@@ -36,7 +36,7 @@ const RentalPlans: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <p className="text-gray-400 tracking-[0.3em] uppercase mb-2 text-sm">Rental Plans</p>
           <h1 className="text-5xl md:text-6xl serif font-light mb-4">租車方案</h1>
-          <p className="text-gray-500 max-w-xl mx-auto text-base">蘭光租賃中心提供多種電動車租賃方案，滿足您不同的旅遊需求，讓您輕鬆探索小琉球的美景。</p>
+          <p className="text-gray-500 max-w-xl mx-auto text-base">蘭光電動機車提供多種電動車租賃方案，滿足您不同的旅遊需求，讓您輕鬆探索小琉球的美景。</p>
           <div className="mt-4 text-xs text-gray-400">首頁 &gt; 租車方案</div>
         </div>
       </header>

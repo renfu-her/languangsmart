@@ -38,7 +38,7 @@ const Guesthouses: React.FC = () => {
       <header className="py-24 px-6 text-center">
         <p className="text-gray-400 tracking-[0.3em] uppercase mb-2">Partner Stays</p>
         <h1 className="text-5xl md:text-7xl serif font-light mb-4">民宿推薦</h1>
-        <p className="text-gray-500 max-w-xl mx-auto">蘭光租賃中心 精選合作民宿，給您最完整的旅遊套裝體驗。</p>
+        <p className="text-gray-500 max-w-xl mx-auto">蘭光電動機車 精選合作民宿，給您最完整的旅遊套裝體驗。</p>
       </header>
 
       {loading ? (

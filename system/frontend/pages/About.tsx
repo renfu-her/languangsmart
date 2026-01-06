@@ -9,7 +9,7 @@ const About: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <p className="text-gray-400 tracking-[0.3em] uppercase mb-2">About Us</p>
           <h1 className="text-5xl md:text-6xl serif font-light mb-4">關於我們</h1>
-          <p className="text-gray-500 max-w-xl mx-auto">蘭光租賃中心致力於為每一位旅客提供最優質的電動車租賃服務，讓您能夠以最環保、最舒適的方式探索小琉球的美麗風光。</p>
+          <p className="text-gray-500 max-w-xl mx-auto">蘭光電動機車致力於為每一位旅客提供最優質的電動車租賃服務，讓您能夠以最環保、最舒適的方式探索小琉球的美麗風光。</p>
           <div className="mt-4 text-xs text-gray-400">首頁 &gt; 關於我們</div>
         </div>
       </header>
@@ -21,7 +21,7 @@ const About: React.FC = () => {
           <div className="mb-16">
             <h2 className="text-3xl md:text-4xl font-bold serif mb-6 text-center">我們的使命</h2>
             <p className="text-gray-600 leading-relaxed text-lg mb-6 text-left">
-              蘭光租賃中心致力於為每一位旅客提供最優質的電動車租賃服務，讓您能夠以最環保、最舒適的方式探索小琉球的美麗風光。
+              蘭光電動機車致力於為每一位旅客提供最優質的電動車租賃服務，讓您能夠以最環保、最舒適的方式探索小琉球的美麗風光。
             </p>
             <p className="text-gray-600 leading-relaxed text-lg text-left">
               我們相信，每一次的旅程都應該是一次難忘的體驗。因此，我們不僅提供高品質的電動車，更注重每一位顧客的服務體驗。
@@ -64,7 +64,7 @@ const About: React.FC = () => {
             <h2 className="text-3xl md:text-4xl font-bold serif mb-6">我們的 story</h2>
             <div className="space-y-4 text-gray-600 leading-relaxed">
               <p>
-                蘭光租賃中心成立於小琉球，我們深知這片美麗島嶼的獨特魅力。從一開始，我們就致力於提供最優質的租車服務，讓每一位旅客都能夠輕鬆、安全地探索小琉球。
+                蘭光電動機車成立於小琉球，我們深知這片美麗島嶼的獨特魅力。從一開始，我們就致力於提供最優質的租車服務，讓每一位旅客都能夠輕鬆、安全地探索小琉球。
               </p>
               <p>
                 我們選擇電動車作為主要租賃車輛，不僅因為它們環保、安靜，更因為它們能夠讓您更貼近大自然，享受純淨的騎乘體驗。

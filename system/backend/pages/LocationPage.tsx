@@ -117,7 +117,7 @@ const LocationPage: React.FC = () => {
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             className={inputClasses}
-            placeholder="例如: 蘭光租賃中心"
+            placeholder="例如: 蘭光電動機車"
           />
         </div>
 

@@ -4142,3 +4142,41 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 由於前端已移除聯絡表單功能，後端不再需要聯絡管理選單
 - 聯絡管理相關的 API 和資料庫功能仍保留，但後端介面已移除
 
+
+---
+
+## 2026-01-06 11:02:34 - 將所有「蘭光租賃中心」改為「蘭光電動機車」
+
+### 變更內容
+將專案中所有出現「蘭光租賃中心」的地方統一改為「蘭光電動機車」：
+
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - Footer 版權資訊
+
+- **郵件模板**
+  - `resources/views/emails/booking.blade.php` - 預約確認郵件標題和內容
+  - `resources/views/emails/contact.blade.php` - 聯絡表單郵件標題和內容
+
+- **郵件類別**
+  - `app/Mail/BookingMail.php` - 郵件主題
+  - `app/Mail/ContactMail.php` - 郵件主題
+
+- **前端頁面**
+  - `system/frontend/pages/Location.tsx` - 頁面描述
+  - `system/frontend/pages/RentalPlans.tsx` - 頁面描述
+  - `system/frontend/pages/Guesthouses.tsx` - 頁面描述
+  - `system/frontend/pages/About.tsx` - 多處描述文字
+
+- **前端配置**
+  - `system/frontend/constants.tsx` - Logo 文字
+  - `system/frontend/index.html` - 頁面標題
+  - `system/frontend/package.json` - 專案名稱
+  - `system/frontend/metadata.json` - 名稱和描述
+  - `system/frontend/README.md` - 文件說明
+
+- **後端頁面**
+  - `system/backend/pages/LocationPage.tsx` - placeholder 範例文字
+
+### 說明
+統一品牌名稱，將所有「蘭光租賃中心」改為「蘭光電動機車」，確保整個系統的品牌一致性。
+

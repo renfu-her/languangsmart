@@ -14,7 +14,7 @@
                     <!-- Header -->
                     <tr>
                         <td bgcolor="#14b8a6" align="center" style="padding: 20px;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: bold;">蘭光租賃中心 - 聯絡表單訊息</h1>
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: bold;">蘭光電動機車 - 聯絡表單訊息</h1>
                         </td>
                     </tr>
                     
@@ -118,7 +118,7 @@
                                         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                             <tr>
                                                 <td align="center" style="padding: 10px 0;">
-                                                    <p style="margin: 5px 0; color: #9ca3af; font-size: 12px; line-height: 1.5;">此郵件由蘭光租賃中心網站聯絡表單自動發送</p>
+                                                    <p style="margin: 5px 0; color: #9ca3af; font-size: 12px; line-height: 1.5;">此郵件由蘭光電動機車網站聯絡表單自動發送</p>
                                                     <p style="margin: 5px 0; color: #9ca3af; font-size: 12px; line-height: 1.5;">發送時間：{{ now()->format('Y-m-d H:i:s') }}</p>
                                                 </td>
                                             </tr>

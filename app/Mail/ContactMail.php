@@ -30,7 +30,7 @@ class ContactMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '【蘭光租賃中心】聯絡表單',
+            subject: '【蘭光電動機車】聯絡表單',
         );
     }
 

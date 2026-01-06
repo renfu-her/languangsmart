@@ -14,7 +14,7 @@
                     <!-- Header -->
                     <tr>
                         <td bgcolor="#14b8a6" align="center" style="padding: 20px;">
-                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: bold;">蘭光租賃中心 - 線上預約確認</h1>
+                            <h1 style="margin: 0; color: #ffffff; font-size: 24px; font-weight: bold;">蘭光電動機車 - 線上預約確認</h1>
                         </td>
                     </tr>
                     
@@ -186,7 +186,7 @@
                                         <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
                                             <tr>
                                                 <td align="center" style="padding: 10px 0;">
-                                                    <p style="margin: 5px 0; color: #9ca3af; font-size: 12px; line-height: 1.5;">此郵件由蘭光租賃中心網站線上預約系統自動發送</p>
+                                                    <p style="margin: 5px 0; color: #9ca3af; font-size: 12px; line-height: 1.5;">此郵件由蘭光電動機車網站線上預約系統自動發送</p>
                                                     <p style="margin: 5px 0; color: #9ca3af; font-size: 12px; line-height: 1.5;">發送時間：{{ now()->format('Y-m-d H:i:s') }}</p>
                                                     <p style="margin: 5px 0; color: #9ca3af; font-size: 12px; line-height: 1.5;">預約完成後，我們將有專人與您電話聯繫確認詳情。</p>
                                                 </td>

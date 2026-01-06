@@ -30,7 +30,7 @@ class BookingMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '【蘭光租賃中心】線上預約確認',
+            subject: '【蘭光電動機車】線上預約確認',
         );
     }
 

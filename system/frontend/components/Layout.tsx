@@ -148,7 +148,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
             </div>
             <div className="max-w-6xl mx-auto mt-12 pt-8 border-t border-gray-100 text-[10px] text-gray-400 text-center uppercase tracking-widest flex flex-col md:flex-row justify-between items-center gap-2">
-                <p>Copyright © 2025 蘭光租賃中心 All Rights Reserved.</p>
+                <p>Copyright © 2025 蘭光電動機車 All Rights Reserved.</p>
                 <p>Design by AI Architect</p>
             </div>
           </footer>
