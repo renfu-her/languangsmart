@@ -4552,3 +4552,24 @@ php artisan db:seed --class=ScooterModelColorSeeder
 ### 說明
 執行此 migration 後，預約表單可以不填寫 LINE ID 也能正常提交。
 
+
+---
+
+## 2026-01-06 14:46:08 - 修正預約轉訂單的時間字串解析錯誤
+
+### 變更內容
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 導入 Carbon 類別
+  - 修正 `convertToOrder` 方法中的時間字串處理
+  - 確保 `booking_date` 和 `end_date` 在連接時間前先格式化為日期字串（Y-m-d）
+  - 修正錯誤：`Double time specification` - 當日期物件已經包含時間時，直接連接字串會導致雙重時間規格
+
+### 問題修正
+- 修正錯誤：`Could not parse '2026-01-09 00:00:00 18:00:00': Failed to parse time string (2026-01-09 00:00:00 18:00:00) at position 20 (1): Double time specification`
+- 現在會正確處理 Carbon 日期物件，先格式化為日期字串再連接時間
+
+### 技術細節
+- 使用 `instanceof Carbon` 檢查日期是否為 Carbon 物件
+- 如果是 Carbon 物件，使用 `format('Y-m-d')` 格式化為日期字串
+- 然後再連接時間部分（如 ' 08:00:00' 或 ' 18:00:00'）
+

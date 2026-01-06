@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class BookingController extends Controller
 {
@@ -268,8 +269,24 @@ class BookingController extends Controller
             DB::beginTransaction();
 
             // 計算開始和結束時間
-            $startTime = $booking->ship_arrival_time ?: $booking->booking_date . ' 08:00:00';
-            $endTime = $booking->end_date ? ($booking->end_date . ' 18:00:00') : ($booking->booking_date . ' 18:00:00');
+            // 確保日期格式正確（只取日期部分，不包含時間）
+            $bookingDate = $booking->booking_date instanceof Carbon 
+                ? $booking->booking_date->format('Y-m-d') 
+                : $booking->booking_date;
+            
+            $endDate = $booking->end_date 
+                ? ($booking->end_date instanceof Carbon 
+                    ? $booking->end_date->format('Y-m-d') 
+                    : $booking->end_date)
+                : null;
+
+            $startTime = $booking->ship_arrival_time 
+                ? $booking->ship_arrival_time 
+                : ($bookingDate . ' 08:00:00');
+            
+            $endTime = $endDate 
+                ? ($endDate . ' 18:00:00') 
+                : ($bookingDate . ' 18:00:00');
 
             $scooterIds = $request->get('scooter_ids');
 
@@ -277,10 +294,10 @@ class BookingController extends Controller
             $order = Order::create([
                 'partner_id' => $request->get('partner_id') ?: null,
                 'tenant' => $booking->name,
-                'appointment_date' => $booking->booking_date,
+                'appointment_date' => $bookingDate,
                 'start_time' => $startTime,
                 'end_time' => $endTime,
-                'expected_return_time' => $booking->end_date ? ($booking->end_date . ' 18:00:00') : null,
+                'expected_return_time' => $endDate ? ($endDate . ' 18:00:00') : null,
                 'phone' => $booking->phone,
                 'shipping_company' => $booking->shipping_company,
                 'ship_arrival_time' => $booking->ship_arrival_time,
