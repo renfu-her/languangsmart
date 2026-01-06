@@ -45,9 +45,12 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::post('/booking', [BookingController::class, 'send']); // Public: 前端提交預約
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bookings', [BookingController::class, 'index']); // Backend: 列表
+    Route::get('/bookings/pending', [BookingController::class, 'pending']); // Backend: 未確認預約列表
+    Route::get('/bookings/pending/count', [BookingController::class, 'pendingCount']); // Backend: 未確認預約數量
     Route::get('/bookings/{booking}', [BookingController::class, 'show'])->where('booking', '[0-9]+'); // Backend: 詳情
     Route::put('/bookings/{booking}', [BookingController::class, 'update'])->where('booking', '[0-9]+'); // Backend: 更新
     Route::patch('/bookings/{booking}/status', [BookingController::class, 'updateStatus'])->where('booking', '[0-9]+'); // Backend: 更新狀態
+    Route::post('/bookings/{booking}/convert-to-order', [BookingController::class, 'convertToOrder'])->where('booking', '[0-9]+'); // Backend: 轉為訂單
     Route::delete('/bookings/{booking}', [BookingController::class, 'destroy'])->where('booking', '[0-9]+'); // Backend: 刪除
 });
 
