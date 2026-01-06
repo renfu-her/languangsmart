@@ -117,8 +117,7 @@ const Guidelines: React.FC = () => {
             <h3 className="text-xl md:text-2xl font-semibold mb-4">民宿推薦</h3>
             <div className="text-gray-700 leading-relaxed space-y-4 text-base md:text-lg">
               <div>
-                <p className="font-medium mb-2">小琉球極の宿</p>
-                <p className="text-gray-600">極の宿 一館、極の宿 觀海二館、極の宿 包棟小館</p>
+                <p className="font-medium mb-2">小琉球極の宿<span className="text-gray-600 font-normal">。極の宿 一館、極の宿 觀海二館、極の宿 包棟小館</span></p>
               </div>
               <div>
                 <p className="font-medium mb-2">微浮包棟民宿</p>
@@ -139,6 +138,8 @@ const Guidelines: React.FC = () => {
             </div>
           </div>
 
+          <div className="border-t border-gray-300 my-8"></div>
+
           {/* 行李配送 */}
           <div>
             <h3 className="text-xl md:text-2xl font-semibold mb-4">行李配送</h3>
@@ -146,6 +147,8 @@ const Guidelines: React.FC = () => {
               <p>輕鬆旅遊從77go開始，行李內的快樂回憶不論大小，由我們幫您守護</p>
             </div>
           </div>
+
+          <div className="border-t border-gray-300 my-8"></div>
 
           {/* 專車接送 */}
           <div>
