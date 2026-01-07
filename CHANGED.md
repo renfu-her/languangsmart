@@ -5077,3 +5077,31 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 由於尚未有民宿資料，暫時移除所有民宿推薦內容
 - 標題保留，方便後續添加資料
 
+
+---
+
+## 2026-01-07 11:40:46 - 移除前臺線上預約表單的驗證碼功能
+
+### 變更內容
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 移除驗證碼相關的 import（RefreshCw, Loader2）
+  - 移除 Captcha interface
+  - 移除 captcha 和 isLoadingCaptcha state
+  - 移除 formData 中的 captchaAnswer 欄位
+  - 移除 fetchCaptcha 函數
+  - 移除 useEffect 中的 fetchCaptcha 調用
+  - 移除 handleSubmit 中的驗證碼驗證邏輯
+  - 移除表單提交時的 captcha_id 和 captcha_answer 參數
+  - 移除表單中的驗證碼 UI 區塊（圖片、輸入框、刷新按鈕）
+  - 更新提交按鈕的 disabled 條件，移除 captcha 檢查
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 移除驗證規則中的 captcha_id 和 captcha_answer
+  - 移除驗證碼驗證邏輯（檢查 captcha_id、驗證答案等）
+  - 移除 Cache::forget 驗證碼快取的邏輯
+
+### 說明
+- 前臺線上預約表單不再需要驗證碼驗證
+- 簡化表單流程，提升用戶體驗
+- 後端 API 已同步移除驗證碼相關驗證
+
