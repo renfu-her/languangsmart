@@ -11,7 +11,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
@@ -36,8 +35,6 @@ class BookingController extends Controller
             'scooterType' => 'required|in:白牌,綠牌,電輔車,三輪車',
             'scooterCount' => 'required|integer|min:1',
             'note' => 'nullable|string|max:1000',
-            'captcha_id' => 'required|string',
-            'captcha_answer' => 'required|string|size:6',
         ]);
 
         if ($validator->fails()) {
@@ -47,29 +44,8 @@ class BookingController extends Controller
             ], 422);
         }
 
-        // 驗證驗證碼
-        $captchaId = $request->get('captcha_id');
-        $userAnswer = strtoupper(trim($request->get('captcha_answer')));
-        $correctAnswer = Cache::get("captcha_{$captchaId}");
-
-        if ($correctAnswer === null) {
-            return response()->json([
-                'message' => '驗證碼已過期，請重新獲取',
-                'errors' => ['captcha_answer' => ['驗證碼已過期，請重新獲取']],
-            ], 422);
-        }
-
-        if ($userAnswer !== $correctAnswer) {
-            return response()->json([
-                'message' => '驗證碼錯誤',
-                'errors' => ['captcha_answer' => ['驗證碼錯誤']],
-            ], 422);
-        }
-
         try {
             $data = $validator->validated();
-            // 移除驗證碼相關欄位
-            unset($data['captcha_id'], $data['captcha_answer']);
             
             // 確保 lineId 存在於郵件資料中（即使為空）
             $mailData = $data;
@@ -99,9 +75,6 @@ class BookingController extends Controller
             
             // 發送郵件給管理員（因為沒有 email，無法發送給用戶）
             Mail::to('zau1110216@gmail.com')->send(new BookingMail($mailData));
-
-            // 驗證成功後刪除驗證碼
-            Cache::forget("captcha_{$captchaId}");
 
             return response()->json([
                 'message' => '預約已成功提交，我們會盡快與您聯繫確認詳情！',

@@ -1,12 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Loader2 } from 'lucide-react';
 import { publicApi } from '../lib/api';
-
-interface Captcha {
-  captcha_id: string;
-  image: string; // Base64 encoded image
-}
 
 interface ScooterModel {
   model: string;
@@ -29,33 +23,14 @@ const Booking: React.FC = () => {
     scooterType: '', // 機車類型
     scooterCount: 1, // 數量
     note: '',
-    captchaAnswer: '',
   });
-  const [captcha, setCaptcha] = useState<Captcha | null>(null);
-  const [isLoadingCaptcha, setIsLoadingCaptcha] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [scooterModels, setScooterModels] = useState<ScooterModel[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
 
   useEffect(() => {
-    fetchCaptcha();
     fetchScooterModels();
   }, []);
-
-  const fetchCaptcha = async () => {
-    setIsLoadingCaptcha(true);
-    try {
-      const response = await publicApi.captcha.generate();
-      if (response && response.data) {
-        setCaptcha(response.data);
-        setFormData(prev => ({ ...prev, captchaAnswer: '' }));
-      }
-    } catch (error) {
-      console.error('Failed to fetch captcha:', error);
-    } finally {
-      setIsLoadingCaptcha(false);
-    }
-  };
 
   const fetchScooterModels = async () => {
     setIsLoadingModels(true);
@@ -85,16 +60,6 @@ const Booking: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!captcha) {
-      alert('請先獲取驗證碼');
-      return;
-    }
-
-    if (!formData.captchaAnswer || formData.captchaAnswer.length !== 6) {
-      alert('請輸入完整的 6 位驗證碼');
-      return;
-    }
-
     if (!formData.scooterModel || !formData.scooterType) {
       alert('請選擇租車類型');
       return;
@@ -122,8 +87,6 @@ const Booking: React.FC = () => {
         scooterType: formData.scooterType,
         scooterCount: formData.scooterCount,
         note: formData.note || undefined,
-        captcha_id: captcha.captcha_id,
-        captcha_answer: formData.captchaAnswer.toUpperCase().trim(),
       });
       alert('預約已成功提交！我們會盡快與您聯繫確認詳情。');
       setFormData({ 
@@ -140,16 +103,11 @@ const Booking: React.FC = () => {
         scooterType: '',
         scooterCount: 1,
         note: '',
-        captchaAnswer: '',
       });
-      fetchCaptcha();
     } catch (error: any) {
       console.error('Failed to submit booking:', error);
       const errorMessage = error.response?.data?.message || '提交預約時發生錯誤，請稍後再試。';
       alert(errorMessage);
-      if (error.response?.status === 422) {
-        fetchCaptcha();
-      }
     } finally {
       setSubmitting(false);
     }
@@ -354,61 +312,11 @@ const Booking: React.FC = () => {
 
             </div>
 
-            {/* 驗證碼 */}
-            <div className="md:col-span-2">
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  驗證碼 <span className="text-red-500">*</span>
-                </label>
-                <div className="flex items-center space-x-3 mb-2">
-                  <div className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex items-center justify-center min-h-[60px]">
-                    {isLoadingCaptcha ? (
-                      <Loader2 size={20} className="animate-spin text-gray-400" />
-                    ) : captcha ? (
-                      <img 
-                        src={captcha.image} 
-                        alt="驗證碼" 
-                        className="h-12 w-auto select-none cursor-pointer"
-                        style={{ imageRendering: 'auto' }}
-                        onClick={fetchCaptcha}
-                        title="點擊刷新驗證碼"
-                      />
-                    ) : (
-                      <span className="text-sm text-gray-400">載入驗證碼中...</span>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={fetchCaptcha}
-                    disabled={isLoadingCaptcha || submitting}
-                    className="p-3 bg-gray-100 hover:bg-gray-200 rounded-xl transition-all disabled:opacity-50"
-                    title="重新獲取驗證碼"
-                  >
-                    <RefreshCw size={18} className={`text-gray-600 ${isLoadingCaptcha ? 'animate-spin' : ''}`} />
-                  </button>
-                </div>
-                <input
-                  type="text"
-                  required
-                  value={formData.captchaAnswer}
-                  onChange={(e) => {
-                    const value = e.target.value.toUpperCase().replace(/[O0]/g, '').slice(0, 6);
-                    setFormData({ ...formData, captchaAnswer: value });
-                  }}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:border-black focus:ring-0 outline-none transition-all uppercase font-mono tracking-widest text-center text-lg"
-                  placeholder="輸入 6 位驗證碼"
-                  disabled={submitting || !captcha}
-                  maxLength={6}
-                  pattern="[A-NP-Z1-9]{6}"
-                />
-              </div>
-            </div>
-
             {/* 提交按鈕 */}
             <div className="md:col-span-2 pt-6">
               <button 
                 type="submit"
-                disabled={submitting || !captcha || !formData.scooterModel || !formData.scooterType}
+                disabled={submitting || !formData.scooterModel || !formData.scooterType}
                 className="w-full bg-black text-white py-5 rounded-full font-bold text-lg hover:bg-teal-700 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? '提交中...' : '確認送出'}
