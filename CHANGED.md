@@ -5237,3 +5237,42 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 關於我們頁面的背景色現在與整體網站一致，使用淡粉藍色
 - 「我們的 story」內容卡片仍保持白色背景以確保內容的可讀性和對比度
 
+
+---
+
+## 2026-01-07 14:54:39 - 將所有頁面的背景色改為淡粉藍色
+
+### 變更內容
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 將表單容器背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 將 Header Section 背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+  - 將底部裝飾區塊背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+
+- **Contact.tsx** (`system/frontend/pages/Contact.tsx`)
+  - 將 Header Section 背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+  - 將聯絡資訊卡片背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 將 Header Section 背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+  - 將價格標籤背景色和邊框從 `bg-white` 和 `border-white` 改為 `bg-[#f0f4ff]` 和 `border-[#f0f4ff]`
+  - 將底部服務區塊背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+
+- **Location.tsx** (`system/frontend/pages/Location.tsx`)
+  - 將 Header Section 背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+  - 將門市據點卡片背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+
+- **Guesthouses.tsx** (`system/frontend/pages/Guesthouses.tsx`)
+  - 將民宿卡片背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+
+- **GuesthouseDetail.tsx** (`system/frontend/pages/GuesthouseDetail.tsx`)
+  - 將整體背景色從 `bg-[#fcfcfc]` 改為 `bg-[#f0f4ff]`
+  - 將 Header Section 背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+  - 將錯誤訊息卡片背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+  - 將民宿詳細資訊卡片背景色從 `bg-white` 改為 `bg-[#f0f4ff]`
+
+### 說明
+- 所有頁面的背景色現在統一使用淡粉藍色（`#f0f4ff`），與整體網站設計保持一致
+- 部分功能性元素（如按鈕）仍保持原有顏色以確保可讀性和對比度
+
