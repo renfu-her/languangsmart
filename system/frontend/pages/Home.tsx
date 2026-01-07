@@ -20,8 +20,7 @@ const Home: React.FC = () => {
           <div className="md:w-1/2 text-center md:text-left">
             <h2 className="text-gray-400 font-medium tracking-[0.2em] mb-4 uppercase text-sm">Not just a car rental experience</h2>
             <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6 serif">
-              駕馭科技時尚<br />
-              <span className="text-teal-600">環保之旅</span>
+              讓純淨動力，帶你遇見更美好的島嶼風光
             </h1>
             <p className="text-gray-600 mb-8 max-w-md mx-auto md:mx-0 leading-relaxed">
               就是要給旅客不一樣的租車體驗，安靜又舒適的騎乘過程，帶領您探訪小琉球大自然的美好。
