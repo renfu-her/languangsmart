@@ -5191,3 +5191,15 @@ php artisan db:seed --class=ScooterModelColorSeeder
 ### 說明
 - 標題中只有「純淨動力」使用天藍色突出顯示，其他文字保持黑色
 
+
+---
+
+## 2026-01-07 14:46:10 - 將首頁標題「純淨動力」的天藍色調亮
+
+### 變更內容
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 將「純淨動力」的顏色從 `text-sky-600` 改為 `text-sky-500`，使天藍色更亮
+
+### 說明
+- 調整顏色色階，使天藍色更加明亮醒目
+
