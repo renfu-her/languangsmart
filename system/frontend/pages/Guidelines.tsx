@@ -81,23 +81,23 @@ const Guidelines: React.FC = () => {
       ) : (
         <div className="container mx-auto px-6 max-w-4xl py-12">
           <div className="bg-white rounded-[40px] p-8 md:p-12 shadow-sm">
-            <div className="flex flex-wrap justify-center gap-2 mb-12">
-              {allCategories.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setFilter(cat)}
-                  className={`px-6 py-2 rounded-lg text-sm transition-all ${
-                    filter === cat 
-                    ? 'bg-[#1a1a1a] text-white shadow-lg' 
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+          <div className="flex flex-wrap justify-center gap-2 mb-12">
+            {allCategories.map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setFilter(cat)}
+                className={`px-6 py-2 rounded-lg text-sm transition-all ${
+                  filter === cat 
+                  ? 'bg-[#1a1a1a] text-white shadow-lg' 
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
 
-            <div className="space-y-4">
+          <div className="space-y-4">
             {filteredFaqs.map((faq, idx) => (
               <div key={faq.id} className="border-b border-gray-100 pb-4">
                 <button
@@ -143,7 +143,11 @@ const Guidelines: React.FC = () => {
             {guesthouses.length > 0 ? (
               <div className="space-y-6 mt-6">
                 {guesthouses.map((gh) => (
-                  <div key={gh.id} className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                  <Link
+                    key={gh.id}
+                    to={`/guesthouses/${gh.id}`}
+                    className="block bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer"
+                  >
                     <div className="flex flex-col md:flex-row">
                       {/* 左側圖片 */}
                       {gh.image_path && (
@@ -163,15 +167,12 @@ const Guidelines: React.FC = () => {
                             <p className="text-gray-600 mb-4 leading-relaxed">{gh.short_description}</p>
                           )}
                         </div>
-                        <Link
-                          to={`/guesthouses/${gh.id}`}
-                          className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-teal-600 hover:text-black transition-colors self-start"
-                        >
+                        <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-teal-600 hover:text-black transition-colors self-start">
                           VIEW DETAILS <ExternalLink size={14} />
-                        </Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
+                  </Link>
                 ))}
               </div>
             ) : (

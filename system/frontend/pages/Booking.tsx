@@ -210,7 +210,7 @@ const Booking: React.FC = () => {
                   value={formData.phone}
                   onChange={e => setFormData({...formData, phone: e.target.value})}
                 />
-              </div>
+            </div>
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
@@ -342,8 +342,8 @@ const Booking: React.FC = () => {
                         >
                           <X size={18} />
                         </button>
-                      )}
-                    </div>
+                    )}
+                  </div>
                   ))}
                   <button
                     type="button"
