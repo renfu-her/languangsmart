@@ -5666,3 +5666,20 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 現在從民宿詳情頁面點擊返回，會回到租車須知頁面（民宿推薦區塊）
 - 更符合用戶從租車須知頁面進入民宿詳情的流程
 
+
+---
+
+## 2026-01-08 22:02:44 - 讓租車須知頁面的民宿推薦卡片整個可點擊進入詳情頁
+
+### 變更內容
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 將整個民宿推薦卡片改為可點擊的連結
+  - 將外層的 `div` 改為 `Link` 元件，指向 `/guesthouses/${gh.id}`
+  - 將內部的 "VIEW DETAILS" 連結改為 `div`（因為整個卡片已經是連結）
+  - 添加 `cursor-pointer` 樣式，讓用戶知道整個卡片可點擊
+  - 保持原有的 hover 效果（`hover:shadow-md`）
+
+### 說明
+- 現在點擊民宿推薦卡片的任意位置（圖片、標題、描述、VIEW DETAILS 文字）都可以進入該民宿的詳情頁
+- 提升用戶體驗，讓操作更直覺
+

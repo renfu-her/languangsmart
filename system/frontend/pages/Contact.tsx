@@ -58,7 +58,7 @@ const Contact: React.FC = () => {
             <div className="bg-white p-10 md:p-12 rounded-[40px] shadow-sm border border-gray-100">
               <h3 className="text-3xl font-bold mb-8 serif">聯絡資訊</h3>
               <div className="space-y-6">
-                <div className="flex items-start gap-4">
+                  <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 mt-1">
                     <MapPin size={24} className="text-teal-600" />
                   </div>
@@ -69,23 +69,23 @@ const Contact: React.FC = () => {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 mt-1">
                     <Phone size={24} className="text-teal-600" />
-                  </div>
+                </div>
                   <div className="flex-1">
                     <p className="text-base font-bold text-gray-700 mb-1">電話</p>
                     <p className="text-lg text-gray-600">
                       <a href="tel:0911306011" className="hover:text-teal-600 transition-colors">0911306011</a>
                     </p>
-                  </div>
                 </div>
-                
+                </div>
+
                 <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 mt-1">
                     <MessageCircle size={24} className="text-teal-600" />
-                  </div>
+                    </div>
                   <div className="flex-1">
                     <p className="text-base font-bold text-gray-700 mb-1">LINE ID</p>
                     <p className="text-lg text-gray-600">
