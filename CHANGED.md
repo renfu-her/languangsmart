@@ -5598,3 +5598,32 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 如果沒有多圖片，則顯示主圖片
 - 所有圖片都會轉換為 webp 格式並使用 UUID 命名
 
+
+---
+
+## 2026-01-08 17:19:43 - 修復租車須知頁面民宿推薦顯示功能
+
+### 問題
+- 前台的租車須知頁面的民宿推薦部分只有標題，沒有顯示實際的民宿資料
+- 用戶已經建立了民宿，但頁面上沒有顯示
+
+### 變更內容
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 添加 `Guesthouse` interface
+  - 添加 `guesthouses` state 用於存儲民宿列表
+  - 在 `useEffect` 中添加 `fetchGuesthouses()` 函數，從 API 獲取啟用的民宿列表
+  - 更新「民宿推薦」區塊：
+    - 顯示民宿卡片網格（響應式：手機 1 欄，平板 2 欄，桌面 3 欄）
+    - 每個卡片顯示：
+      - 民宿圖片（如果有）
+      - 民宿名稱
+      - 簡短說明（如果有，最多顯示 2 行）
+      - 「VIEW DETAILS」連結，點擊後跳轉到民宿詳情頁
+    - 如果沒有民宿，顯示「目前尚無推薦民宿」提示
+  - 添加 `ExternalLink` icon import
+
+### 說明
+- 現在租車須知頁面的民宿推薦部分會自動顯示所有啟用的民宿
+- 民宿卡片樣式與民宿列表頁面保持一致
+- 點擊「VIEW DETAILS」會跳轉到對應的民宿詳情頁面
+

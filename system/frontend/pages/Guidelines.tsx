@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { publicApi } from '../lib/api';
 
 interface Guideline {
@@ -10,8 +11,19 @@ interface Guideline {
   answer: string;
 }
 
+interface Guesthouse {
+  id: number;
+  name: string;
+  description: string | null;
+  short_description: string | null;
+  image_path: string | null;
+  images: string[] | null;
+  link: string | null;
+}
+
 const Guidelines: React.FC = () => {
   const [guidelines, setGuidelines] = useState<Guideline[]>([]);
+  const [guesthouses, setGuesthouses] = useState<Guesthouse[]>([]);
   const [loading, setLoading] = useState(true);
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [filter, setFilter] = useState('所有問題');
@@ -29,7 +41,18 @@ const Guidelines: React.FC = () => {
       }
     };
 
+    const fetchGuesthouses = async () => {
+      try {
+        const response = await publicApi.guesthouses.list({ active_only: true });
+        setGuesthouses(response.data || []);
+      } catch (error) {
+        console.error('Failed to fetch guesthouses:', error);
+        setGuesthouses([]);
+      }
+    };
+
     fetchGuidelines();
+    fetchGuesthouses();
   }, []);
 
   const categories = Array.from(new Set(guidelines.map(g => g.category)));
@@ -117,6 +140,37 @@ const Guidelines: React.FC = () => {
           {/* 民宿推薦 */}
           <div>
             <h3 className="text-xl md:text-2xl font-semibold mb-4">民宿推薦</h3>
+            {guesthouses.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                {guesthouses.map((gh) => (
+                  <div key={gh.id} className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    {gh.image_path && (
+                      <div className="aspect-[4/3] overflow-hidden">
+                        <img
+                          src={`/storage/${gh.image_path}`}
+                          alt={gh.name}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    <div className="p-4">
+                      <h4 className="text-lg font-bold mb-2">{gh.name}</h4>
+                      {gh.short_description && (
+                        <p className="text-sm text-gray-600 mb-4 line-clamp-2">{gh.short_description}</p>
+                      )}
+                      <Link
+                        to={`/guesthouses/${gh.id}`}
+                        className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-teal-600 hover:text-black transition-colors"
+                      >
+                        VIEW DETAILS <ExternalLink size={14} />
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-gray-500 text-sm mt-2">目前尚無推薦民宿</p>
+            )}
           </div>
 
           <div className="border-t border-gray-300 my-8"></div>
