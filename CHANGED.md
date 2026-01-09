@@ -1,5 +1,20 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-09 20:54:47 - 修改 Banner 高度為固定 800px 並置中圖片
+
+### 變更內容
+- **BannerCarousel.tsx** (`system/frontend/components/BannerCarousel.tsx`)
+  - 將 Banner 高度改為固定的 `h-[800px]`（800px），移除所有響應式高度設計
+  - 為 Banner 圖片添加 `object-center` 類別和 `objectPosition: 'center center'` 樣式
+  - 確保圖片在垂直方向上置中顯示
+
+### 說明
+- Banner 現在固定高度為 800px，不再隨螢幕尺寸變化
+- 圖片會上下置中顯示，確保圖片內容在垂直方向上居中
+- 使用 `object-cover` 和 `object-center` 確保圖片保持比例並置中顯示
+
+---
+
 ## 2026-01-09 20:48:55 - 修改 Banner 高度為響應式設計
 
 ### 變更內容

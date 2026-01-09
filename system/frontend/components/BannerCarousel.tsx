@@ -69,7 +69,7 @@ const BannerCarousel: React.FC = () => {
 
   if (loading) {
     return (
-      <section className="relative w-full h-[800px] md:h-[900px] lg:h-[1000px] xl:h-[1100px] 2xl:h-[1200px] overflow-hidden bg-gray-100 flex items-center justify-center">
+      <section className="relative w-full h-[800px] overflow-hidden bg-gray-100 flex items-center justify-center">
         <div className="text-gray-400">載入中...</div>
       </section>
     );
@@ -80,7 +80,7 @@ const BannerCarousel: React.FC = () => {
   }
 
   return (
-    <section className="relative w-full h-[800px] md:h-[900px] lg:h-[1000px] xl:h-[1100px] 2xl:h-[1200px] overflow-hidden bg-gray-100">
+    <section className="relative w-full h-[800px] overflow-hidden bg-gray-100">
       {/* Banner 容器 */}
       <div className="relative w-full h-full">
         {banners.map((banner, index) => (
@@ -95,7 +95,8 @@ const BannerCarousel: React.FC = () => {
               <img
                 src={banner.image_path ? `/storage/${banner.image_path}` : 'https://via.placeholder.com/1600x600'}
                 alt={banner.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-center"
+                style={{ objectPosition: 'center center' }}
               />
               {/* 遮罩層 */}
               <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent"></div>
