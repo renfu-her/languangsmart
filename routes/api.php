@@ -21,6 +21,7 @@ use App\Http\Controllers\Api\UploadController;
 use App\Http\Controllers\Api\ContactController;
 use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\HomeImageController;
+use App\Http\Controllers\Api\EnvironmentImageController;
 
 // Auth Routes (Public)
 Route::post('/login', [AuthController::class, 'login']);
@@ -211,5 +212,15 @@ Route::prefix('home-images')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::put('/{key}', [HomeImageController::class, 'update']);
         Route::post('/{key}/upload-image', [HomeImageController::class, 'uploadImage']);
+    });
+});
+
+// Environment Images API (Public for frontend, Protected for admin)
+Route::prefix('environment-images')->group(function () {
+    Route::get('/', [EnvironmentImageController::class, 'index']); // Public
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [EnvironmentImageController::class, 'store']);
+        Route::put('/{environmentImage}', [EnvironmentImageController::class, 'update']);
+        Route::delete('/{environmentImage}', [EnvironmentImageController::class, 'destroy']);
     });
 });

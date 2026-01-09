@@ -35,6 +35,7 @@ export const NAV_ITEMS = [
     children: [
       { name: '首頁 Banner', path: '/banners' },
       { name: '首頁圖片', path: '/home-images' },
+      { name: '環境圖片', path: '/environment-images' },
       { name: '租車方案', path: '/rental-plans' },
       { name: '租車須知', path: '/guidelines' },
       { name: '門市據點', path: '/locations' },
