@@ -13,6 +13,7 @@ class Booking extends Model
         'name',
         'line_id',
         'phone',
+        'email',
         'scooter_type',
         'booking_date',
         'end_date',

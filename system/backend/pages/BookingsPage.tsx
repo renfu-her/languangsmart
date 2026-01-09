@@ -14,6 +14,7 @@ interface Booking {
   name: string;
   line_id: string | null;
   phone: string | null;
+  email: string | null;
   scooter_type: string | null;
   booking_date: string;
   end_date: string | null;
@@ -44,6 +45,7 @@ const BookingsPage: React.FC = () => {
     name: '',
     line_id: '',
     phone: '',
+    email: '',
     scooter_type: '',
     booking_date: '',
     end_date: '',
@@ -122,6 +124,7 @@ const BookingsPage: React.FC = () => {
         name: booking.name,
         line_id: booking.line_id || '',
         phone: booking.phone || '',
+        email: booking.email || '',
         scooter_type: booking.scooter_type || '',
         booking_date: formatDate(booking.booking_date),
         end_date: formatDate(booking.end_date),
@@ -140,6 +143,7 @@ const BookingsPage: React.FC = () => {
         name: '',
         line_id: '',
         phone: '',
+        email: '',
         scooter_type: '',
         booking_date: '',
         end_date: '',
@@ -355,6 +359,10 @@ const BookingsPage: React.FC = () => {
                 <div className="text-base text-gray-800 dark:text-gray-100">{detailBooking.phone || '-'}</div>
               </div>
               <div>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">Email</label>
+                <div className="text-base text-gray-800 dark:text-gray-100">{detailBooking.email || '-'}</div>
+              </div>
+              <div>
                 <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">預約日期</label>
                 <div className="text-base text-gray-800 dark:text-gray-100">
                   {new Date(detailBooking.booking_date).toLocaleDateString('zh-TW')}
@@ -495,6 +503,7 @@ const BookingsPage: React.FC = () => {
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">姓名</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">LINE ID</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">電話</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">Email</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">車款</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">預約日期</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">租借天數</th>
@@ -514,6 +523,9 @@ const BookingsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">{booking.phone || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{booking.email || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-600 dark:text-gray-400">
@@ -617,6 +629,17 @@ const BookingsPage: React.FC = () => {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className={inputClasses}
+                />
+              </div>
+
+              <div>
+                <label className={labelClasses}>Email</label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className={inputClasses}
+                  placeholder="example@email.com"
                 />
               </div>
 

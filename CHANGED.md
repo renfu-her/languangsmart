@@ -5742,3 +5742,65 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 前端首頁會自動從 API 獲取圖片配置，優先使用上傳的圖片
 - 圖片上傳後會自動轉換為 webp 格式並使用 UUID 命名
 
+
+---
+
+## 2026-01-09 14:42:26 - 後台預約管理增加 Email 欄位及郵件發送功能
+
+### 變更內容
+
+#### 資料庫
+- **Migration** (`database/migrations/2026_01_09_143913_add_email_to_bookings_table.php`)
+  - 在 `bookings` 表中添加 `email` 欄位（可為空）
+
+#### 後端
+- **Model** (`app/Models/Booking.php`)
+  - 在 `$fillable` 中添加 `email` 欄位
+
+- **Controller** (`app/Http/Controllers/Api/BookingController.php`)
+  - 在 `update()` 方法的驗證規則中添加 `email` 欄位（可選）
+  - 更新 `updateStatus()` 方法：
+    - 當狀態改為「取消」（拒絕）時，檢查是否有 email
+    - 如果沒有 email，返回錯誤訊息
+    - 如果有 email，發送拒絕郵件
+  - 更新 `convertToOrder()` 方法：
+    - 在轉換訂單前檢查是否有 email
+    - 如果沒有 email，返回錯誤訊息
+    - 如果有 email，轉換訂單後發送確認郵件
+
+- **郵件類**
+  - **BookingRejectedMail** (`app/Mail/BookingRejectedMail.php`)
+    - 創建拒絕郵件類，接收 `Booking` 模型
+    - 郵件標題：「【蘭光電動機車】預約通知」
+  - **BookingConfirmedMail** (`app/Mail/BookingConfirmedMail.php`)
+    - 創建確認郵件類，接收 `Booking` 模型
+    - 郵件標題：「【蘭光電動機車】訂單確認通知」
+
+- **郵件模板**
+  - **booking-rejected.blade.php** (`resources/views/emails/booking-rejected.blade.php`)
+    - 拒絕郵件模板
+    - 包含 logo（logo2.png）
+    - 內容：「因預約日車輛全數租出，故此無法承接您的訂單 造成不便，深感抱歉」
+  - **booking-confirmed.blade.php** (`resources/views/emails/booking-confirmed.blade.php`)
+    - 確認郵件模板
+    - 包含 logo（logo2.png）
+    - 內容：「您 x 月 x 日與蘭光電動機車下定之訂單已成立」（動態顯示預約日期）
+
+#### 後端管理界面
+- **BookingsPage** (`system/backend/pages/BookingsPage.tsx`)
+  - 在 `Booking` 接口中添加 `email: string | null`
+  - 在 `formData` 狀態中添加 `email` 欄位
+  - 在詳情視圖中添加 email 欄位顯示
+  - 在編輯表單中添加 email 輸入欄位
+  - 在預約列表表格中添加 email 欄位顯示
+
+### 功能說明
+- 後台管理員可以在預約資料中編輯 email 欄位
+- 當拒絕預約（狀態改為「取消」）時：
+  - 如果沒有 email，會顯示錯誤訊息：「此預約沒有填寫 email，無法拒絕。請先編輯預約資料添加 email。」
+  - 如果有 email，會自動發送拒絕郵件給客戶
+- 當確認轉為訂單時：
+  - 如果沒有 email，會顯示錯誤訊息：「此預約沒有填寫 email，無法確認轉為訂單。請先編輯預約資料添加 email。」
+  - 如果有 email，會自動發送確認郵件給客戶
+- 郵件模板包含 logo 和專業的格式設計
+
