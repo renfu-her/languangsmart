@@ -194,7 +194,6 @@ const BannersPage: React.FC = () => {
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">圖片</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">標題</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">副標題</th>
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">連結</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">按鈕文字</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">排序</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">狀態</th>
@@ -224,9 +223,6 @@ const BannersPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">{banner.subtitle || '-'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">{banner.link || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">{banner.button_text || '-'}</span>
