@@ -7,6 +7,7 @@ import { inputClasses, selectClasses, labelClasses, modalCancelButtonClasses, mo
 interface Booking {
   id: number;
   name: string;
+  email: string | null;
   line_id: string | null;
   phone: string | null;
   booking_date: string;
@@ -45,6 +46,7 @@ const ConvertBookingModal: React.FC<ConvertBookingModalProps> = ({ isOpen, onClo
   const [selectedScooterIds, setSelectedScooterIds] = useState<number[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
+    email: '',
     partner_id: '',
     payment_method: '',
     payment_amount: '',
@@ -55,6 +57,7 @@ const ConvertBookingModal: React.FC<ConvertBookingModalProps> = ({ isOpen, onClo
       fetchPartners();
       fetchAvailableScooters();
       setFormData({
+        email: booking.email || '',
         partner_id: '',
         payment_method: '',
         payment_amount: '',
@@ -109,6 +112,13 @@ const ConvertBookingModal: React.FC<ConvertBookingModalProps> = ({ isOpen, onClo
 
     setIsSubmitting(true);
     try {
+      // 如果 email 有變更，先更新 booking
+      if (formData.email !== (booking.email || '')) {
+        await bookingsApi.update(booking.id, {
+          email: formData.email || null,
+        });
+      }
+
       await bookingsApi.convertToOrder(booking.id, {
         partner_id: formData.partner_id || null,
         payment_method: formData.payment_method,
@@ -140,79 +150,112 @@ const ConvertBookingModal: React.FC<ConvertBookingModalProps> = ({ isOpen, onClo
         </div>
 
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
-          {/* 預約資訊（只讀） */}
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-3">
+          {/* 預約資訊 */}
+          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 space-y-4">
             <h3 className="font-bold text-gray-800 dark:text-gray-100 mb-3">預約資訊</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-2 gap-4">
+              {/* 承租人姓名（只讀） */}
               <div>
-                <span className="text-gray-600 dark:text-gray-400">承租人：</span>
-                <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">{booking.name}</span>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">承租人姓名</label>
+                <div className="text-base text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500">
+                  {booking.name}
+                </div>
               </div>
+
+              {/* Email（可編輯） */}
               <div>
-                <span className="text-gray-600 dark:text-gray-400">電話：</span>
-                <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">{booking.phone || '-'}</span>
+                <label className={labelClasses}>Email</label>
+                <input
+                  type="email"
+                  className={inputClasses}
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  placeholder="example@email.com"
+                />
               </div>
+
+              {/* LINE ID（只讀） */}
               <div>
-                <span className="text-gray-600 dark:text-gray-400">LINE ID：</span>
-                <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">{booking.line_id || '-'}</span>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">LINE ID</label>
+                <div className="text-base text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500">
+                  {booking.line_id || '-'}
+                </div>
               </div>
+
+              {/* 行動電話（只讀） */}
               <div>
-                <span className="text-gray-600 dark:text-gray-400">預約日期：</span>
-                <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">行動電話</label>
+                <div className="text-base text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500">
+                  {booking.phone || '-'}
+                </div>
+              </div>
+
+              {/* 預約日期（只讀） */}
+              <div>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">預約日期</label>
+                <div className="text-base text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500">
                   {new Date(booking.booking_date).toLocaleDateString('zh-TW')}
-                </span>
-              </div>
-              {booking.end_date && (
-                <div>
-                  <span className="text-gray-600 dark:text-gray-400">結束日期：</span>
-                  <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">
-                    {new Date(booking.end_date).toLocaleDateString('zh-TW')}
-                  </span>
                 </div>
-              )}
+              </div>
+
+              {/* 結束日期（只讀） */}
               <div>
-                <span className="text-gray-600 dark:text-gray-400">船運公司：</span>
-                <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">{booking.shipping_company || '-'}</span>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">結束日期</label>
+                <div className="text-base text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500">
+                  {booking.end_date ? new Date(booking.end_date).toLocaleDateString('zh-TW') : '-'}
+                </div>
               </div>
-              {booking.ship_arrival_time && (
-                <div>
-                  <span className="text-gray-600 dark:text-gray-400">船班時間：</span>
-                  <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">
-                    {new Date(booking.ship_arrival_time).toLocaleString('zh-TW')}
-                  </span>
+
+              {/* 船運公司（只讀） */}
+              <div>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">船運公司</label>
+                <div className="text-base text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500">
+                  {booking.shipping_company || '-'}
                 </div>
-              )}
-              {booking.adults !== null && (
-                <div>
-                  <span className="text-gray-600 dark:text-gray-400">大人：</span>
-                  <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">{booking.adults} 人</span>
+              </div>
+
+              {/* 船班時間（來）（只讀） */}
+              <div>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">船班時間（來）</label>
+                <div className="text-base text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500">
+                  {booking.ship_arrival_time ? new Date(booking.ship_arrival_time).toLocaleString('zh-TW') : '-'}
                 </div>
-              )}
-              {booking.children !== null && (
-                <div>
-                  <span className="text-gray-600 dark:text-gray-400">小孩：</span>
-                  <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">{booking.children} 人</span>
+              </div>
+
+              {/* 大人/人數（只讀） */}
+              <div>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">大人 / 人數</label>
+                <div className="text-base text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500">
+                  {booking.adults !== null ? booking.adults : '-'}
                 </div>
-              )}
+              </div>
+
+              {/* 小孩（12歲以下）/ 人數（只讀） */}
+              <div>
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">小孩 (12歲以下) / 人數</label>
+                <div className="text-base text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500">
+                  {booking.children !== null ? booking.children : '-'}
+                </div>
+              </div>
             </div>
-            {booking.scooters && Array.isArray(booking.scooters) && booking.scooters.length > 0 && (
-              <div className="mt-3">
-                <span className="text-gray-600 dark:text-gray-400 text-sm">預約租車類型：</span>
-                <div className="flex flex-wrap gap-2 mt-1">
+
+            {/* 所需租車類型/數量（只讀） */}
+            <div>
+              <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">所需租車類型/數量</label>
+              {booking.scooters && Array.isArray(booking.scooters) && booking.scooters.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
                   {booking.scooters.map((scooter, idx) => (
-                    <span key={idx} className="px-2 py-1 bg-white dark:bg-gray-600 rounded text-xs">
+                    <span key={idx} className="px-3 py-2 bg-white dark:bg-gray-600 rounded-lg border border-gray-200 dark:border-gray-500 text-sm text-gray-800 dark:text-gray-100">
                       {scooter.model} x {scooter.count}
                     </span>
                   ))}
                 </div>
-              </div>
-            )}
-            {booking.note && (
-              <div className="mt-3">
-                <span className="text-gray-600 dark:text-gray-400 text-sm">備註：</span>
-                <p className="text-gray-800 dark:text-gray-100 text-sm mt-1">{booking.note}</p>
-              </div>
-            )}
+              ) : (
+                <div className="text-base text-gray-800 dark:text-gray-100 bg-white dark:bg-gray-600 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-500">
+                  -
+                </div>
+              )}
+            </div>
           </div>
 
           {/* 表單欄位 */}
