@@ -1,5 +1,36 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-09 17:31:54 - 線上預約表單增加 Email 欄位（必填）
+
+### 變更內容
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 在表單中新增 Email 欄位，放在 LINE ID 之前
+  - Email 欄位設置為必填（標示紅色星號）
+  - 更新表單資料狀態，包含 email 欄位
+  - 提交表單時包含 email 資料
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - 更新 `booking.send()` 方法的類型定義，添加 `email: string`（必填）
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 在 `send()` 方法的驗證規則中添加 `email` 欄位：`'email' => 'required|email|max:255'`
+  - 更新資料庫儲存邏輯，保存 email 到 bookings 表
+  - 更新郵件資料，確保 email 包含在郵件內容中
+  - 更新搜尋功能，搜尋時可搜尋 email 欄位
+
+- **booking.blade.php** (`resources/views/emails/booking.blade.php`)
+  - 在郵件模板中添加 Email 欄位顯示，放在姓名之後、LINE ID 之前
+  - Email 欄位會在郵件中顯示（如果有值）
+
+### 說明
+- 線上預約表單現在必須填寫 Email
+- Email 欄位位置在承租人姓名之後、LINE ID 之前
+- 資料會保存到資料庫的 bookings 表的 email 欄位
+- 郵件通知中會顯示用戶填寫的 Email
+- 後端管理介面搜尋功能現在可搜尋 Email
+
+---
+
 ## 2026-01-04 21:15:07 - 更新郵件接收地址 / Update Email Recipient Address
 
 ### Backend Changes
@@ -6117,4 +6148,28 @@ php artisan db:seed --class=ScooterModelColorSeeder
   - 收集所有需要的機車 ID
   - 創建一個訂單，包含所有機車
 - 如果某個車型的可用機車數量不足，會返回具體的錯誤訊息
+
+
+---
+
+## 2026-01-09 16:42:19 - 清理未使用的程式碼
+
+### 變更內容
+
+#### 後端管理界面
+- **OrdersPage** (`system/backend/pages/OrdersPage.tsx`)
+  - 移除未使用的導入：
+    - `scootersApi` - 已不再使用（之前用於 ConvertBookingModal）
+    - `OrderStatus` - 未在代碼中使用
+    - `Check` icon - 未在代碼中使用
+
+#### 後端組件
+- **ConvertBookingModal** (`system/backend/components/ConvertBookingModal.tsx`)
+  - 刪除整個組件檔案
+  - 該組件已不再被使用，因為確認轉為訂單現在直接調用 API，不再使用模態框
+
+### 清理說明
+- 移除未使用的導入可以減少打包大小
+- 刪除未使用的組件可以保持代碼庫整潔
+- 所有功能仍然正常運作
 
