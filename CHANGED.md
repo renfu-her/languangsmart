@@ -6118,3 +6118,27 @@ php artisan db:seed --class=ScooterModelColorSeeder
   - 創建一個訂單，包含所有機車
 - 如果某個車型的可用機車數量不足，會返回具體的錯誤訊息
 
+
+---
+
+## 2026-01-09 16:42:19 - 清理未使用的程式碼
+
+### 變更內容
+
+#### 後端管理界面
+- **OrdersPage** (`system/backend/pages/OrdersPage.tsx`)
+  - 移除未使用的導入：
+    - `scootersApi` - 已不再使用（之前用於 ConvertBookingModal）
+    - `OrderStatus` - 未在代碼中使用
+    - `Check` icon - 未在代碼中使用
+
+#### 後端組件
+- **ConvertBookingModal** (`system/backend/components/ConvertBookingModal.tsx`)
+  - 刪除整個組件檔案
+  - 該組件已不再被使用，因為確認轉為訂單現在直接調用 API，不再使用模態框
+
+### 清理說明
+- 移除未使用的導入可以減少打包大小
+- 刪除未使用的組件可以保持代碼庫整潔
+- 所有功能仍然正常運作
+
