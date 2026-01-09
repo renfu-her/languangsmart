@@ -880,7 +880,7 @@ const OrdersPage: React.FC = () => {
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1 space-y-3">
                       {/* Email（可編輯，第一個） */}
-                      <div>
+                      <div className="mb-4">
                         <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">Email</label>
                         <div className="flex items-center gap-2">
                           <input
@@ -901,32 +901,47 @@ const OrdersPage: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* 其他欄位以文字形式顯示 */}
-                      <div className="text-sm text-gray-700 dark:text-gray-300 space-y-1">
+                      {/* 其他欄位以兩列形式顯示 */}
+                      <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-700 dark:text-gray-300">
                         <div>承租人姓名: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.name}</span></div>
                         <div>LINE ID: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.line_id || '-'}</span></div>
-                        <div>行動電話: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.phone || '-'}</span></div>
                         <div>預約日期: <span className="font-medium text-gray-800 dark:text-gray-100">{new Date(booking.booking_date).toLocaleDateString('zh-TW')}</span></div>
                         <div>結束日期: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.end_date ? new Date(booking.end_date).toLocaleDateString('zh-TW') : '-'}</span></div>
                         <div>船運公司: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.shipping_company || '-'}</span></div>
                         <div>船班時間（來）: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.ship_arrival_time ? new Date(booking.ship_arrival_time).toLocaleString('zh-TW') : '-'}</span></div>
                         <div>大人 / 人數: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.adults !== null ? booking.adults : '-'}</span></div>
                         <div>小孩 (12歲以下) / 人數: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.children !== null ? booking.children : '-'}</span></div>
-                        <div>
-                          所需租車類型/數量: 
-                          {booking.scooters && Array.isArray(booking.scooters) && booking.scooters.length > 0 ? (
-                            <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">
-                              {booking.scooters.map((scooter: any, idx: number) => (
-                                <span key={idx}>
+                      </div>
+
+                      {/* 所需租車類型/數量 */}
+                      <div className="mt-3 text-sm text-gray-700 dark:text-gray-300">
+                        <span>所需租車類型/數量: </span>
+                        {booking.scooters && Array.isArray(booking.scooters) && booking.scooters.length > 0 ? (
+                          <span className="ml-2">
+                            {booking.scooters.map((scooter: any, idx: number) => {
+                              // 根據車型生成不同顏色
+                              const colors = [
+                                'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+                                'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+                                'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+                                'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+                                'bg-pink-100 text-pink-700 dark:bg-pink-900/30 dark:text-pink-400',
+                                'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400',
+                                'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
+                                'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-400',
+                              ];
+                              const colorClass = colors[idx % colors.length];
+                              
+                              return (
+                                <span key={idx} className={`px-2 py-1 rounded text-xs font-medium ${colorClass} ${idx > 0 ? 'ml-2' : ''}`}>
                                   {scooter.model} x {scooter.count}
-                                  {idx < booking.scooters.length - 1 && ', '}
                                 </span>
-                              ))}
-                            </span>
-                          ) : (
-                            <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">-</span>
-                          )}
-                        </div>
+                              );
+                            })}
+                          </span>
+                        ) : (
+                          <span className="font-medium text-gray-800 dark:text-gray-100 ml-2">-</span>
+                        )}
                       </div>
                     </div>
                     <div className="flex flex-col items-end space-y-2">
