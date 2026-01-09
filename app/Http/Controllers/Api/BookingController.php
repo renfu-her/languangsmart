@@ -140,12 +140,12 @@ class BookingController extends Controller
     public function update(Request $request, Booking $booking): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
             'line_id' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'scooter_type' => 'nullable|string|max:50',
-            'booking_date' => 'required|date',
+            'booking_date' => 'sometimes|required|date',
             'end_date' => 'nullable|date|after_or_equal:booking_date',
             'rental_days' => 'nullable|string|max:20',
             'shipping_company' => 'nullable|in:泰富,藍白,聯營,大福',
@@ -156,7 +156,7 @@ class BookingController extends Controller
             'scooters.*.model' => 'required_with:scooters|string|max:255',
             'scooters.*.count' => 'required_with:scooters|integer|min:1',
             'note' => 'nullable|string|max:1000',
-            'status' => 'required|in:預約中,執行中,已經回覆,取消,已轉訂單',
+            'status' => 'sometimes|required|in:預約中,執行中,已經回覆,取消,已轉訂單',
         ]);
 
         if ($validator->fails()) {
@@ -166,6 +166,7 @@ class BookingController extends Controller
             ], 422);
         }
 
+        // 只更新提供的欄位
         $booking->update($validator->validated());
 
         return response()->json([

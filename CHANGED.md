@@ -5968,3 +5968,26 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 點擊「確認轉為訂單」按鈕後，直接跳轉到預約管理的 detail 頁面，用戶可以在那裡完成轉換訂單的操作
 - 簡化了操作流程，不需要額外的確認模態框
 
+
+---
+
+## 2026-01-09 15:33:02 - 修復更新預約 email 時的驗證錯誤
+
+### 變更內容
+
+#### 後端
+- **BookingController** (`app/Http/Controllers/Api/BookingController.php`)
+  - 修改 `update()` 方法的驗證規則
+  - 將 `name`、`booking_date`、`status` 的驗證規則從 `required` 改為 `sometimes|required`
+  - 這樣只有在提供這些欄位時才會驗證，允許只更新部分欄位（如 email）
+
+### 問題修復
+- 修復了在未確認預約列表中更新 email 時出現的 422 驗證錯誤
+- 之前只傳送 `email` 欄位時，後端要求 `name`、`booking_date`、`status` 必填
+- 現在可以只更新 email，不需要提供其他必填欄位
+
+### 功能說明
+- 使用 `sometimes` 規則，只有在請求中包含該欄位時才進行驗證
+- 允許部分更新，提升 API 的靈活性
+- 其他欄位的驗證規則保持不變
+
