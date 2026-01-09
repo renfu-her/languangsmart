@@ -1,5 +1,18 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-09 20:58:16 - 將 Banner 高度改為 600px
+
+### 變更內容
+- **BannerCarousel.tsx** (`system/frontend/components/BannerCarousel.tsx`)
+  - 將 Banner 高度從 `h-[800px]` 改為 `h-[600px]`（600px）
+  - 更新載入狀態的 Banner 高度，與正常顯示保持一致
+
+### 說明
+- Banner 現在固定高度為 600px
+- 圖片仍然保持上下置中顯示
+
+---
+
 ## 2026-01-09 20:54:47 - 修改 Banner 高度為固定 800px 並置中圖片
 
 ### 變更內容
