@@ -767,10 +767,41 @@ const OrdersPage: React.FC = () => {
     setExpandedRemarkId(expandedRemarkId === orderId ? null : orderId);
   };
 
-  // 處理預約轉訂單 - 直接跳轉到 detail 頁面
-  const handleConvertBookingClick = (booking: any) => {
-    // 直接跳轉到預約管理頁面的 detail 視圖
-    navigate(`/bookings?detail=${booking.id}`);
+  // 處理預約轉訂單 - 直接創建訂單
+  const handleConvertBookingClick = async (booking: any) => {
+    if (!confirm('確定要將此預約轉為訂單嗎？')) return;
+
+    // 檢查 email
+    if (!booking.email) {
+      alert('此預約沒有填寫 email，無法確認轉為訂單。請先編輯預約資料添加 email。');
+      return;
+    }
+
+    try {
+      // 直接轉換為訂單，使用預設值
+      await bookingsApi.convertToOrder(booking.id, {
+        payment_method: '現金',
+        payment_amount: 0,
+        scooter_ids: [], // 讓後端自動選擇
+      });
+      
+      // 重新載入預約列表和訂單列表
+      await fetchPendingBookings();
+      const response = await ordersApi.list({
+        month: selectedMonthString,
+        search: searchTerm || undefined,
+        page: currentPage,
+      });
+      const ordersData = response.data || [];
+      setOrders(Array.isArray(ordersData) ? ordersData : []);
+      
+      // 跳轉到預約管理頁面的 detail 視圖
+      navigate(`/bookings?detail=${booking.id}`);
+    } catch (error: any) {
+      console.error('Failed to convert booking to order:', error);
+      const errorMessage = error.response?.data?.message || '轉換訂單時發生錯誤，請稍後再試。';
+      alert(errorMessage);
+    }
   };
 
   // 處理拒絕預約

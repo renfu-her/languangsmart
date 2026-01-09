@@ -5991,3 +5991,50 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 允許部分更新，提升 API 的靈活性
 - 其他欄位的驗證規則保持不變
 
+
+---
+
+## 2026-01-09 15:41:16 - 確認按鈕直接創建訂單並發送郵件
+
+### 變更內容
+
+#### 後端
+- **BookingController** (`app/Http/Controllers/Api/BookingController.php`)
+  - 修改 `convertToOrder()` 方法的驗證規則
+  - 將 `payment_method`、`payment_amount`、`scooter_ids` 改為 `sometimes|required`，允許使用預設值
+  - 添加自動選擇機車的邏輯：
+    - 如果沒有提供 `scooter_ids`，根據預約的車型需求自動選擇可用機車
+    - 從預約的 `scooters` 陣列計算需要的機車數量
+    - 自動選擇狀態為「待出租」的機車
+    - 如果可用機車數量不足，返回錯誤訊息
+  - 使用預設值：
+    - `payment_method`: '現金'（如果未提供）
+    - `payment_amount`: 0（如果未提供）
+  - 確認轉為訂單後會自動發送確認郵件（已實現）
+
+#### 後端管理界面
+- **OrdersPage** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `handleConvertBookingClick` 函數：
+    - 添加確認對話框
+    - 檢查 email 是否存在
+    - 直接調用 `convertToOrder` API，使用預設值（現金、金額 0、自動選擇機車）
+    - 轉換成功後重新載入預約列表和訂單列表
+    - 跳轉到預約管理的 detail 頁面
+
+### 功能說明
+- **確認按鈕**：
+  - 點擊後會先確認，然後直接創建訂單
+  - 使用預設值：付款方式「現金」、金額 0、自動選擇可用機車
+  - 創建訂單後，預約狀態自動改為「已轉訂單」
+  - 自動發送確認郵件給客戶的 email
+  - 跳轉到預約管理的 detail 頁面
+
+- **拒絕按鈕**：
+  - 點擊後會先確認，然後更新預約狀態為「取消」
+  - 自動發送拒絕郵件給客戶的 email（已實現）
+  - 跳轉到預約管理的 detail 頁面
+
+- **郵件發送**：
+  - 拒絕時：發送拒絕郵件（內容：「因預約日車輛全數租出，故此無法承接您的訂單 造成不便，深感抱歉」）
+  - 確認時：發送確認郵件（內容：「您 x 月 x 日與蘭光電動機車下定之訂單已成立」）
+

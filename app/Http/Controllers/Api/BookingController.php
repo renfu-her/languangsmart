@@ -278,10 +278,10 @@ class BookingController extends Controller
 
         $validator = Validator::make($request->all(), [
             'partner_id' => 'nullable|exists:partners,id',
-            'payment_method' => 'required|in:現金,月結,日結,匯款,刷卡,行動支付',
-            'payment_amount' => 'required|numeric|min:0',
-            'scooter_ids' => 'required|array|min:1',
-            'scooter_ids.*' => 'exists:scooters,id',
+            'payment_method' => 'sometimes|required|in:現金,月結,日結,匯款,刷卡,行動支付',
+            'payment_amount' => 'sometimes|required|numeric|min:0',
+            'scooter_ids' => 'sometimes|required|array|min:1',
+            'scooter_ids.*' => 'required_with:scooter_ids|exists:scooters,id',
         ]);
 
         if ($validator->fails()) {
@@ -289,6 +289,42 @@ class BookingController extends Controller
                 'message' => 'Validation error',
                 'errors' => $validator->errors(),
             ], 422);
+        }
+
+        // 如果沒有提供參數，使用預設值
+        $paymentMethod = $request->get('payment_method') ?: '現金';
+        $paymentAmount = $request->get('payment_amount') ?: 0;
+        $scooterIds = $request->get('scooter_ids');
+
+        // 如果沒有提供機車 ID，自動選擇可用機車
+        if (!$scooterIds || count($scooterIds) === 0) {
+            // 根據預約的車型需求，選擇對應的可用機車
+            $requiredCount = 0;
+            if ($booking->scooters && is_array($booking->scooters)) {
+                $requiredCount = array_sum(array_column($booking->scooters, 'count'));
+            } elseif ($booking->scooter_type) {
+                $requiredCount = 1;
+            }
+
+            if ($requiredCount > 0) {
+                // 獲取可用機車（狀態為「待出租」）
+                $availableScooters = Scooter::where('status', '待出租')
+                    ->limit($requiredCount)
+                    ->pluck('id')
+                    ->toArray();
+
+                if (count($availableScooters) < $requiredCount) {
+                    return response()->json([
+                        'message' => '可用機車數量不足，無法自動轉換訂單。請手動選擇機車。',
+                    ], 422);
+                }
+
+                $scooterIds = array_slice($availableScooters, 0, $requiredCount);
+            } else {
+                return response()->json([
+                    'message' => '無法確定需要的機車數量，請手動選擇機車。',
+                ], 422);
+            }
         }
 
         try {
@@ -314,8 +350,6 @@ class BookingController extends Controller
                 ? ($endDate . ' 18:00:00') 
                 : ($bookingDate . ' 18:00:00');
 
-            $scooterIds = $request->get('scooter_ids');
-
             // 創建訂單（訂單編號會由 Order 模型的 boot 方法自動生成）
             $order = Order::create([
                 'partner_id' => $request->get('partner_id') ?: null,
@@ -328,8 +362,8 @@ class BookingController extends Controller
                 'shipping_company' => $booking->shipping_company,
                 'ship_arrival_time' => $booking->ship_arrival_time,
                 'ship_return_time' => null,
-                'payment_method' => $request->get('payment_method'),
-                'payment_amount' => $request->get('payment_amount'),
+                'payment_method' => $paymentMethod,
+                'payment_amount' => $paymentAmount,
                 'status' => '已預訂',
                 'remark' => $booking->note,
             ]);
