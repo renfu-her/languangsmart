@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\BookingMail;
+use App\Mail\BookingRejectedMail;
+use App\Mail\BookingConfirmedMail;
 use App\Models\Booking;
 use App\Models\Order;
 use App\Models\Scooter;
@@ -141,6 +143,7 @@ class BookingController extends Controller
             'name' => 'required|string|max:255',
             'line_id' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
+            'email' => 'nullable|email|max:255',
             'scooter_type' => 'nullable|string|max:50',
             'booking_date' => 'required|date',
             'end_date' => 'nullable|date|after_or_equal:booking_date',
@@ -187,7 +190,28 @@ class BookingController extends Controller
             ], 422);
         }
 
-        $booking->update(['status' => $request->get('status')]);
+        $status = $request->get('status');
+
+        // 如果是拒絕（狀態改為「取消」），需要檢查 email 並發送郵件
+        if ($status === '取消') {
+            if (!$booking->email) {
+                return response()->json([
+                    'message' => '此預約沒有填寫 email，無法拒絕。請先編輯預約資料添加 email。',
+                ], 422);
+            }
+
+            $booking->update(['status' => $status]);
+
+            // 發送拒絕郵件
+            try {
+                Mail::to($booking->email)->send(new BookingRejectedMail($booking));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send rejection email: ' . $e->getMessage());
+                // 即使郵件發送失敗，狀態更新仍然成功
+            }
+        } else {
+            $booking->update(['status' => $status]);
+        }
 
         return response()->json([
             'message' => 'Booking status updated successfully',
@@ -241,6 +265,13 @@ class BookingController extends Controller
         if ($booking->status !== '預約中') {
             return response()->json([
                 'message' => '只能將「預約中」的預約轉為訂單',
+            ], 422);
+        }
+
+        // 檢查 email
+        if (!$booking->email) {
+            return response()->json([
+                'message' => '此預約沒有填寫 email，無法確認轉為訂單。請先編輯預約資料添加 email。',
             ], 422);
         }
 
@@ -309,6 +340,14 @@ class BookingController extends Controller
             $booking->update(['status' => '已轉訂單']);
 
             DB::commit();
+
+            // 發送確認郵件
+            try {
+                Mail::to($booking->email)->send(new BookingConfirmedMail($booking));
+            } catch (\Exception $e) {
+                \Log::error('Failed to send confirmation email: ' . $e->getMessage());
+                // 即使郵件發送失敗，訂單轉換仍然成功
+            }
 
             return response()->json([
                 'message' => '預約已成功轉為訂單',
