@@ -1,5 +1,58 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-09 22:12:13 - 新增後台環境圖片管理功能
+
+### 變更內容
+
+#### 資料庫
+- **Migration** (`database/migrations/2026_01_09_220942_create_environment_images_table.php`) - 新建
+  - 創建 `environment_images` 表
+  - 欄位：`id`, `image_path`, `alt_text`, `sort_order`, `timestamps`
+
+#### 後端
+- **Model** (`app/Models/EnvironmentImage.php`) - 新建
+  - 定義 `fillable` 欄位：`image_path`, `alt_text`, `sort_order`
+  - 定義 `casts`：`sort_order` 為 integer
+
+- **Controller** (`app/Http/Controllers/Api/EnvironmentImageController.php`) - 新建
+  - `index()` - 列出所有環境圖片（按 sort_order 排序）
+  - `store()` - 新增環境圖片（上傳圖片、alt_text、sort_order）
+  - `update()` - 更新環境圖片資訊（alt_text、sort_order）
+  - `destroy()` - 刪除環境圖片（同時刪除上傳的圖片檔案）
+
+- **Routes** (`routes/api.php`)
+  - 添加 `/api/environment-images` 路由群組（需要認證）
+  - `GET /environment-images` - 列出所有圖片
+  - `POST /environment-images` - 新增圖片
+  - `PUT /environment-images/{id}` - 更新圖片
+  - `DELETE /environment-images/{id}` - 刪除圖片
+
+#### 後端管理界面
+- **EnvironmentImagesPage** (`system/backend/pages/EnvironmentImagesPage.tsx`) - 新建
+  - 創建環境圖片管理頁面
+  - 新增圖片功能：上傳圖片、設定替代文字、設定排序
+  - 圖片列表顯示：顯示所有已上傳的圖片
+  - 刪除圖片功能：刪除圖片時同時刪除上傳的檔案
+  - 調整順序功能：使用上下箭頭按鈕調整圖片順序
+
+- **API Client** (`system/backend/lib/api.ts`)
+  - 添加 `environmentImagesApi` 包含 `list`, `create`, `update`, `delete` 方法
+
+- **路由** (`system/backend/App.tsx`)
+  - 添加 `/environment-images` 路由
+
+- **側邊欄** (`system/backend/constants.tsx`)
+  - 在「網站內容管理」下添加「環境圖片」選單項目，位於「首頁圖片」下方
+
+### 說明
+- 後端管理員可以在「網站內容管理 > 環境圖片」頁面管理環境展示圖片
+- 可以新增、刪除圖片，並調整圖片順序
+- 刪除圖片時會自動刪除上傳的圖片檔案
+- 圖片上傳後會自動轉換為 webp 格式並使用 UUID 命名
+- 需要執行 migration：`php artisan migrate`
+
+---
+
 ## 2026-01-09 21:39:55 - 更新訂單確認通知郵件內容
 
 ### 變更內容

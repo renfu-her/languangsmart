@@ -73,6 +73,9 @@ export const publicApi = {
   homeImages: {
     list: () => api.get('/home-images'),
   },
+  environmentImages: {
+    list: () => api.get('/environment-images'),
+  },
   rentalPlans: {
     list: () => api.get('/rental-plans', { active_only: true }),
   },

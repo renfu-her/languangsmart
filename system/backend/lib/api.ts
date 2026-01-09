@@ -342,6 +342,43 @@ export const homeImagesApi = {
     api.uploadFile(`/home-images/${key}/upload-image`, file, 'image'),
 };
 
+export const environmentImagesApi = {
+  list: () => api.get('/environment-images'),
+  create: async (file: File, altText: string | null, sortOrder: number) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    if (altText) formData.append('alt_text', altText);
+    formData.append('sort_order', sortOrder.toString());
+
+    const url = `${API_BASE_URL}/environment-images`;
+    const token = localStorage.getItem('auth_token');
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('auth_token');
+        if (window.location.hash !== '#/login') {
+          window.location.hash = '/login';
+        }
+      }
+      throw new Error(data.message || 'Upload failed');
+    }
+
+    return data;
+  },
+  update: (id: number, data: { alt_text?: string | null; sort_order?: number }) =>
+    api.put(`/environment-images/${id}`, data),
+  delete: (id: number) => api.delete(`/environment-images/${id}`),
+};
+
 export const bookingsApi = {
   list: (params?: { search?: string; status?: string }) =>
     api.get('/bookings', params),

@@ -1,7 +1,33 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { publicApi } from '../lib/api';
+
+interface EnvironmentImage {
+  id: number;
+  image_path: string;
+  alt_text: string | null;
+  sort_order: number;
+}
 
 const About: React.FC = () => {
+  const [environmentImages, setEnvironmentImages] = useState<EnvironmentImage[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchEnvironmentImages();
+  }, []);
+
+  const fetchEnvironmentImages = async () => {
+    try {
+      const response = await publicApi.environmentImages.list();
+      setEnvironmentImages(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch environment images:', error);
+      setEnvironmentImages([]);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="animate-in slide-in-from-right-4 duration-700">
       {/* Header Section */}
@@ -124,22 +150,23 @@ const About: React.FC = () => {
       </section>
 
       {/* Image Gallery */}
-      <section className="py-20 bg-[#f0f4ff]">
-        <div className="max-w-6xl mx-auto px-6">
-          <h2 className="text-3xl md:text-4xl font-bold serif text-center mb-12">我們的環境</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <div key={i} className="aspect-square rounded-[30px] overflow-hidden">
-                <img
-                  src={`https://picsum.photos/seed/about${i}/600/600`}
-                  alt={`About us ${i}`}
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                />
-              </div>
-            ))}
+      {!loading && environmentImages.length > 0 && (
+        <section className="py-20 bg-[#f0f4ff]">
+          <div className="max-w-6xl mx-auto px-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {environmentImages.map((image) => (
+                <div key={image.id} className="aspect-square rounded-[30px] overflow-hidden">
+                  <img
+                    src={`/storage/${image.image_path}`}
+                    alt={image.alt_text || 'Environment image'}
+                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 };
