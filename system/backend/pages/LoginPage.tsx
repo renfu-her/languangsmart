@@ -204,13 +204,6 @@ const LoginPage: React.FC = () => {
               )}
             </button>
           </form>
-
-          {/* Demo Account Info */}
-          <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-            <p className="text-xs text-center text-gray-400 dark:text-gray-500">
-              測試帳號：admin@admin.com / admin123
-            </p>
-          </div>
         </div>
       </div>
     </div>
