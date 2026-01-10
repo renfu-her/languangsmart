@@ -1,5 +1,38 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-10 20:21:53 - 新增「公船」航運公司選項
+
+### 變更內容
+- **資料庫 Migration** (`database/migrations/2026_01_10_202033_add_gong_chuan_to_shipping_company_enum.php`)
+  - 新增 migration 將「公船」添加到 `bookings` 和 `orders` 表的 `shipping_company` enum 欄位
+  - 使用 `DB::statement` 修改 enum 類型為：`['泰富', '藍白', '聯營', '大福', '公船']`
+
+- **前台預約表單** (`system/frontend/pages/Booking.tsx`)
+  - 在船運公司下拉選單中新增「公船」選項
+
+- **後台訂單管理** (`system/backend/components/AddOrderModal.tsx`)
+  - 在航運公司下拉選單中新增「公船」選項
+
+- **後台預約管理** (`system/backend/pages/BookingsPage.tsx`)
+  - 在船運公司下拉選單中新增「公船」選項
+
+- **後端驗證規則**
+  - `app/Http/Controllers/Api/BookingController.php`
+    - 更新 `send()` 方法驗證規則：`'shippingCompany' => 'required|in:泰富,藍白,聯營,大福,公船'`
+    - 更新 `update()` 方法驗證規則：`'shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船'`
+  - `app/Http/Controllers/Api/OrderController.php`
+    - 更新 `store()` 和 `update()` 方法驗證規則：`'shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船'`
+
+- **TypeScript 類型定義** (`system/backend/types.ts`)
+  - 更新 `ShippingCompany` enum，新增 `GONGCHUAN = '公船'`
+
+### 說明
+- 前台和後台的航運公司選項都已包含「公船」
+- 資料庫 enum 類型已更新，支援新的航運公司選項
+- 所有相關驗證規則已同步更新
+
+---
+
 ## 2026-01-10 20:14:18 - 移除登入頁面的測試帳號訊息
 
 ### 變更內容

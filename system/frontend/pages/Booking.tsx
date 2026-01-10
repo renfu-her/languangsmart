@@ -299,6 +299,7 @@ const Booking: React.FC = () => {
                   <option value="藍白">藍白</option>
                   <option value="聯營">聯營</option>
                   <option value="大福">大福</option>
+                  <option value="公船">公船</option>
                 </select>
               </div>
 

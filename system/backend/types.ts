@@ -26,7 +26,8 @@ export enum ShippingCompany {
   TAIFU = '泰富',
   BLUEWHITE = '藍白',
   JOINT = '聯營',
-  DAFU = '大福'
+  DAFU = '大福',
+  GONGCHUAN = '公船'
 }
 
 export interface Partner {
