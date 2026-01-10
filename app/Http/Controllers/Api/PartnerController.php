@@ -55,6 +55,7 @@ class PartnerController extends Controller
             'tax_id' => 'nullable|string|max:20',
             'manager' => 'nullable|string|max:255',
             'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            'is_default_for_booking' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -64,7 +65,14 @@ class PartnerController extends Controller
             ], 422);
         }
 
-        $partner = Partner::create($validator->validated());
+        $data = $validator->validated();
+        
+        // 如果設置為預設，取消其他合作商的預設狀態
+        if (isset($data['is_default_for_booking']) && $data['is_default_for_booking']) {
+            Partner::where('id', '!=', 0)->update(['is_default_for_booking' => false]);
+        }
+
+        $partner = Partner::create($data);
 
         return response()->json([
             'message' => 'Partner created successfully',
@@ -94,6 +102,7 @@ class PartnerController extends Controller
             'tax_id' => 'nullable|string|max:20',
             'manager' => 'nullable|string|max:255',
             'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
+            'is_default_for_booking' => 'nullable|boolean',
         ]);
 
         if ($validator->fails()) {
@@ -103,7 +112,14 @@ class PartnerController extends Controller
             ], 422);
         }
 
-        $partner->update($validator->validated());
+        $data = $validator->validated();
+        
+        // 如果設置為預設，取消其他合作商的預設狀態
+        if (isset($data['is_default_for_booking']) && $data['is_default_for_booking']) {
+            Partner::where('id', '!=', $partner->id)->update(['is_default_for_booking' => false]);
+        }
+
+        $partner->update($data);
 
         return response()->json([
             'message' => 'Partner updated successfully',

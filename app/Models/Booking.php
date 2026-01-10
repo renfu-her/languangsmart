@@ -25,6 +25,7 @@ class Booking extends Model
         'scooters',
         'note',
         'status',
+        'partner_id',
     ];
 
     protected $casts = [

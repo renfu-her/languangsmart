@@ -17,6 +17,7 @@ class Partner extends Model
         'manager',
         'photo_path',
         'color',
+        'is_default_for_booking',
     ];
 
     /**
