@@ -8,6 +8,7 @@ use App\Mail\BookingRejectedMail;
 use App\Mail\BookingConfirmedMail;
 use App\Models\Booking;
 use App\Models\Order;
+use App\Models\Partner;
 use App\Models\Scooter;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -64,6 +65,9 @@ class BookingController extends Controller
                 ];
             }, $data['scooters']);
             
+            // 獲取預設線上預約合作商
+            $defaultPartner = Partner::where('is_default_for_booking', true)->first();
+            
             // 儲存到資料庫
             $booking = Booking::create([
                 'name' => $data['name'],
@@ -79,6 +83,7 @@ class BookingController extends Controller
                 'scooters' => $scooters,
                 'note' => $data['note'] ?? null,
                 'status' => '預約中', // 預設狀態為「預約中」
+                'partner_id' => $defaultPartner ? $defaultPartner->id : null,
             ]);
             
             // 發送郵件給管理員（因為沒有 email，無法發送給用戶）

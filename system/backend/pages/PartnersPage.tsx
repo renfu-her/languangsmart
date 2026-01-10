@@ -12,6 +12,7 @@ interface Partner {
   manager: string | null;
   photo_path: string | null;
   color: string | null;
+  is_default_for_booking?: boolean;
 }
 
 const PartnersPage: React.FC = () => {
@@ -27,6 +28,7 @@ const PartnersPage: React.FC = () => {
     tax_id: '',
     manager: '',
     color: '',
+    is_default_for_booking: false,
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -66,6 +68,7 @@ const PartnersPage: React.FC = () => {
         tax_id: partner.tax_id || '',
         manager: partner.manager || '',
         color: partner.color || '',
+        is_default_for_booking: partner.is_default_for_booking || false,
       });
       setPhotoPreview(partner.photo_path || null);
     } else {
@@ -77,6 +80,7 @@ const PartnersPage: React.FC = () => {
         tax_id: '',
         manager: '',
         color: '',
+        is_default_for_booking: false,
       });
       setPhotoPreview(null);
     }
@@ -436,6 +440,20 @@ const PartnersPage: React.FC = () => {
                       </p>
                     </div>
                   )}
+                </div>
+                <div className="col-span-2">
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.is_default_for_booking}
+                      onChange={(e) => setFormData({ ...formData, is_default_for_booking: e.target.checked })}
+                      className="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500 focus:ring-2"
+                    />
+                    <span className={labelClasses}>設為預設線上預約合作商</span>
+                  </label>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400 ml-8">
+                    勾選後，此合作商將成為前台線上預約的預設合作商。當設置一個合作商為預設時，其他合作商的自動取消預設狀態。
+                  </p>
                 </div>
               </div>
               <div>

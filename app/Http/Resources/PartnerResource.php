@@ -23,6 +23,7 @@ class PartnerResource extends JsonResource
             'manager' => $this->manager,
             'photo_path' => $this->photo_path ? asset('storage/' . $this->photo_path) : null,
             'color' => $this->color,
+            'is_default_for_booking' => $this->is_default_for_booking ?? false,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

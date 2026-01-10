@@ -1,5 +1,47 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-10 23:17:22 - 後台合作商管理新增預設線上預約合作商功能
+
+### 變更內容
+- **資料庫 Migration**
+  - `database/migrations/2026_01_10_231524_add_is_default_for_booking_to_partners_table.php`
+    - 在 `partners` 表添加 `is_default_for_booking` 欄位（boolean，預設 false）
+  - `database/migrations/2026_01_10_231614_add_partner_id_to_bookings_table.php`
+    - 在 `bookings` 表添加 `partner_id` 欄位（foreign key，nullable）
+
+- **Partner Model** (`app/Models/Partner.php`)
+  - 在 `$fillable` 中添加 `is_default_for_booking`
+
+- **Booking Model** (`app/Models/Booking.php`)
+  - 在 `$fillable` 中添加 `partner_id`
+
+- **PartnerController** (`app/Http/Controllers/Api/PartnerController.php`)
+  - 在 `store()` 和 `update()` 方法中添加 `is_default_for_booking` 驗證規則
+  - 實現邏輯：當設置一個合作商為預設時，自動取消其他合作商的預設狀態
+  - 使用 `Partner::where('id', '!=', $partner->id)->update(['is_default_for_booking' => false])` 確保只有一個預設
+
+- **BookingController** (`app/Http/Controllers/Api/BookingController.php`)
+  - 在 `send()` 方法中自動獲取預設線上預約合作商
+  - 創建預約時自動將預設合作商關聯到預約記錄
+
+- **PartnerResource** (`app/Http/Resources/PartnerResource.php`)
+  - 在資源輸出中添加 `is_default_for_booking` 欄位
+
+- **後台合作商管理頁面** (`system/backend/pages/PartnersPage.tsx`)
+  - 在 Partner interface 中添加 `is_default_for_booking?: boolean`
+  - 在表單中添加「設為預設線上預約合作商」勾選框
+  - 添加說明文字：勾選後，此合作商將成為前台線上預約的預設合作商
+  - 更新表單狀態管理，包含 `is_default_for_booking` 欄位
+
+### 說明
+- 後台管理員可以在合作商管理頁面中，勾選一個合作商為「預設線上預約合作商」
+- 當設置一個合作商為預設時，系統會自動取消其他合作商的預設狀態（確保只有一個預設）
+- 前台用戶提交線上預約時，系統會自動使用預設的合作商作為該預約的合作商
+- 前台預約表單中不需要顯示合作商選擇欄位（原本就沒有，無需移除）
+- 所有新建立的預約都會自動關聯到預設合作商
+
+---
+
 ## 2026-01-10 23:04:44 - 移除租車方案頁面的「提供顧客尊榮級服務」區塊
 
 ### 變更內容
