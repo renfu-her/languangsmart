@@ -1088,23 +1088,20 @@ const OrdersPage: React.FC = () => {
                           {booking.scooters && Array.isArray(booking.scooters) && booking.scooters.length > 0 ? (
                             <span className="font-medium text-gray-800 dark:text-gray-100">
                               {booking.scooters.map((scooter: any, idx: number) => {
-                                // 根據車型生成不同顏色
-                                const colors = [
-                                  'text-blue-600 dark:text-blue-400',
-                                  'text-green-600 dark:text-green-400',
-                                  'text-orange-600 dark:text-orange-400',
-                                  'text-purple-600 dark:text-purple-400',
-                                  'text-pink-600 dark:text-pink-400',
-                                  'text-yellow-600 dark:text-yellow-400',
-                                  'text-indigo-600 dark:text-indigo-400',
-                                  'text-teal-600 dark:text-teal-400',
-                                ];
-                                const colorClass = colors[idx % colors.length];
+                                // 從 model 字串中提取車款類型（格式：model + " " + type，例如 "EB-500 電輔車"）
+                                const parts = scooter.model.split(' ', 2);
+                                const type = parts[1] || ''; // 例如 "電輔車"
+                                
+                                // 根據車款類型獲取對應的背景顏色
+                                const backgroundColor = type && typeColorMap[type] ? typeColorMap[type] : '#E5E7EB'; // 默認灰色
                                 
                                 return (
-                                  <span key={idx} className={colorClass}>
+                                  <span 
+                                    key={idx}
+                                    className="px-2 py-0.5 rounded-lg text-xs font-medium text-gray-900 dark:text-gray-900 inline-block mr-1"
+                                    style={{ backgroundColor }}
+                                  >
                                     {scooter.model} x {scooter.count}
-                                    {idx < booking.scooters.length - 1 ? '，' : ''}
                                   </span>
                                 );
                               })}
