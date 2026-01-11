@@ -675,7 +675,7 @@ const OrdersPage: React.FC = () => {
       if (button) {
         const rect = button.getBoundingClientRect();
         setDropdownPosition({
-          top: rect.bottom + window.scrollY + 8, // mt-2 = 8px
+          top: rect.top + window.scrollY, // 與按鈕同排（垂直對齊）
           right: window.innerWidth - rect.right,
         });
       }
@@ -1681,14 +1681,14 @@ const OrdersPage: React.FC = () => {
                 <>
                   <button
                     onClick={() => handleEdit(order)}
-                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                    className="w-full px-4 py-3 text-center flex items-center justify-center space-x-2 hover:bg-orange-50 dark:hover:bg-orange-900/20 text-gray-700 dark:text-gray-300 transition-colors"
                   >
                     <Edit3 size={16} className="text-orange-600 dark:text-orange-400" />
                     <span className="text-sm font-medium">編輯</span>
                   </button>
                   <button
                     onClick={() => handleDelete(order.id)}
-                    className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 transition-colors"
+                    className="w-full px-4 py-3 text-center flex items-center justify-center space-x-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 transition-colors"
                   >
                     <Trash2 size={16} className="text-red-600 dark:text-red-400" />
                     <span className="text-sm font-medium">刪除</span>
