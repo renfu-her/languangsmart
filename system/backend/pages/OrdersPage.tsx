@@ -1094,63 +1094,6 @@ const OrdersPage: React.FC = () => {
                           </select>
                         </div>
 
-                    {/* 價格計算 */}
-                    {booking.scooters && Array.isArray(booking.scooters) && booking.scooters.length > 0 && (() => {
-                      const days = calculateRentalDays(booking);
-                      const prices = bookingPrices[booking.id] || {};
-                      
-                      return (
-                        <div className="space-y-3">
-                          <label className="text-sm font-bold text-gray-700 dark:text-gray-300 block">價格明細</label>
-                          <div className="space-y-2">
-                            {booking.scooters.map((scooter: any, idx: number) => {
-                              const basePrice = prices[scooter.model] || 0;
-                              const amount = basePrice * scooter.count * days;
-                              
-                              return (
-                                <div
-                                  key={idx}
-                                  className="p-3 border border-gray-200 dark:border-gray-700 rounded-lg bg-gray-50 dark:bg-gray-900/50"
-                                >
-                                  <div className="flex items-center justify-between gap-4">
-                                    <div className="flex-1">
-                                      <div className="font-medium text-gray-800 dark:text-gray-200 mb-1 text-sm">{scooter.model}</div>
-                                      <div className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          step="1"
-                                          value={basePrice}
-                                          onChange={(e) => handlePriceChange(booking.id, scooter.model, parseFloat(e.target.value) || 0)}
-                                          onClick={(e) => e.stopPropagation()}
-                                          className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-right text-xs"
-                                        />
-                                        <span>× {scooter.count} 台 × {days} 天 =</span>
-                                        <span className="font-bold text-orange-600 dark:text-orange-400">
-                                          ${amount.toLocaleString()}
-                                        </span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })()}
-
-                    {/* 總金額 */}
-                    {booking.scooters && Array.isArray(booking.scooters) && booking.scooters.length > 0 && (
-                      <div className="p-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-bold text-gray-800 dark:text-gray-200">總金額</span>
-                          <span className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                            ${calculateTotalAmount(booking).toLocaleString()}
-                          </span>
-                        </div>
-                      </div>
-                    )}
                       </div>
                     </div>
                   )}
