@@ -1087,12 +1087,27 @@ const OrdersPage: React.FC = () => {
                           <span className="font-medium text-gray-800 dark:text-gray-100">所需租車類型/數量: </span>
                           {booking.scooters && Array.isArray(booking.scooters) && booking.scooters.length > 0 ? (
                             <span className="font-medium text-gray-800 dark:text-gray-100">
-                              {booking.scooters.map((scooter: any, idx: number) => (
-                                <span key={idx}>
-                                  {scooter.model} x {scooter.count}
-                                  {idx < booking.scooters.length - 1 ? '，' : ''}
-                                </span>
-                              ))}
+                              {booking.scooters.map((scooter: any, idx: number) => {
+                                // 根據車型生成不同顏色
+                                const colors = [
+                                  'text-blue-600 dark:text-blue-400',
+                                  'text-green-600 dark:text-green-400',
+                                  'text-orange-600 dark:text-orange-400',
+                                  'text-purple-600 dark:text-purple-400',
+                                  'text-pink-600 dark:text-pink-400',
+                                  'text-yellow-600 dark:text-yellow-400',
+                                  'text-indigo-600 dark:text-indigo-400',
+                                  'text-teal-600 dark:text-teal-400',
+                                ];
+                                const colorClass = colors[idx % colors.length];
+                                
+                                return (
+                                  <span key={idx} className={colorClass}>
+                                    {scooter.model} x {scooter.count}
+                                    {idx < booking.scooters.length - 1 ? '，' : ''}
+                                  </span>
+                                );
+                              })}
                             </span>
                           ) : (
                             <span className="font-medium text-gray-800 dark:text-gray-100">-</span>
