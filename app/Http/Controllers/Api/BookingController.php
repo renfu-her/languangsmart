@@ -32,7 +32,7 @@ class BookingController extends Controller
             'phone' => 'required|string|max:20',
             'appointmentDate' => 'required|date',
             'endDate' => 'required|date|after_or_equal:appointmentDate',
-            'shippingCompany' => 'required|in:泰富,藍白,聯營,大福,公船',
+            'shippingCompany' => 'nullable|in:泰富,藍白,聯營,大福,公船', // 改為可選，如果沒有提供會使用預設值
             'shipArrivalTime' => 'required|date',
             'adults' => 'nullable|integer|min:0',
             'children' => 'nullable|integer|min:0',
@@ -69,6 +69,12 @@ class BookingController extends Controller
             // 獲取預設線上預約合作商
             $defaultPartner = Partner::where('is_default_for_booking', true)->first();
             
+            // 如果沒有提供船運公司，使用預設合作商的預設船運公司
+            $shippingCompany = $data['shippingCompany'] ?? null;
+            if (!$shippingCompany && $defaultPartner && $defaultPartner->default_shipping_company) {
+                $shippingCompany = $defaultPartner->default_shipping_company;
+            }
+            
             // 儲存到資料庫
             $booking = Booking::create([
                 'name' => $data['name'],
@@ -77,7 +83,7 @@ class BookingController extends Controller
                 'phone' => $data['phone'],
                 'booking_date' => $data['appointmentDate'],
                 'end_date' => $data['endDate'],
-                'shipping_company' => $data['shippingCompany'],
+                'shipping_company' => $shippingCompany,
                 'ship_arrival_time' => $data['shipArrivalTime'],
                 'adults' => $data['adults'] ?? null,
                 'children' => $data['children'] ?? null,

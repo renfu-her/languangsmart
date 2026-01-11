@@ -18,6 +18,7 @@ class Partner extends Model
         'photo_path',
         'color',
         'is_default_for_booking',
+        'default_shipping_company',
     ];
 
     /**
