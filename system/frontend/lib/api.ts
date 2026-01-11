@@ -103,6 +103,9 @@ export const publicApi = {
   scooters: {
     models: () => api.get<Array<{ model: string; type: string; label: string }>>('/scooters/models'),
   },
+  partners: {
+    list: () => api.get('/partners'),
+  },
   captcha: {
     generate: () => api.get('/captcha/generate'),
     verify: (captchaId: string, answer: string) => api.post('/captcha/verify', { captcha_id: captchaId, answer }),

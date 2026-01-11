@@ -62,7 +62,24 @@ const Booking: React.FC = () => {
 
   useEffect(() => {
     fetchScooterModels();
+    fetchDefaultShippingCompany();
   }, []);
+
+  const fetchDefaultShippingCompany = async () => {
+    try {
+      const response = await publicApi.partners.list();
+      const partners = response.data || [];
+      const defaultPartner = partners.find((p: any) => p.is_default_for_booking === true);
+      if (defaultPartner && defaultPartner.default_shipping_company) {
+        setFormData(prev => ({
+          ...prev,
+          shippingCompany: defaultPartner.default_shipping_company,
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to fetch default shipping company:', error);
+    }
+  };
 
   const fetchScooterModels = async () => {
     setIsLoadingModels(true);
