@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown, Download, Bell, XCircle } from 'lucide-react';
+import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown, ChevronUp, Download, Bell, XCircle } from 'lucide-react';
 import AddOrderModal from '../components/AddOrderModal';
 import ConvertBookingModal from '../components/ConvertBookingModal';
 import { ordersApi, partnersApi, bookingsApi, rentalPlansApi } from '../lib/api';
@@ -222,6 +222,7 @@ const OrdersPage: React.FC = () => {
   const [rentalPlans, setRentalPlans] = useState<any[]>([]);
   const [bookingPartners, setBookingPartners] = useState<Record<number, number | null>>({});
   const [bookingPrices, setBookingPrices] = useState<Record<number, Record<string, number>>>({});
+  const [expandedBookings, setExpandedBookings] = useState<Record<number, boolean>>({});
 
   // 車款類型對應的顏色（與機車管理頁面一致）
   const typeColorMap: Record<string, string> = {
@@ -988,46 +989,79 @@ const OrdersPage: React.FC = () => {
             {pendingBookings.map((booking) => {
               const currentEmail = editingEmails[booking.id] !== undefined ? editingEmails[booking.id] : (booking.email || '');
               const isEditingEmail = editingEmails[booking.id] !== undefined;
+              const isExpanded = expandedBookings[booking.id] || false;
 
               return (
-                <div key={booking.id} className="p-6 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                  <div className="space-y-3">
-                    {/* Email、拒絕、確認按鈕同一排 */}
-                    <div className="flex items-end gap-3">
-                      <div className="flex-1">
-                        <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">Email</label>
-                        <div className="flex items-center gap-2">
-                          <input
-                            type="email"
-                            value={currentEmail}
-                            onChange={(e) => handleEmailChange(booking.id, e.target.value)}
-                            className="flex-1 px-3 py-2 bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                            placeholder="example@email.com"
-                          />
-                          {isEditingEmail && (
-                            <button
-                              onClick={() => handleEmailSave(booking.id)}
-                              className="px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors"
-                            >
-                              儲存
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => handleRejectBooking(booking.id)}
-                        className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1 h-[42px]"
-                      >
-                        <XCircle size={16} />
-                        <span>拒絕</span>
-                      </button>
-                      <button
-                        onClick={() => handleConvertBookingClick(booking)}
-                        className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors h-[42px]"
-                      >
-                        確認轉為訂單
-                      </button>
+                <div key={booking.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                  {/* 預約標題欄（可點擊展開/收合） */}
+                  <div
+                    className="p-4 cursor-pointer flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50"
+                    onClick={() => setExpandedBookings(prev => ({ ...prev, [booking.id]: !prev[booking.id] }))}
+                  >
+                    <div className="flex items-center gap-3">
+                      {isExpanded ? (
+                        <ChevronDown size={20} className="text-gray-500 dark:text-gray-400" />
+                      ) : (
+                        <ChevronRight size={20} className="text-gray-500 dark:text-gray-400" />
+                      )}
+                      <span className="font-bold text-gray-800 dark:text-gray-200">#{booking.id}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{booking.name}</span>
+                      <span className="text-xs text-gray-500 dark:text-gray-500">
+                        {new Date(booking.booking_date).toLocaleDateString('zh-TW')}
+                      </span>
                     </div>
+                  </div>
+
+                  {/* 預約詳細內容（可展開/收合） */}
+                  {isExpanded && (
+                    <div className="px-4 pb-6 pt-0 border-t border-gray-200 dark:border-gray-700">
+                      <div className="pt-4 space-y-3">
+                        {/* Email、拒絕、確認按鈕同一排 */}
+                        <div className="flex items-end gap-3">
+                          <div className="flex-1">
+                            <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">Email</label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="email"
+                                value={currentEmail}
+                                onChange={(e) => handleEmailChange(booking.id, e.target.value)}
+                                onClick={(e) => e.stopPropagation()}
+                                className="flex-1 px-3 py-2 bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                                placeholder="example@email.com"
+                              />
+                              {isEditingEmail && (
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleEmailSave(booking.id);
+                                  }}
+                                  className="px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors"
+                                >
+                                  儲存
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRejectBooking(booking.id);
+                            }}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1 h-[42px]"
+                          >
+                            <XCircle size={16} />
+                            <span>拒絕</span>
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleConvertBookingClick(booking);
+                            }}
+                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors h-[42px]"
+                          >
+                            確認轉為訂單
+                          </button>
+                        </div>
 
                     {/* 其他欄位以三列形式顯示 */}
                     <div className="grid grid-cols-3 gap-x-6 gap-y-2 text-sm text-gray-700 dark:text-gray-300">
@@ -1042,22 +1076,23 @@ const OrdersPage: React.FC = () => {
                       <div>小孩 (12歲以下) / 人數: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.children !== null ? booking.children : '-'}</span></div>
                     </div>
 
-                    {/* 合作商選擇 */}
-                    <div>
-                      <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">合作商</label>
-                      <select
-                        value={bookingPartners[booking.id] || ''}
-                        onChange={(e) => handlePartnerChange(booking.id, e.target.value ? parseInt(e.target.value) : null)}
-                        className="w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                      >
-                        <option value="">請選擇合作商（可選）</option>
-                        {partners.map((partner: any) => (
-                          <option key={partner.id} value={partner.id}>
-                            {partner.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+                        {/* 合作商選擇 */}
+                        <div>
+                          <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">合作商</label>
+                          <select
+                            value={bookingPartners[booking.id] || ''}
+                            onChange={(e) => handlePartnerChange(booking.id, e.target.value ? parseInt(e.target.value) : null)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
+                          >
+                            <option value="">請選擇合作商（可選）</option>
+                            {partners.map((partner: any) => (
+                              <option key={partner.id} value={partner.id}>
+                                {partner.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
 
                     {/* 價格計算 */}
                     {booking.scooters && Array.isArray(booking.scooters) && booking.scooters.length > 0 && (() => {
@@ -1087,6 +1122,7 @@ const OrdersPage: React.FC = () => {
                                           step="1"
                                           value={basePrice}
                                           onChange={(e) => handlePriceChange(booking.id, scooter.model, parseFloat(e.target.value) || 0)}
+                                          onClick={(e) => e.stopPropagation()}
                                           className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-right text-xs"
                                         />
                                         <span>× {scooter.count} 台 × {days} 天 =</span>
@@ -1115,7 +1151,9 @@ const OrdersPage: React.FC = () => {
                         </div>
                       </div>
                     )}
-                  </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               );
             })}
