@@ -313,7 +313,7 @@ const OrdersPage: React.FC = () => {
         }
         initialPartners[booking.id] = defaultPartnerId;
       });
-      setBookingPartners(prev => ({ ...prev, ...initialPartners }));
+      setBookingPartners(initialPartners);
       
       // 初始化每個預約的基本價格
       const initialPrices: Record<number, Record<string, number>> = {};
@@ -330,7 +330,7 @@ const OrdersPage: React.FC = () => {
         }
         initialPrices[booking.id] = prices;
       });
-      setBookingPrices(prev => ({ ...prev, ...initialPrices }));
+      setBookingPrices(initialPrices);
     } catch (error) {
       console.error('Failed to fetch pending bookings:', error);
       setPendingBookingsCount(0);
