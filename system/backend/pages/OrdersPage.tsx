@@ -217,7 +217,6 @@ const OrdersPage: React.FC = () => {
   const [pendingBookingsCount, setPendingBookingsCount] = useState(0);
   const [pendingBookings, setPendingBookings] = useState<any[]>([]);
   const [showPendingBookings, setShowPendingBookings] = useState(false);
-  const [editingEmails, setEditingEmails] = useState<Record<number, string>>({});
   const [partners, setPartners] = useState<any[]>([]);
   const [rentalPlans, setRentalPlans] = useState<any[]>([]);
   const [bookingPartners, setBookingPartners] = useState<Record<number, number | null>>({});
@@ -882,29 +881,6 @@ const OrdersPage: React.FC = () => {
     }
   };
 
-  // 處理 email 更新
-  const handleEmailChange = (bookingId: number, email: string) => {
-    setEditingEmails(prev => ({ ...prev, [bookingId]: email }));
-  };
-
-  const handleEmailSave = async (bookingId: number) => {
-    const email = editingEmails[bookingId];
-    if (email === undefined) return;
-
-    try {
-      await bookingsApi.update(bookingId, { email: email || null });
-      await fetchPendingBookings();
-      setEditingEmails(prev => {
-        const newState = { ...prev };
-        delete newState[bookingId];
-        return newState;
-      });
-    } catch (error: any) {
-      console.error('Failed to update email:', error);
-      alert(error.message || '更新 email 失敗');
-    }
-  };
-
   // 處理合作商變更
   const handlePartnerChange = (bookingId: number, partnerId: number | null) => {
     setBookingPartners(prev => ({ ...prev, [bookingId]: partnerId }));
@@ -993,8 +969,6 @@ const OrdersPage: React.FC = () => {
           </div>
           <div className="divide-y divide-gray-200 dark:divide-gray-700">
             {pendingBookings.map((booking) => {
-              const currentEmail = editingEmails[booking.id] !== undefined ? editingEmails[booking.id] : (booking.email || '');
-              const isEditingEmail = editingEmails[booking.id] !== undefined;
               const isExpanded = expandedBookings[booking.id] || false;
 
               return (
@@ -1026,26 +1000,8 @@ const OrdersPage: React.FC = () => {
                         <div className="flex items-end gap-3">
                           <div className="flex-1">
                             <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">Email</label>
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="email"
-                                value={currentEmail}
-                                onChange={(e) => handleEmailChange(booking.id, e.target.value)}
-                                onClick={(e) => e.stopPropagation()}
-                                className="flex-1 px-3 py-2 bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                                placeholder="example@email.com"
-                              />
-                              {isEditingEmail && (
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleEmailSave(booking.id);
-                                  }}
-                                  className="px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors"
-                                >
-                                  儲存
-                                </button>
-                              )}
+                            <div className="px-3 py-2 bg-gray-50 dark:bg-gray-700/50 border border-gray-200 dark:border-gray-500 rounded-lg text-sm text-gray-800 dark:text-gray-100">
+                              {booking.email || '-'}
                             </div>
                           </div>
                           <button
@@ -1257,6 +1213,7 @@ const OrdersPage: React.FC = () => {
               <table className="w-full text-left text-sm whitespace-nowrap" style={{ tableLayout: 'fixed', minWidth: '1400px' }}>
                 <thead className="bg-gray-50 dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 font-medium">
                   <tr>
+                    <th className="px-4 py-4 w-[80px] text-center">操作</th>
                     <th 
                       className="px-4 py-4 w-[100px] cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors select-none"
                       onClick={() => handleHeaderClick('status')}
@@ -1319,7 +1276,6 @@ const OrdersPage: React.FC = () => {
                     <th className="px-4 py-4 w-[120px]">合作商</th>
                     <th className="px-4 py-4 w-[110px]">方式/金額</th>
                     <th className="px-4 py-4 w-[150px]">備註</th>
-                    <th className="px-4 py-4 w-[80px] text-center">操作</th>
                   </tr>
                 </thead>
               </table>
@@ -1358,6 +1314,17 @@ const OrdersPage: React.FC = () => {
                       draggedOverOrderId === order.id ? 'border-t-2 border-orange-500' : ''
                     }`}
                   >
+                    <td className="px-4 py-4 w-[80px] text-center">
+                      <div className="relative">
+                        <button 
+                          ref={(el) => { buttonRefs.current[order.id] = el; }}
+                          onClick={() => toggleDropdown(order.id)}
+                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
+                        >
+                          <MoreHorizontal size={18} />
+                        </button>
+                      </div>
+                    </td>
                     <td className="px-4 py-4 w-[100px]">
                       <div className="relative">
                         <button
@@ -1470,17 +1437,6 @@ const OrdersPage: React.FC = () => {
                       ) : (
                         <span className="text-gray-400 dark:text-gray-500">-</span>
                       )}
-                    </td>
-                    <td className="px-4 py-4 w-[80px] text-center">
-                      <div className="relative">
-                        <button 
-                          ref={(el) => { buttonRefs.current[order.id] = el; }}
-                          onClick={() => toggleDropdown(order.id)}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
-                        >
-                          <MoreHorizontal size={18} />
-                        </button>
-                      </div>
                     </td>
                   </tr>
                   ))
