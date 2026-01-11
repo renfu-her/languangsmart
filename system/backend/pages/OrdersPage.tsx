@@ -926,7 +926,13 @@ const OrdersPage: React.FC = () => {
     const startDate = new Date(booking.booking_date);
     const endDate = booking.end_date ? new Date(booking.end_date) : startDate;
     const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    const inclusiveDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+    
+    // 如果是同一天（1天），返回1天；否則返回（總天數 - 1）天
+    if (inclusiveDays === 1) {
+      return 1;
+    }
+    return inclusiveDays - 1;
   };
 
   // 計算總金額
@@ -1076,23 +1082,6 @@ const OrdersPage: React.FC = () => {
                       <div>小孩 (12歲以下) / 人數: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.children !== null ? booking.children : '-'}</span></div>
                     </div>
 
-                        {/* 合作商選擇 */}
-                        <div>
-                          <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 block">合作商</label>
-                          <select
-                            value={bookingPartners[booking.id] || ''}
-                            onChange={(e) => handlePartnerChange(booking.id, e.target.value ? parseInt(e.target.value) : null)}
-                            onClick={(e) => e.stopPropagation()}
-                            className="w-full px-3 py-2 bg-white dark:bg-gray-600 border border-gray-200 dark:border-gray-500 rounded-lg text-sm text-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500"
-                          >
-                            <option value="">請選擇合作商（可選）</option>
-                            {partners.map((partner: any) => (
-                              <option key={partner.id} value={partner.id}>
-                                {partner.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
 
                       </div>
                     </div>
