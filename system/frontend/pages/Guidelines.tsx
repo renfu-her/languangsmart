@@ -204,7 +204,7 @@ const Guidelines: React.FC = () => {
           <div>
             <h3 className="text-xl md:text-2xl font-semibold mb-4">行李配送</h3>
             <div className="text-gray-700 leading-relaxed text-base md:text-lg">
-              <p>輕鬆旅遊從蘭光電動機車開始，行李內的快樂回憶不論大小，由我們幫您守護</p>
+              <p>輕鬆旅遊從蘭光電動機車開始，行李內的快樂回憶，由我們幫您守護</p>
             </div>
           </div>
 

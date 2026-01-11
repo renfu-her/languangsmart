@@ -132,7 +132,7 @@ const About: React.FC = () => {
                 </li>
                 <li className="flex items-start">
                   <span className="text-teal-600 mr-2">✓</span>
-                  <span>24小時客服支援</span>
+                  <span>官方 LINE 客服支援</span>
                 </li>
                 <li className="flex items-start">
                   <span className="text-teal-600 mr-2">✓</span>
