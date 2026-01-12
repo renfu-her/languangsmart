@@ -85,12 +85,12 @@ const Home: React.FC = () => {
       <BannerCarousel />
 
       {/* Hero Section */}
-      <section className="relative min-h-[60vh] sm:min-h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden py-12 sm:py-16 md:py-0">
+      <section className="relative min-h-[60vh] sm:min-h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden py-12 sm:py-16 md:py-0 w-full">
         {/* Decorative background blobs */}
         <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[80%] bg-[#f0f9f6] blob-shape -z-10 opacity-60 transform rotate-12"></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[60%] bg-[#fff4f9] blob-shape -z-10 opacity-60"></div>
 
-        <div className="container mx-auto px-4 sm:px-6 md:px-12 flex flex-col md:flex-row items-center gap-8 sm:gap-12">
+        <div className="w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 flex flex-col md:flex-row items-center gap-8 sm:gap-12">
           <div className="md:w-1/2 text-center md:text-left w-full">
             <h2 className="text-gray-400 font-medium tracking-[0.2em] mb-3 sm:mb-4 uppercase text-xs sm:text-sm">Not just a car rental experience</h2>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6 serif">

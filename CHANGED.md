@@ -1,5 +1,24 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-12 17:01:00 (+8) - 修改 Hero Section 為滿版顯示（Desktop 和 Mobile）
+
+### 變更內容
+
+#### 前端
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 修改 Hero Section 為滿版顯示：
+    - 移除 `container mx-auto` 限制，改為 `w-full` 讓區塊滿版顯示
+    - 調整 padding：從 `px-4 sm:px-6 md:px-12` 改為 `px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16`
+    - 添加 `w-full` 到 section 元素，確保在 desktop 和 mobile 上都滿版顯示
+    - 現在 Hero Section 在 desktop 和 mobile 上都使用相同的滿版模式
+
+### 功能說明
+- Hero Section 現在在 desktop 和 mobile 上都滿版顯示
+- 移除了容器寬度限制，讓內容可以充分利用整個螢幕寬度
+- 保持了適當的 padding，確保內容不會貼到螢幕邊緣
+
+---
+
 ## 2026-01-12 16:02:00 (+8) - 修復首頁 Hero Section 圖片被裁剪問題
 
 ### 變更內容
