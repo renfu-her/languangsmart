@@ -47,8 +47,8 @@ const GuesthouseDetail: React.FC = () => {
   if (loading) {
     return (
       <div className="animate-in fade-in duration-700 bg-[#f0f4ff] min-h-screen">
-        <div className="container mx-auto px-6 max-w-4xl py-24">
-          <div className="flex justify-center items-center py-12">
+        <div className="container mx-auto px-4 sm:px-6 max-w-4xl py-12 sm:py-16 md:py-24">
+          <div className="flex justify-center items-center py-8 sm:py-12">
             <div className="text-gray-400">載入中...</div>
           </div>
         </div>
@@ -59,14 +59,14 @@ const GuesthouseDetail: React.FC = () => {
   if (error || !guesthouse) {
     return (
       <div className="animate-in fade-in duration-700 bg-[#f0f4ff] min-h-screen">
-        <div className="container mx-auto px-6 max-w-4xl py-24">
-          <div className="bg-[#f0f4ff] rounded-[40px] shadow-sm border border-gray-100 p-12 text-center">
-            <p className="text-gray-500 mb-6">{error || '找不到此民宿'}</p>
+        <div className="container mx-auto px-4 sm:px-6 max-w-4xl py-12 sm:py-16 md:py-24">
+          <div className="bg-[#f0f4ff] rounded-[30px] sm:rounded-[35px] md:rounded-[40px] shadow-sm border border-gray-100 p-6 sm:p-8 md:p-12 text-center">
+            <p className="text-gray-500 mb-4 sm:mb-6 text-sm sm:text-base">{error || '找不到此民宿'}</p>
             <Link
               to="/guidelines"
-              className="inline-flex items-center gap-2 text-teal-600 hover:text-black transition-colors"
+              className="inline-flex items-center gap-2 text-teal-600 hover:text-black transition-colors text-sm sm:text-base"
             >
-              <ArrowLeft size={18} />
+              <ArrowLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
               <span>返回租車須知</span>
             </Link>
           </div>
@@ -96,28 +96,28 @@ const GuesthouseDetail: React.FC = () => {
           structuredData={structuredData}
         />
       )}
-      <header className="py-20 px-6 bg-[#f0f4ff]">
+      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-[#f0f4ff]">
         <div className="container mx-auto max-w-4xl">
           <Link
             to="/guidelines"
-            className="inline-flex items-center gap-2 text-gray-500 hover:text-black transition-colors mb-6"
+            className="inline-flex items-center gap-2 text-gray-500 hover:text-black transition-colors mb-4 sm:mb-6 text-sm sm:text-base"
           >
-            <ArrowLeft size={18} />
+            <ArrowLeft size={16} className="sm:w-[18px] sm:h-[18px]" />
             <span>返回租車須知</span>
           </Link>
-          <p className="text-gray-400 tracking-[0.3em] uppercase mb-2 text-sm">Partner Stays</p>
-          <h1 className="text-4xl md:text-6xl serif font-light mb-4">{guesthouse.name}</h1>
+          <p className="text-gray-400 tracking-[0.3em] uppercase mb-2 text-xs sm:text-sm">Partner Stays</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl serif font-light mb-3 sm:mb-4">{guesthouse.name}</h1>
           {guesthouse.short_description && (
-            <p className="text-gray-500 text-lg">{guesthouse.short_description}</p>
+            <p className="text-gray-500 text-sm sm:text-base md:text-lg">{guesthouse.short_description}</p>
           )}
         </div>
       </header>
 
-      <section className="container mx-auto px-6 max-w-4xl pb-24">
-        <div className="bg-[#f0f4ff] rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
+      <section className="container mx-auto px-4 sm:px-6 max-w-4xl pb-12 sm:pb-16 md:pb-24">
+        <div className="bg-[#f0f4ff] rounded-[30px] sm:rounded-[35px] md:rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
           {/* 顯示多圖片或主圖片 */}
           {guesthouse.images && Array.isArray(guesthouse.images) && guesthouse.images.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 p-3 sm:p-4">
               {guesthouse.images.map((img, idx) => (
                 <div key={idx} className="aspect-[4/3] overflow-hidden rounded-lg">
                   <img
@@ -139,24 +139,24 @@ const GuesthouseDetail: React.FC = () => {
           ) : null}
 
           {guesthouse.description && (
-            <div className="p-8 md:p-12">
+            <div className="p-6 sm:p-8 md:p-12">
               <div 
-                className="text-gray-700 leading-relaxed prose prose-lg max-w-none"
+                className="text-gray-700 leading-relaxed prose prose-sm sm:prose-base md:prose-lg max-w-none text-sm sm:text-base"
                 dangerouslySetInnerHTML={{ __html: guesthouse.description }}
               />
             </div>
           )}
 
           {guesthouse.link && (
-            <div className="px-8 md:px-12 pb-8 md:pb-12">
+            <div className="px-6 sm:px-8 md:px-12 pb-6 sm:pb-8 md:pb-12">
               <a
                 href={guesthouse.link}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 bg-teal-600 text-white px-8 py-4 rounded-full font-bold hover:bg-teal-700 transition-colors"
+                className="inline-flex items-center gap-2 bg-teal-600 text-white px-6 py-3 sm:px-8 sm:py-4 rounded-full text-sm sm:text-base font-bold hover:bg-teal-700 transition-colors"
               >
                 前往官方網站
-                <ExternalLink size={18} />
+                <ExternalLink size={16} className="sm:w-[18px] sm:h-[18px]" />
               </a>
             </div>
           )}

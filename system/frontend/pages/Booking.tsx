@@ -202,24 +202,24 @@ const Booking: React.FC = () => {
         url="/booking"
         structuredData={structuredData}
       />
-      <header className="py-20 px-6 bg-black text-white text-center relative overflow-hidden">
+      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-black text-white text-center relative overflow-hidden">
         <div className="absolute inset-0 opacity-30">
           <img src="https://picsum.photos/seed/beach/1920/400" className="w-full h-full object-cover" alt="Beach" />
         </div>
         <div className="max-w-4xl mx-auto relative z-10">
-          <p className="text-white/80 tracking-[0.3em] uppercase mb-2 text-sm">Online Reservation</p>
-          <h1 className="text-5xl md:text-6xl serif font-light mb-4 text-white">線上預約</h1>
-          <p className="text-white/80 max-w-xl mx-auto text-base">透過線上預約系統，輕鬆完成租車預訂，享受便捷快速的服務體驗。</p>
-          <div className="mt-4 text-xs text-white/60">首頁 &gt; 線上預約</div>
+          <p className="text-white/80 tracking-[0.3em] uppercase mb-2 text-xs sm:text-sm">Online Reservation</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl serif font-light mb-3 sm:mb-4 text-white">線上預約</h1>
+          <p className="text-white/80 max-w-xl mx-auto text-sm sm:text-base px-4">透過線上預約系統，輕鬆完成租車預訂，享受便捷快速的服務體驗。</p>
+          <div className="mt-3 sm:mt-4 text-xs text-white/60">首頁 &gt; 線上預約</div>
         </div>
       </header>
 
-      <div className="container mx-auto px-6 max-w-6xl -mt-10 relative z-20">
-        <div className="bg-white rounded-[40px] shadow-2xl p-8 md:p-12">
+      <div className="container mx-auto px-4 sm:px-6 max-w-6xl -mt-6 sm:-mt-8 md:-mt-10 relative z-20">
+        <div className="bg-white rounded-[30px] sm:rounded-[35px] md:rounded-[40px] shadow-2xl p-6 sm:p-8 md:p-12">
           {/* 注意事項 */}
-          <div className="mb-8 bg-gray-50 rounded-xl p-6 border-l-4 border-teal-600">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">注意事項</h3>
-            <ol className="space-y-2 text-sm text-gray-700 leading-relaxed">
+          <div className="mb-6 sm:mb-8 bg-gray-50 rounded-xl p-4 sm:p-6 border-l-4 border-teal-600">
+            <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">注意事項</h3>
+            <ol className="space-y-2 text-xs sm:text-sm text-gray-700 leading-relaxed">
               <li>1. 歡迎透過下列表單向店家確認租賃日期</li>
               <li>2. 填寫表單後<span className="text-red-600 font-bold text-base">不代表預約成功</span>，店家將再透過email或電話與您聯絡</li>
               <li>3. 若<span className="text-red-600 font-bold text-base">24小時內</span>未接到我們的回傳mail或聯絡電話，請主動與我們聯絡，不便之處敬請見諒！</li>
@@ -228,17 +228,17 @@ const Booking: React.FC = () => {
             </ol>
           </div>
 
-          <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-8">
+          <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6 sm:gap-8">
             {/* 左欄 */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   承租人姓名 <span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="text" 
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all" 
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base" 
                   placeholder="請輸入姓名"
                   value={formData.name}
                   onChange={e => setFormData({...formData, name: e.target.value})}
@@ -246,13 +246,13 @@ const Booking: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="email" 
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all" 
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base" 
                   placeholder="請輸入您的 Email"
                   value={formData.email}
                   onChange={e => setFormData({...formData, email: e.target.value})}
@@ -260,15 +260,15 @@ const Booking: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   LINE ID
-                  <span className="ml-2 text-xs text-gray-500 font-normal">
+                  <span className="ml-1 sm:ml-2 text-[10px] sm:text-xs text-gray-500 font-normal">
                     （<a href="https://line.me/R/ti/p/@623czmsm?oat_content=url&ts=01042332" target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:text-teal-700 underline">請加入 LINE 好友，點此連結</a>）
                   </span>
                 </label>
                 <input 
                   type="text" 
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all" 
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base" 
                   placeholder="請輸入您的 LINE ID（例如：@623czmsm）"
                   value={formData.lineId}
                   onChange={e => setFormData({...formData, lineId: e.target.value})}
@@ -276,13 +276,13 @@ const Booking: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   行動電話 <span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="tel" 
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all" 
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base" 
                   placeholder="請輸入手機號碼"
                   value={formData.phone}
                   onChange={e => setFormData({...formData, phone: e.target.value})}
@@ -290,7 +290,7 @@ const Booking: React.FC = () => {
             </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   預約日期 <span className="text-red-500">*</span>
                 </label>
                 <input 
@@ -299,14 +299,14 @@ const Booking: React.FC = () => {
                   min={todayDate}
                   onKeyDown={(e) => e.preventDefault()}
                   onPaste={(e) => e.preventDefault()}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all cursor-pointer"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all cursor-pointer text-sm sm:text-base"
                   value={formData.appointmentDate}
                   onChange={e => setFormData({...formData, appointmentDate: e.target.value})}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   結束日期 <span className="text-red-500">*</span>
                 </label>
                 <input 
@@ -314,7 +314,7 @@ const Booking: React.FC = () => {
                   required
                   onKeyDown={(e) => e.preventDefault()}
                   onPaste={(e) => e.preventDefault()}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all cursor-pointer"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all cursor-pointer text-sm sm:text-base"
                   value={formData.endDate}
                   onChange={e => setFormData({...formData, endDate: e.target.value})}
                   min={formData.appointmentDate || todayDate}
@@ -322,12 +322,12 @@ const Booking: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   船運公司 <span className="text-red-500">*</span>
                 </label>
                 <select 
                   required
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base"
                   value={formData.shippingCompany}
                   onChange={e => setFormData({...formData, shippingCompany: e.target.value})}
                 >
@@ -341,7 +341,7 @@ const Booking: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   船班時間（來） <span className="text-red-500">*</span>
                 </label>
                 <input 
@@ -350,7 +350,7 @@ const Booking: React.FC = () => {
                   min={todayDateTime}
                   onKeyDown={(e) => e.preventDefault()}
                   onPaste={(e) => e.preventDefault()}
-                  className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all cursor-pointer"
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all cursor-pointer text-sm sm:text-base"
                   value={formData.shipArrivalTime}
                   onChange={e => setFormData({...formData, shipArrivalTime: e.target.value})}
                 />
@@ -358,26 +358,26 @@ const Booking: React.FC = () => {
             </div>
 
             {/* 右欄 */}
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               <div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">大人 / 人數</label>
+                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1">大人 / 人數</label>
                     <input 
                       type="number" 
                       min="0"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-base" 
+                      className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base" 
                       placeholder="0"
                       value={formData.adults}
                       onChange={e => setFormData({...formData, adults: e.target.value})}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1">小孩（12歲以下）/ 人數</label>
+                    <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-1">小孩（12歲以下）/ 人數</label>
                     <input 
                       type="number" 
                       min="0"
-                      className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-base" 
+                      className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base" 
                       placeholder="0"
                       value={formData.children}
                       onChange={e => setFormData({...formData, children: e.target.value})}
@@ -387,7 +387,7 @@ const Booking: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   所需租車類型/數量 <span className="text-red-500">*</span>
                 </label>
                 <div className="space-y-3">
@@ -396,7 +396,7 @@ const Booking: React.FC = () => {
                       <div className="flex-1">
                         <select 
                           required
-                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-base"
+                          className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base"
                           value={item.model && item.type ? `${item.model} ${item.type}` : ''}
                           onChange={e => handleScooterChange(item.id, e.target.value)}
                           disabled={isLoadingModels}
@@ -409,12 +409,12 @@ const Booking: React.FC = () => {
                           ))}
                         </select>
                       </div>
-                      <div className="w-24">
+                      <div className="w-20 sm:w-24">
                         <input 
                           type="number" 
                           min="1"
                           required
-                          className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all"
+                          className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base"
                           value={item.count}
                           onChange={e => handleScooterCountChange(item.id, parseInt(e.target.value) || 1)}
                         />
@@ -423,10 +423,10 @@ const Booking: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => removeScooterItem(item.id)}
-                          className="p-3 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl transition-all"
+                          className="p-2.5 sm:p-3 bg-red-100 hover:bg-red-200 text-red-600 rounded-xl transition-all"
                           title="移除"
                         >
-                          <X size={18} />
+                          <X size={16} className="sm:w-[18px] sm:h-[18px]" />
                         </button>
                     )}
                   </div>
@@ -445,15 +445,15 @@ const Booking: React.FC = () => {
             </div>
 
             {/* 提交按鈕 */}
-            <div className="md:col-span-2 pt-6">
+            <div className="md:col-span-2 pt-4 sm:pt-6">
               <button 
                 type="submit"
                 disabled={submitting || scooterItems.some(item => !item.model || !item.type)}
-                className="w-full bg-black text-white py-5 rounded-full font-bold text-lg hover:bg-teal-700 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full bg-black text-white py-4 sm:py-5 rounded-full font-bold text-base sm:text-lg hover:bg-teal-700 transition-all shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {submitting ? '提交中...' : '確認送出'}
               </button>
-              <p className="mt-4 text-center text-xs text-gray-400">
+              <p className="mt-3 sm:mt-4 text-center text-xs text-gray-400">
                 預約完成後，我們將有專人與您電話聯繫確認詳情。
               </p>
             </div>

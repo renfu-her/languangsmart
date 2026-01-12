@@ -51,31 +51,31 @@ const About: React.FC = () => {
         structuredData={structuredData}
       />
       {/* Header Section */}
-      <header className="py-20 px-6 bg-[#f0f4ff] text-center">
+      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-[#f0f4ff] text-center">
         <div className="max-w-4xl mx-auto">
-          <p className="text-gray-400 tracking-[0.3em] uppercase mb-2">About Us</p>
-          <h1 className="text-5xl md:text-6xl serif font-light mb-4">關於我們</h1>
-          <p className="text-gray-500 max-w-xl mx-auto">蘭光電動機車致力於為每一位旅客提供最優質的電動車租賃服務，讓您能夠以最環保、最舒適的方式探索小琉球的美麗風光。</p>
-          <div className="mt-4 text-xs text-gray-400">首頁 &gt; 關於我們</div>
+          <p className="text-gray-400 tracking-[0.3em] uppercase mb-2 text-xs sm:text-sm">About Us</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl serif font-light mb-3 sm:mb-4">關於我們</h1>
+          <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base px-4">蘭光電動機車致力於為每一位旅客提供最優質的電動車租賃服務，讓您能夠以最環保、最舒適的方式探索小琉球的美麗風光。</p>
+          <div className="mt-3 sm:mt-4 text-xs text-gray-400">首頁 &gt; 關於我們</div>
         </div>
       </header>
 
       {/* Main Content */}
-      <section className="py-20 px-6">
+      <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
         <div className="max-w-4xl mx-auto">
           {/* Introduction */}
-          <div className="mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold serif mb-6 text-center">我們的使命</h2>
-            <p className="text-gray-600 leading-relaxed text-lg mb-6 text-left">
+          <div className="mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold serif mb-4 sm:mb-6 text-center">我們的使命</h2>
+            <p className="text-gray-600 leading-relaxed text-base sm:text-lg mb-4 sm:mb-6 text-left">
               蘭光電動機車致力於為每一位旅客提供最優質的電動車租賃服務，讓您能夠以最環保、最舒適的方式探索小琉球的美麗風光。
             </p>
-            <p className="text-gray-600 leading-relaxed text-lg text-left">
+            <p className="text-gray-600 leading-relaxed text-base sm:text-lg text-left">
               我們相信，每一次的旅程都應該是一次難忘的體驗。因此，我們不僅提供高品質的電動車，更注重每一位顧客的服務體驗。
             </p>
           </div>
 
           {/* Features Grid */}
-          <div className="grid md:grid-cols-3 gap-8 mb-16">
+          <div className="grid md:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16">
             <div className="text-center">
               <div className="w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-3xl">🌱</span>
@@ -106,8 +106,8 @@ const About: React.FC = () => {
           </div>
 
           {/* Story Section */}
-          <div className="bg-white rounded-[50px] p-8 md:p-12 shadow-lg mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold serif mb-6">我們的 story</h2>
+          <div className="bg-white rounded-[40px] sm:rounded-[45px] md:rounded-[50px] p-6 sm:p-8 md:p-12 shadow-lg mb-12 sm:mb-16">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold serif mb-4 sm:mb-6">我們的 story</h2>
             <div className="space-y-4 text-gray-600 leading-relaxed">
               <p>
                 蘭光電動機車2025/07/20首度於小琉球開幕，我們深知這片美麗島嶼的獨特魅力。從一開始，我們就致力於提供最優質的租車服務，讓每一位旅客都能夠輕鬆、安全地探索小琉球。
@@ -122,7 +122,7 @@ const About: React.FC = () => {
           </div>
 
           {/* Team/Values Section */}
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-6 sm:gap-8">
             <div className="bg-gray-50 rounded-[40px] p-8">
               <h3 className="text-2xl font-bold serif mb-4">核心價值</h3>
               <ul className="space-y-3 text-gray-600">
@@ -144,8 +144,8 @@ const About: React.FC = () => {
                 </li>
               </ul>
             </div>
-            <div className="bg-gray-50 rounded-[40px] p-8">
-              <h3 className="text-2xl font-bold serif mb-4">服務承諾</h3>
+            <div className="bg-gray-50 rounded-[30px] sm:rounded-[35px] md:rounded-[40px] p-6 sm:p-8">
+              <h3 className="text-xl sm:text-2xl font-bold serif mb-3 sm:mb-4">服務承諾</h3>
               <ul className="space-y-3 text-gray-600">
                 <li className="flex items-start">
                   <span className="text-teal-600 mr-2">✓</span>
@@ -171,10 +171,10 @@ const About: React.FC = () => {
 
       {/* Image Gallery */}
       {!loading && environmentImages.length > 0 && (
-        <section className="py-20 bg-[#f0f4ff]">
-          <div className="max-w-6xl mx-auto px-6">
-            <h2 className="text-3xl md:text-4xl font-bold serif text-center mb-12">我們的環境</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <section className="py-12 sm:py-16 md:py-20 bg-[#f0f4ff]">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold serif text-center mb-8 sm:mb-12">我們的環境</h2>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               {environmentImages.map((image) => (
                 <div key={image.id} className="aspect-square rounded-[30px] overflow-hidden">
                   <img

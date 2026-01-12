@@ -58,12 +58,12 @@ const Contact: React.FC = () => {
         url="/contact"
         structuredData={structuredData}
       />
-      <header className="py-20 px-6 bg-[#f0f4ff] text-center">
+      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-[#f0f4ff] text-center">
         <div className="max-w-4xl mx-auto">
-          <p className="text-gray-400 tracking-[0.3em] uppercase mb-2 text-sm">Contact Us</p>
-          <h1 className="text-5xl md:text-6xl serif font-light mb-4">聯絡我們</h1>
-          <p className="text-gray-500 max-w-xl mx-auto text-base">有任何問題或建議，歡迎透過以下方式與我們聯繫，我們將竭誠為您服務。</p>
-          <div className="mt-4 text-xs text-gray-400">首頁 &gt; 聯絡我們</div>
+          <p className="text-gray-400 tracking-[0.3em] uppercase mb-2 text-xs sm:text-sm">Contact Us</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl serif font-light mb-3 sm:mb-4">聯絡我們</h1>
+          <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base px-4">有任何問題或建議，歡迎透過以下方式與我們聯繫，我們將竭誠為您服務。</p>
+          <div className="mt-3 sm:mt-4 text-xs text-gray-400">首頁 &gt; 聯絡我們</div>
         </div>
       </header>
 
@@ -74,12 +74,12 @@ const Contact: React.FC = () => {
           </div>
         </section>
       ) : (
-        <section className="container mx-auto px-6 max-w-4xl py-12">
-          <div className="space-y-12">
+        <section className="container mx-auto px-4 sm:px-6 max-w-4xl py-8 sm:py-12">
+          <div className="space-y-8 sm:space-y-12">
             {/* 聯絡資訊 */}
-            <div className="bg-white p-10 md:p-12 rounded-[40px] shadow-sm border border-gray-100">
-              <h3 className="text-3xl font-bold mb-8 serif">聯絡資訊</h3>
-              <div className="space-y-6">
+            <div className="bg-white p-6 sm:p-8 md:p-10 lg:p-12 rounded-[30px] sm:rounded-[35px] md:rounded-[40px] shadow-sm border border-gray-100">
+              <h3 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 serif">聯絡資訊</h3>
+              <div className="space-y-4 sm:space-y-6">
                   <div className="flex items-start gap-4">
                   <div className="flex-shrink-0 mt-1">
                     <MapPin size={24} className="text-teal-600" />

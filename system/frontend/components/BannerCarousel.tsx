@@ -80,7 +80,7 @@ const BannerCarousel: React.FC = () => {
   }
 
   return (
-    <section className="relative w-full h-[600px] overflow-hidden bg-gray-100">
+    <section className="relative w-full h-[400px] sm:h-[500px] md:h-[600px] overflow-hidden bg-gray-100">
       {/* Banner 容器 */}
       <div className="relative w-full h-full">
         {banners.map((banner, index) => (
@@ -103,25 +103,25 @@ const BannerCarousel: React.FC = () => {
               
               {/* Banner 內容 */}
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full px-16 md:px-24">
-                  <div className="max-w-xs md:max-w-sm">
+                <div className="w-full px-4 sm:px-8 md:px-16 lg:px-24">
+                  <div className="max-w-xs sm:max-w-sm md:max-w-md">
                     {banner.subtitle && (
-                      <h2 className="text-white/80 text-xs md:text-sm font-medium tracking-wider uppercase mb-2">
+                      <h2 className="text-white/80 text-[10px] sm:text-xs md:text-sm font-medium tracking-wider uppercase mb-2">
                         {banner.subtitle}
                       </h2>
                     )}
-                    <h1 className="text-2xl md:text-4xl font-bold text-white mb-4 serif">
+                    <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-4 serif">
                       {banner.title}
                     </h1>
                     {banner.link && banner.button_text && (
                       <Link
                         to={banner.link}
-                        className="inline-flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full text-sm font-bold hover:bg-teal-500 hover:text-white transition-all group"
+                        className="inline-flex items-center gap-2 bg-white text-black px-4 py-2 sm:px-6 sm:py-3 rounded-full text-xs sm:text-sm font-bold hover:bg-teal-500 hover:text-white transition-all group"
                       >
                         {banner.button_text}
                         <ChevronRight 
-                          size={18} 
-                          className="group-hover:translate-x-1 transition-transform"
+                          size={16} 
+                          className="sm:w-[18px] sm:h-[18px] group-hover:translate-x-1 transition-transform"
                         />
                       </Link>
                     )}
@@ -136,19 +136,19 @@ const BannerCarousel: React.FC = () => {
       {/* 左側箭頭 */}
       <button
         onClick={goToPrevious}
-        className="absolute left-2 md:left-4 top-1/2 -translate-y-1/2 z-30 bg-white/90 hover:bg-white text-black p-2 md:p-3 rounded-full shadow-lg transition-all hover:scale-110"
+        className="absolute left-2 sm:left-3 md:left-4 top-1/2 -translate-y-1/2 z-30 bg-white/90 hover:bg-white text-black p-1.5 sm:p-2 md:p-3 rounded-full shadow-lg transition-all hover:scale-110"
         aria-label="Previous banner"
       >
-        <ChevronLeft size={20} className="md:w-6 md:h-6" />
+        <ChevronLeft size={18} className="sm:w-5 sm:h-5 md:w-6 md:h-6" />
       </button>
 
       {/* 右側箭頭 */}
       <button
         onClick={goToNext}
-        className="absolute right-2 md:right-4 top-1/2 -translate-y-1/2 z-30 bg-white/90 hover:bg-white text-black p-2 md:p-3 rounded-full shadow-lg transition-all hover:scale-110"
+        className="absolute right-2 sm:right-3 md:right-4 top-1/2 -translate-y-1/2 z-30 bg-white/90 hover:bg-white text-black p-1.5 sm:p-2 md:p-3 rounded-full shadow-lg transition-all hover:scale-110"
         aria-label="Next banner"
       >
-        <ChevronRight size={20} className="md:w-6 md:h-6" />
+        <ChevronRight size={18} className="sm:w-5 sm:h-5 md:w-6 md:h-6" />
       </button>
 
       {/* 指示器 */}

@@ -1,5 +1,114 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-12 12:32:00 (+8) - 優化前台響應式設計 (RWD)
+
+### 變更內容
+
+#### 前端
+- **BannerCarousel.tsx** (`system/frontend/components/BannerCarousel.tsx`)
+  - 優化 Banner 輪播的響應式設計：
+    - 高度從固定的 600px 改為響應式：`h-[400px] sm:h-[500px] md:h-[600px]`
+    - 調整內容區域的 padding：`px-4 sm:px-8 md:px-16 lg:px-24`
+    - 優化文字大小：標題從 `text-2xl md:text-4xl` 改為 `text-xl sm:text-2xl md:text-3xl lg:text-4xl`
+    - 優化按鈕大小和間距
+    - 優化箭頭按鈕的大小和位置
+
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 優化首頁 Hero 區域的響應式設計：
+    - 使用 `min-h-[60vh] sm:min-h-[50vh] md:h-[60vh]` 替代固定高度
+    - 添加垂直 padding：`py-12 sm:py-16 md:py-0`
+    - 優化文字大小：標題從 `text-4xl md:text-6xl` 改為 `text-3xl sm:text-4xl md:text-5xl lg:text-6xl`
+    - 優化圖片圓角：`rounded-[40px] sm:rounded-[60px] md:rounded-[80px]`
+    - 優化按鈕和間距
+  - 優化 Featured Images Grid：
+    - 調整 padding：`py-12 sm:py-16 md:py-24`
+    - 優化 gap：`gap-3 sm:gap-4 md:gap-8`
+    - 優化圖片的 translate 值，在小屏幕上減少位移
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 優化線上預約頁面的響應式設計：
+    - 調整 header padding：`py-12 sm:py-16 md:py-20`
+    - 優化標題大小：`text-3xl sm:text-4xl md:text-5xl lg:text-6xl`
+    - 優化表單容器：`rounded-[30px] sm:rounded-[35px] md:rounded-[40px]`
+    - 優化表單 padding：`p-6 sm:p-8 md:p-12`
+    - 優化表單間距：`gap-6 sm:gap-8`、`space-y-4 sm:space-y-6`
+    - 優化輸入框和標籤的文字大小
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 優化租車方案頁面的響應式設計：
+    - 調整 header padding 和文字大小
+    - 優化方案卡片的圖片高度：`h-[300px] sm:h-[400px] md:h-[500px]`
+    - 優化 Price Badge 的大小和位置
+    - 優化間距和 padding
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 優化關於我們頁面的響應式設計：
+    - 調整 padding 和文字大小
+    - 優化標題大小和間距
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 優化租車須知頁面的響應式設計：
+    - 調整 header padding 和標題大小
+    - 優化分類按鈕的大小和間距
+    - 優化問答內容的 padding 和文字大小
+
+- **Location.tsx** (`system/frontend/pages/Location.tsx`)
+  - 優化門市據點頁面的響應式設計：
+    - 調整 header padding 和文字大小
+    - 優化卡片容器的 padding 和圓角
+
+- **Contact.tsx** (`system/frontend/pages/Contact.tsx`)
+  - 優化聯絡我們頁面的響應式設計：
+    - 調整 header padding 和文字大小
+    - 優化聯絡資訊卡片的 padding
+
+- **Guesthouses.tsx** (`system/frontend/pages/Guesthouses.tsx`)
+  - 優化民宿推薦頁面的響應式設計：
+    - 調整 header padding 和標題大小
+    - 優化網格佈局：`sm:grid-cols-2 lg:grid-cols-3`
+    - 優化卡片間距和 padding
+
+- **GuesthouseDetail.tsx** (`system/frontend/pages/GuesthouseDetail.tsx`)
+  - 優化民宿詳細頁面的響應式設計：
+    - 調整 header padding 和文字大小：`py-12 sm:py-16 md:py-20`
+    - 優化返回按鈕和標題大小
+    - 優化 loading 和 error 狀態的 padding 和文字大小
+    - 優化內容區域的 padding 和圓角
+    - 優化圖片網格的 gap 和 padding
+    - 優化按鈕大小和文字大小
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 優化關於我們頁面的響應式設計：
+    - 優化 Story Section 和 Team/Values Section 的 padding 和圓角
+    - 優化 Image Gallery 的 padding 和間距
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 優化租車須知頁面的響應式設計：
+    - 優化服務內容區塊的 padding 和文字大小
+    - 優化民宿推薦卡片的 padding 和文字大小
+    - 優化間距和標題大小
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 優化線上預約頁面的響應式設計：
+    - 優化右欄標籤的文字大小：`text-xs sm:text-sm`
+    - 優化右欄輸入框的 padding：`px-3 py-2.5 sm:px-4 sm:py-3`
+    - 優化車型選擇器的文字大小
+    - 優化數量輸入框的寬度：`w-20 sm:w-24`
+    - 優化移除按鈕的大小
+
+### 功能說明
+- 所有頁面現在都有更好的響應式設計，支援各種屏幕尺寸（手機、平板、桌面）
+- 使用 Tailwind CSS 的響應式斷點：
+  - `sm:` (640px) - 小屏幕（大手機）
+  - `md:` (768px) - 中等屏幕（平板）
+  - `lg:` (1024px) - 大屏幕（小桌面）
+  - `xl:` (1280px) - 超大屏幕（大桌面）
+- 優化了文字大小、間距、padding、圓角等，在不同屏幕尺寸下都有良好的顯示效果
+- 改善了移動端的用戶體驗，文字更易讀，按鈕更易點擊
+- 優化了表單元素的大小和間距，提升移動端的可用性
+
+---
+
 ## 2026-01-12 12:20:00 (+8) - 添加前端 SEO 功能以支援 Google Search Console
 
 ### 變更內容

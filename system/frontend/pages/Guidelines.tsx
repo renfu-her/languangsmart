@@ -106,29 +106,29 @@ const Guidelines: React.FC = () => {
         url="/guidelines"
         structuredData={structuredData}
       />
-      <header className="py-20 px-6 bg-[#f0f4ff] text-center relative overflow-hidden">
+      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-[#f0f4ff] text-center relative overflow-hidden">
         <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl md:text-4xl serif mb-2">租賃須知</h1>
-          <h2 className="text-5xl md:text-7xl font-light serif tracking-tighter mb-4">Q&A</h2>
-          <div className="mt-4 text-xs text-gray-400 uppercase tracking-widest">首頁 &gt; 租賃須知</div>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl serif mb-2">租賃須知</h1>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light serif tracking-tighter mb-3 sm:mb-4">Q&A</h2>
+          <div className="mt-3 sm:mt-4 text-xs text-gray-400 uppercase tracking-widest">首頁 &gt; 租賃須知</div>
         </div>
       </header>
 
       {loading ? (
-        <div className="container mx-auto px-6 max-w-4xl py-12">
-          <div className="flex justify-center items-center py-12">
+        <div className="container mx-auto px-4 sm:px-6 max-w-4xl py-8 sm:py-12">
+          <div className="flex justify-center items-center py-8 sm:py-12">
             <div className="text-gray-400">載入中...</div>
           </div>
         </div>
       ) : (
-        <div className="container mx-auto px-6 max-w-4xl py-12">
-          <div className="bg-white rounded-[40px] p-8 md:p-12 shadow-sm">
-          <div className="flex flex-wrap justify-center gap-2 mb-12">
+        <div className="container mx-auto px-4 sm:px-6 max-w-4xl py-8 sm:py-12">
+          <div className="bg-white rounded-[30px] sm:rounded-[35px] md:rounded-[40px] p-6 sm:p-8 md:p-12 shadow-sm">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mb-8 sm:mb-12">
             {allCategories.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setFilter(cat)}
-                className={`px-6 py-2 rounded-lg text-sm transition-all ${
+                className={`px-4 py-1.5 sm:px-6 sm:py-2 rounded-lg text-xs sm:text-sm transition-all ${
                   filter === cat 
                   ? 'bg-[#1a1a1a] text-white shadow-lg' 
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -155,7 +155,7 @@ const Guidelines: React.FC = () => {
                   </div>
                 </button>
                 {openIndex === idx && (
-                  <div className="pl-12 pr-6 pb-4 text-gray-600 leading-relaxed text-base md:text-lg whitespace-pre-line animate-in fade-in slide-in-from-top-1 duration-300">
+                  <div className="pl-10 sm:pl-12 pr-4 sm:pr-6 pb-3 sm:pb-4 text-gray-600 leading-relaxed text-sm sm:text-base md:text-lg whitespace-pre-line animate-in fade-in slide-in-from-top-1 duration-300">
                     {faq.answer}
                   </div>
                 )}
@@ -175,15 +175,15 @@ const Guidelines: React.FC = () => {
       )}
 
       {/* 服務內容區塊 */}
-      <div className="container mx-auto px-6 max-w-4xl py-12 border-t border-gray-200 mt-12">
-        <h2 className="text-2xl md:text-3xl font-bold mb-8 text-center">服務內容</h2>
+      <div className="container mx-auto px-4 sm:px-6 max-w-4xl py-8 sm:py-12 border-t border-gray-200 mt-8 sm:mt-12">
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold mb-6 sm:mb-8 text-center">服務內容</h2>
         
-        <div className="space-y-8">
+        <div className="space-y-6 sm:space-y-8">
           {/* 民宿推薦 */}
           <div>
-            <h3 className="text-xl md:text-2xl font-semibold mb-4">民宿推薦</h3>
+            <h3 className="text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4">民宿推薦</h3>
             {guesthouses.length > 0 ? (
-              <div className="space-y-6 mt-6">
+              <div className="space-y-4 sm:space-y-6 mt-4 sm:mt-6">
                 {guesthouses.map((gh) => (
                   <Link
                     key={gh.id}
@@ -202,15 +202,15 @@ const Guidelines: React.FC = () => {
                         </div>
                       )}
                       {/* 右側文字 */}
-                      <div className="md:w-1/2 p-6 md:p-8 flex flex-col justify-between">
+                      <div className="md:w-1/2 p-4 sm:p-6 md:p-8 flex flex-col justify-between">
                         <div>
-                          <h4 className="text-xl md:text-2xl font-bold mb-3">{gh.name}</h4>
+                          <h4 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-3">{gh.name}</h4>
                           {gh.short_description && (
-                            <p className="text-gray-600 mb-4 leading-relaxed">{gh.short_description}</p>
+                            <p className="text-gray-600 mb-3 sm:mb-4 leading-relaxed text-sm sm:text-base">{gh.short_description}</p>
                           )}
                         </div>
-                        <div className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-teal-600 hover:text-black transition-colors self-start">
-                          VIEW DETAILS <ExternalLink size={14} />
+                        <div className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-teal-600 hover:text-black transition-colors self-start">
+                          VIEW DETAILS <ExternalLink size={12} className="sm:w-[14px] sm:h-[14px]" />
                         </div>
                       </div>
                     </div>
@@ -218,30 +218,30 @@ const Guidelines: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm mt-2">目前尚無推薦民宿</p>
+              <p className="text-gray-500 text-xs sm:text-sm mt-2">目前尚無推薦民宿</p>
             )}
           </div>
 
-          <div className="border-t border-gray-300 my-8"></div>
+          <div className="border-t border-gray-300 my-6 sm:my-8"></div>
 
           {/* 行李配送 */}
           <div>
-            <h3 className="text-xl md:text-2xl font-semibold mb-4">行李配送</h3>
-            <div className="text-gray-700 leading-relaxed text-base md:text-lg">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4">行李配送</h3>
+            <div className="text-gray-700 leading-relaxed text-sm sm:text-base md:text-lg">
               <p>輕鬆旅遊從蘭光電動機車開始，行李內的快樂回憶，由我們幫您守護</p>
             </div>
           </div>
 
-          <div className="border-t border-gray-300 my-8"></div>
+          <div className="border-t border-gray-300 my-6 sm:my-8"></div>
 
           {/* 專車接送 */}
           <div>
-            <h3 className="text-xl md:text-2xl font-semibold mb-4">專車接送</h3>
-            <div className="text-gray-700 leading-relaxed text-base md:text-lg mb-6">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-semibold mb-3 sm:mb-4">專車接送</h3>
+            <div className="text-gray-700 leading-relaxed text-sm sm:text-base md:text-lg mb-4 sm:mb-6">
               <p>一趟美好旅程，從涼爽接駁開始，不畏風雨只為了提供尊貴的服務</p>
             </div>
             {shuttleImages.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mt-4 sm:mt-6">
                 {shuttleImages.map((image) => (
                   <div key={image.id} className="rounded-lg overflow-hidden">
                     <img
