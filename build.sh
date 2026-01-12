@@ -4,7 +4,7 @@ echo "=========================================="
 echo ""
 
 echo "[1/6] 切換到專案目錄..."
-cd ~/htdocs/scooter-rental.ai-tracks.com
+cd ~/htdocs/languangsmart.com
 echo "✓ 目錄切換完成"
 echo ""
 
