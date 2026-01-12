@@ -112,7 +112,7 @@ const LocationsPage: React.FC = () => {
       try {
         setUploading(true);
         // 更新 location，將 image_path 設為 null
-        await locationsApi.update(editingLocation.id, {
+        const response = await locationsApi.update(editingLocation.id, {
           name: formData.name,
           address: formData.address,
           phone: formData.phone,
@@ -126,15 +126,12 @@ const LocationsPage: React.FC = () => {
         // 更新本地狀態
         setImagePreview(null);
         setImageFile(null);
-        // 重新獲取資料以更新編輯中的 location
-        await fetchLocations();
-        // 如果 modal 還開著，更新編輯中的 location
-        if (editingLocation) {
-          const updatedLocation = locations.find(loc => loc.id === editingLocation.id);
-          if (updatedLocation) {
-            setEditingLocation(updatedLocation);
-          }
+        // 更新編輯中的 location
+        if (response.data) {
+          setEditingLocation(response.data);
         }
+        // 重新獲取資料列表
+        await fetchLocations();
       } catch (error: any) {
         console.error('Failed to delete image:', error);
         alert(error.message || '刪除圖片失敗');
