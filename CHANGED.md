@@ -1,5 +1,28 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-12 20:46:00 (+8) - 修復 mobile 選單中「關於我們」被 header 遮擋的問題
+
+### 問題分析
+- Mobile header 的 z-index 是 `z-[60]`
+- Mobile menu overlay 的 z-index 原本是 `z-[55]`
+- 因為 header 的 z-index 更高，它會遮擋 menu overlay 的頂部內容
+- 這導致第一個選單項目「關於我們」被 header 遮擋而無法顯示
+
+### 變更內容
+
+#### 前端
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 將 mobile menu overlay 的 z-index 從 `z-[55]` 調整為 `z-[65]`
+  - 確保 menu overlay 在 header 之上，不會被遮擋
+  - 這樣「關於我們」就能正常顯示在選單的第一個位置
+
+### 功能說明
+- Mobile 選單現在會正確顯示所有 5 個導航項目
+- 「關於我們」會顯示在「租車方案」之前
+- Menu overlay 現在位於 header 之上，不會被遮擋
+
+---
+
 ## 2026-01-12 20:32:00 (+8) - 確認 mobile 導航選單代碼正確，建議重新構建以解決顯示問題
 
 ### 問題分析

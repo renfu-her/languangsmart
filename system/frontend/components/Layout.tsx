@@ -86,7 +86,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 bg-[#f0f4ff] z-[55] flex flex-col p-8 md:hidden pt-24">
+          <div className="fixed inset-0 bg-[#f0f4ff] z-[65] flex flex-col p-8 md:hidden pt-24">
             <nav className="flex flex-col space-y-6 text-center">
               {NAV_ITEMS.map((item) => (
                 <Link
