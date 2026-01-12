@@ -23,6 +23,7 @@ use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\HomeImageController;
 use App\Http\Controllers\Api\EnvironmentImageController;
 use App\Http\Controllers\Api\ShuttleImageController;
+use App\Http\Controllers\Api\ContactInfoController;
 
 // Auth Routes (Public)
 Route::post('/login', [AuthController::class, 'login']);
@@ -233,5 +234,16 @@ Route::prefix('shuttle-images')->group(function () {
         Route::post('/', [ShuttleImageController::class, 'store']);
         Route::put('/{shuttleImage}', [ShuttleImageController::class, 'update']);
         Route::delete('/{shuttleImage}', [ShuttleImageController::class, 'destroy']);
+    });
+});
+
+// Contact Infos API (Public for frontend, Protected for admin)
+Route::prefix('contact-infos')->group(function () {
+    Route::get('/', [ContactInfoController::class, 'index']); // Public
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [ContactInfoController::class, 'store']);
+        Route::get('/{contactInfo}', [ContactInfoController::class, 'show']);
+        Route::put('/{contactInfo}', [ContactInfoController::class, 'update']);
+        Route::delete('/{contactInfo}', [ContactInfoController::class, 'destroy']);
     });
 });

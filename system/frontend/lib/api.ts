@@ -132,4 +132,7 @@ export const publicApi = {
     generate: () => api.get('/captcha/generate'),
     verify: (captchaId: string, answer: string) => api.post('/captcha/verify', { captcha_id: captchaId, answer }),
   },
+  contactInfos: {
+    list: () => api.get('/contact-infos', { active_only: true }),
+  },
 };
