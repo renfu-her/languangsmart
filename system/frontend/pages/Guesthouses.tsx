@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ExternalLink } from 'lucide-react';
+import SEO from '../components/SEO';
 import { publicApi } from '../lib/api';
 
 interface Guesthouse {
@@ -33,12 +34,34 @@ const Guesthouses: React.FC = () => {
     fetchGuesthouses();
   }, []);
 
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: '民宿推薦 - 蘭光電動機車',
+    description: '蘭光電動機車精選合作民宿，給您最完整的旅遊套裝體驗。',
+    url: `${window.location.origin}/guesthouses`,
+    mainEntity: guesthouses.map(gh => ({
+      '@type': 'LodgingBusiness',
+      name: gh.name,
+      description: gh.short_description || gh.description,
+      image: gh.image_path ? `${window.location.origin}/storage/${gh.image_path}` : undefined,
+      url: gh.link || undefined
+    }))
+  };
+
   return (
     <div className="animate-in fade-in duration-700 bg-[#fcfcfc]">
-      <header className="py-24 px-6 text-center">
-        <p className="text-gray-400 tracking-[0.3em] uppercase mb-2">Partner Stays</p>
-        <h1 className="text-5xl md:text-7xl serif font-light mb-4">民宿推薦</h1>
-        <p className="text-gray-500 max-w-xl mx-auto">蘭光電動機車 精選合作民宿，給您最完整的旅遊套裝體驗。</p>
+      <SEO
+        title="民宿推薦 - 蘭光電動機車"
+        description="蘭光電動機車精選合作民宿，給您最完整的旅遊套裝體驗。"
+        keywords="民宿推薦,小琉球民宿,合作民宿,小琉球住宿"
+        url="/guesthouses"
+        structuredData={structuredData}
+      />
+      <header className="py-12 sm:py-16 md:py-24 px-4 sm:px-6 text-center">
+        <p className="text-gray-400 tracking-[0.3em] uppercase mb-2 text-xs sm:text-sm">Partner Stays</p>
+        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl serif font-light mb-3 sm:mb-4">民宿推薦</h1>
+        <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base px-4">蘭光電動機車 精選合作民宿，給您最完整的旅遊套裝體驗。</p>
       </header>
 
       {loading ? (
@@ -57,10 +80,10 @@ const Guesthouses: React.FC = () => {
           </div>
         </section>
       ) : (
-        <section className="container mx-auto px-6 max-w-6xl pb-24">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <section className="container mx-auto px-4 sm:px-6 max-w-6xl pb-12 sm:pb-16 md:pb-24">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {guesthouses.map((gh) => (
-              <div key={gh.id} className="group bg-[#f0f4ff] rounded-[40px] overflow-hidden shadow-sm hover:shadow-xl transition-all border border-gray-100">
+              <div key={gh.id} className="group bg-[#f0f4ff] rounded-[30px] sm:rounded-[35px] md:rounded-[40px] overflow-hidden shadow-sm hover:shadow-xl transition-all border border-gray-100">
                 <div className="aspect-[4/3] overflow-hidden">
                   <img
                     src={gh.image_path ? `/storage/${gh.image_path}` : 'https://via.placeholder.com/600x450'}
@@ -68,18 +91,18 @@ const Guesthouses: React.FC = () => {
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold mb-3 serif">{gh.name}</h3>
-                  <div className="mb-6 min-h-[1.5rem]">
+                <div className="p-6 sm:p-8">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-2 sm:mb-3 serif">{gh.name}</h3>
+                  <div className="mb-4 sm:mb-6 min-h-[1.5rem]">
                     {gh.short_description && (
-                      <p className="text-gray-500 text-sm leading-relaxed">{gh.short_description}</p>
+                      <p className="text-gray-500 text-xs sm:text-sm leading-relaxed">{gh.short_description}</p>
                     )}
                   </div>
                   <Link
                     to={`/guesthouses/${gh.id}`}
-                    className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-teal-600 hover:text-black transition-colors"
+                    className="flex items-center gap-2 text-[10px] sm:text-xs font-bold uppercase tracking-widest text-teal-600 hover:text-black transition-colors"
                   >
-                    VIEW DETAILS <ExternalLink size={14} />
+                    VIEW DETAILS <ExternalLink size={12} className="sm:w-[14px] sm:h-[14px]" />
                   </Link>
                 </div>
               </div>

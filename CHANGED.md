@@ -1,5 +1,290 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-12 14:18:00 (+8) - 修改 build.sh 支援 production 和 develop 模式
+
+### 變更內容
+
+#### 部署腳本
+- **build.sh** (`build.sh`)
+  - 重構為支援多環境部署：
+    - 添加命令行參數檢查：`production` 或 `develop`
+    - **Production 模式**：
+      - 專案目錄：`~/htdocs/languangsmart.com`
+      - 完整的生產環境部署流程
+    - **Develop 模式**：
+      - 專案目錄：`~/htdocs/scooter-rental.ai-tracks.com`
+      - 開發環境部署流程
+    - 改進錯誤處理：
+      - 添加目錄切換錯誤檢查
+      - 添加命令執行錯誤檢查
+      - 非關鍵步驟失敗時顯示警告但繼續執行
+      - 關鍵步驟失敗時終止執行
+    - 修正路由快取命令：從 `php artisan r:cache` 改為 `php artisan route:clear && php artisan route:cache`
+    - 添加配置清除步驟：`php artisan config:clear` 在快取前清除舊配置
+    - 添加 shebang：`#!/bin/bash`
+    - 改進輸出訊息，顯示當前模式和專案目錄
+
+### 使用方式
+```bash
+# Production 環境部署
+./build.sh production
+
+# Develop 環境部署
+./build.sh develop
+```
+
+### 功能說明
+- 現在可以通過參數選擇部署到 production 或 develop 環境
+- Production 環境使用 `languangsmart.com` 目錄
+- Develop 環境使用 `scooter-rental.ai-tracks.com` 目錄
+- 改進了錯誤處理，確保部署過程的穩定性
+
+---
+
+## 2026-01-12 14:14:00 (+8) - 添加首頁移動端/桌面端視圖切換功能
+
+### 變更內容
+
+#### 前端
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 添加視圖切換功能：
+    - 導入 `Smartphone` 和 `Monitor` 圖標從 `lucide-react`
+    - 添加 `viewMode` 狀態：`'auto' | 'mobile' | 'desktop'`
+    - 添加浮動切換按鈕組（固定在右上角）：
+      - AUTO 按鈕：自動響應式模式（預設）
+      - Mobile 按鈕：強制移動端視圖（最大寬度 375px）
+      - Desktop 按鈕：強制桌面端視圖（最小寬度 1024px）
+    - 根據 `viewMode` 動態設置容器類別，控制頁面寬度
+    - 切換按鈕使用 teal-600 背景色標示當前選中的模式
+
+### 功能說明
+- 開發者可以通過右上角的切換按鈕快速預覽移動端和桌面端的顯示效果
+- AUTO 模式：使用正常的響應式設計，根據屏幕大小自動調整
+- Mobile 模式：強制顯示為移動端視圖（375px 寬度），方便測試移動端效果
+- Desktop 模式：強制顯示為桌面端視圖（最小 1024px 寬度），方便測試桌面端效果
+- 切換按鈕固定在右上角，不影響頁面內容的查看
+
+---
+
+## 2026-01-12 14:09:00 (+8) - 修正移動端 Banner 16:9 比例顯示問題
+
+### 變更內容
+
+#### 前端
+- **BannerCarousel.tsx** (`system/frontend/components/BannerCarousel.tsx`)
+  - 修正移動端 Banner 16:9 比例顯示問題：
+    - 添加 `isMobile` 狀態來檢測移動設備
+    - 使用 `useEffect` 監聽窗口大小變化
+    - 改用內聯 `style` 屬性設置 `aspectRatio: '16/9'`，確保在移動端強制應用 16:9 比例
+    - 桌面端（md 以上，768px+）保持固定高度 `h-[600px]`
+    - 同時更新 loading 狀態的容器比例
+    - 使用 `minHeight: '0'` 確保 aspect ratio 正確計算
+
+### 功能說明
+- 現在移動端 Banner 使用內聯樣式強制應用 16:9 比例，確保在所有移動設備上都能正確顯示
+- 桌面端保持原有的 600px 固定高度
+- 使用 JavaScript 動態檢測設備類型，提供更可靠的響應式體驗
+
+---
+
+## 2026-01-12 14:08:00 (+8) - 更新 Instagram 連結
+
+### 變更內容
+
+#### 前端
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 更新 Instagram 連結：
+    - 從 `https://www.instagram.com/languan_smart?igsh=M2IxaDN5cTFsZnJ2&utm_source=qr` 
+    - 更新為 `https://www.instagram.com/languang_smart?igsh=M2IxaDN5cTFsZnJ2&utm_source=qr`
+    - 修正 Instagram 用戶名從 `languan_smart` 改為 `languang_smart`
+
+---
+
+## 2026-01-12 12:36:00 (+8) - 修正移動端 Banner 比例和圖片顯示順序
+
+### 變更內容
+
+#### 前端
+- **BannerCarousel.tsx** (`system/frontend/components/BannerCarousel.tsx`)
+  - 修正移動端 Banner 比例為 16:9：
+    - 將高度從固定的 `h-[400px] sm:h-[500px] md:h-[600px]` 改為 `aspect-[16/9] sm:aspect-[16/9] md:h-[600px]`
+    - 確保在移動端和小屏幕設備上 Banner 保持 16:9 的寬高比
+    - 同時更新 loading 狀態的容器比例
+
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 優化 Featured Images Grid 的顯示順序：
+    - 為第三張和第四張圖片添加 `order-3` 和 `order-4` 類別
+    - 確保在移動端（2 列網格）中，第三張圖片正確顯示在第二行的左側位置
+    - 桌面端保持原有的 4 列顯示順序
+
+### 功能說明
+- Banner 在移動端現在使用 16:9 的標準比例，提供更好的視覺效果
+- Featured Images Grid 在移動端的顯示順序已優化，第三張圖片現在正確顯示在預期位置
+
+---
+
+## 2026-01-12 12:32:00 (+8) - 優化前台響應式設計 (RWD)
+
+### 變更內容
+
+#### 前端
+- **BannerCarousel.tsx** (`system/frontend/components/BannerCarousel.tsx`)
+  - 優化 Banner 輪播的響應式設計：
+    - 高度從固定的 600px 改為響應式：`h-[400px] sm:h-[500px] md:h-[600px]`
+    - 調整內容區域的 padding：`px-4 sm:px-8 md:px-16 lg:px-24`
+    - 優化文字大小：標題從 `text-2xl md:text-4xl` 改為 `text-xl sm:text-2xl md:text-3xl lg:text-4xl`
+    - 優化按鈕大小和間距
+    - 優化箭頭按鈕的大小和位置
+
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 優化首頁 Hero 區域的響應式設計：
+    - 使用 `min-h-[60vh] sm:min-h-[50vh] md:h-[60vh]` 替代固定高度
+    - 添加垂直 padding：`py-12 sm:py-16 md:py-0`
+    - 優化文字大小：標題從 `text-4xl md:text-6xl` 改為 `text-3xl sm:text-4xl md:text-5xl lg:text-6xl`
+    - 優化圖片圓角：`rounded-[40px] sm:rounded-[60px] md:rounded-[80px]`
+    - 優化按鈕和間距
+  - 優化 Featured Images Grid：
+    - 調整 padding：`py-12 sm:py-16 md:py-24`
+    - 優化 gap：`gap-3 sm:gap-4 md:gap-8`
+    - 優化圖片的 translate 值，在小屏幕上減少位移
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 優化線上預約頁面的響應式設計：
+    - 調整 header padding：`py-12 sm:py-16 md:py-20`
+    - 優化標題大小：`text-3xl sm:text-4xl md:text-5xl lg:text-6xl`
+    - 優化表單容器：`rounded-[30px] sm:rounded-[35px] md:rounded-[40px]`
+    - 優化表單 padding：`p-6 sm:p-8 md:p-12`
+    - 優化表單間距：`gap-6 sm:gap-8`、`space-y-4 sm:space-y-6`
+    - 優化輸入框和標籤的文字大小
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 優化租車方案頁面的響應式設計：
+    - 調整 header padding 和文字大小
+    - 優化方案卡片的圖片高度：`h-[300px] sm:h-[400px] md:h-[500px]`
+    - 優化 Price Badge 的大小和位置
+    - 優化間距和 padding
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 優化關於我們頁面的響應式設計：
+    - 調整 padding 和文字大小
+    - 優化標題大小和間距
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 優化租車須知頁面的響應式設計：
+    - 調整 header padding 和標題大小
+    - 優化分類按鈕的大小和間距
+    - 優化問答內容的 padding 和文字大小
+
+- **Location.tsx** (`system/frontend/pages/Location.tsx`)
+  - 優化門市據點頁面的響應式設計：
+    - 調整 header padding 和文字大小
+    - 優化卡片容器的 padding 和圓角
+
+- **Contact.tsx** (`system/frontend/pages/Contact.tsx`)
+  - 優化聯絡我們頁面的響應式設計：
+    - 調整 header padding 和文字大小
+    - 優化聯絡資訊卡片的 padding
+
+- **Guesthouses.tsx** (`system/frontend/pages/Guesthouses.tsx`)
+  - 優化民宿推薦頁面的響應式設計：
+    - 調整 header padding 和標題大小
+    - 優化網格佈局：`sm:grid-cols-2 lg:grid-cols-3`
+    - 優化卡片間距和 padding
+
+- **GuesthouseDetail.tsx** (`system/frontend/pages/GuesthouseDetail.tsx`)
+  - 優化民宿詳細頁面的響應式設計：
+    - 調整 header padding 和文字大小：`py-12 sm:py-16 md:py-20`
+    - 優化返回按鈕和標題大小
+    - 優化 loading 和 error 狀態的 padding 和文字大小
+    - 優化內容區域的 padding 和圓角
+    - 優化圖片網格的 gap 和 padding
+    - 優化按鈕大小和文字大小
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 優化關於我們頁面的響應式設計：
+    - 優化 Story Section 和 Team/Values Section 的 padding 和圓角
+    - 優化 Image Gallery 的 padding 和間距
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 優化租車須知頁面的響應式設計：
+    - 優化服務內容區塊的 padding 和文字大小
+    - 優化民宿推薦卡片的 padding 和文字大小
+    - 優化間距和標題大小
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 優化線上預約頁面的響應式設計：
+    - 優化右欄標籤的文字大小：`text-xs sm:text-sm`
+    - 優化右欄輸入框的 padding：`px-3 py-2.5 sm:px-4 sm:py-3`
+    - 優化車型選擇器的文字大小
+    - 優化數量輸入框的寬度：`w-20 sm:w-24`
+    - 優化移除按鈕的大小
+
+### 功能說明
+- 所有頁面現在都有更好的響應式設計，支援各種屏幕尺寸（手機、平板、桌面）
+- 使用 Tailwind CSS 的響應式斷點：
+  - `sm:` (640px) - 小屏幕（大手機）
+  - `md:` (768px) - 中等屏幕（平板）
+  - `lg:` (1024px) - 大屏幕（小桌面）
+  - `xl:` (1280px) - 超大屏幕（大桌面）
+- 優化了文字大小、間距、padding、圓角等，在不同屏幕尺寸下都有良好的顯示效果
+- 改善了移動端的用戶體驗，文字更易讀，按鈕更易點擊
+- 優化了表單元素的大小和間距，提升移動端的可用性
+
+---
+
+## 2026-01-12 12:20:00 (+8) - 添加前端 SEO 功能以支援 Google Search Console
+
+### 變更內容
+
+#### 前端
+- **新增 SEO 組件** (`system/frontend/components/SEO.tsx`)
+  - 創建可重用的 SEO 組件，用於動態設置頁面的 meta tags
+  - 支援基本 SEO meta tags（title, description, keywords）
+  - 支援 Open Graph meta tags（用於 Facebook、LinkedIn 等社交媒體）
+  - 支援 Twitter Card meta tags
+  - 支援 Canonical URL
+  - 支援 Structured Data (JSON-LD) 用於 Google 搜尋結果
+
+- **更新 index.html** (`system/frontend/index.html`)
+  - 添加基礎 SEO meta tags（description, keywords, author, robots）
+  - 添加 canonical link 標籤
+
+- **為所有頁面添加 SEO 組件**
+  - **Home.tsx**: 添加 LocalBusiness structured data
+  - **About.tsx**: 添加 AboutPage structured data
+  - **RentalPlans.tsx**: 添加 Product structured data
+  - **Booking.tsx**: 添加 ReservationAction structured data
+  - **Guidelines.tsx**: 添加 FAQPage structured data
+  - **Location.tsx**: 添加 LocalBusiness structured data（包含地址、電話、營業時間）
+  - **Contact.tsx**: 添加 ContactPage structured data
+  - **Guesthouses.tsx**: 添加 CollectionPage structured data
+  - **GuesthouseDetail.tsx**: 添加 LodgingBusiness structured data
+
+- **創建 sitemap.xml** (`public/sitemap.xml`)
+  - 包含所有主要頁面的 URL
+  - 設置適當的 priority 和 changefreq
+  - 注意：需要將 `yourdomain.com` 替換為實際的域名
+
+- **更新 robots.txt** (`public/robots.txt`)
+  - 允許所有搜尋引擎爬取
+  - 添加 sitemap 位置
+  - 禁止爬取 admin、api、storage 目錄
+
+### 功能說明
+- 所有頁面現在都有適當的 SEO meta tags
+- 支援 Open Graph 和 Twitter Card，改善社交媒體分享效果
+- 使用 Structured Data (JSON-LD) 幫助 Google 更好地理解網站內容
+- sitemap.xml 幫助搜尋引擎發現和索引所有頁面
+- robots.txt 指導搜尋引擎爬蟲的行為
+
+### 注意事項
+- 需要將 `sitemap.xml` 中的 `yourdomain.com` 替換為實際的域名
+- 需要將 `robots.txt` 中的 `yourdomain.com` 替換為實際的域名
+- 建議在 Google Search Console 中提交 sitemap.xml
+- 建議定期更新 sitemap.xml 中的 lastmod 日期
+
+---
+
 ## 2026-01-11 19:48:00 (+8) - 調整訂單管理操作下拉菜單位置：向下 6px 並向右 30px
 
 ### 變更內容

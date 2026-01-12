@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { MapPin, Phone, Clock } from 'lucide-react';
+import SEO from '../components/SEO';
 import { publicApi } from '../lib/api';
 
 interface LocationData {
@@ -34,14 +35,38 @@ const Location: React.FC = () => {
     fetchLocations();
   }, []);
 
+  const structuredData = {
+    '@context': 'https://schema.org',
+    '@type': 'LocalBusiness',
+    name: '蘭光電動機車',
+    description: '蘭光電動機車位於小琉球交通便利的位置，歡迎您前來門市參觀選車，我們提供最專業的服務與諮詢。',
+    url: `${window.location.origin}/location`,
+    address: locations.length > 0 && locations[0].address ? {
+      '@type': 'PostalAddress',
+      streetAddress: locations[0].address,
+      addressLocality: '小琉球',
+      addressRegion: '屏東縣',
+      addressCountry: 'TW'
+    } : undefined,
+    telephone: locations.length > 0 ? locations[0].phone : undefined,
+    openingHours: locations.length > 0 && locations[0].hours ? locations[0].hours : undefined
+  };
+
   return (
     <div className="animate-in fade-in duration-700">
-      <header className="py-20 px-6 bg-[#f0f4ff] text-center">
+      <SEO
+        title="門市據點 - 蘭光電動機車"
+        description="蘭光電動機車位於小琉球交通便利的位置，歡迎您前來門市參觀選車，我們提供最專業的服務與諮詢。"
+        keywords="門市據點,小琉球租車,交通位置,蘭光電動機車地址"
+        url="/location"
+        structuredData={structuredData}
+      />
+      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-[#f0f4ff] text-center">
         <div className="max-w-4xl mx-auto">
-          <p className="text-gray-400 tracking-[0.3em] uppercase mb-2 text-sm">Location & Contact</p>
-          <h1 className="text-5xl md:text-6xl serif font-light mb-4">門市據點</h1>
-          <p className="text-gray-500 max-w-xl mx-auto text-base">蘭光電動機車位於小琉球交通便利的位置，歡迎您前來門市參觀選車，我們提供最專業的服務與諮詢。</p>
-          <div className="mt-4 text-xs text-gray-400">首頁 &gt; 交通資訊</div>
+          <p className="text-gray-400 tracking-[0.3em] uppercase mb-2 text-xs sm:text-sm">Location & Contact</p>
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl serif font-light mb-3 sm:mb-4">門市據點</h1>
+          <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base px-4">蘭光電動機車位於小琉球交通便利的位置，歡迎您前來門市參觀選車，我們提供最專業的服務與諮詢。</p>
+          <div className="mt-3 sm:mt-4 text-xs text-gray-400">首頁 &gt; 交通資訊</div>
         </div>
       </header>
 
@@ -61,14 +86,14 @@ const Location: React.FC = () => {
           </div>
         </section>
       ) : (
-        <section className="container mx-auto px-6 max-w-6xl py-12">
-          <div className="space-y-16">
+        <section className="container mx-auto px-4 sm:px-6 max-w-6xl py-8 sm:py-12">
+          <div className="space-y-12 sm:space-y-16">
             {locations.map((location) => (
-              <div key={location.id} className="bg-white rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
+              <div key={location.id} className="bg-white rounded-[30px] sm:rounded-[35px] md:rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
                 {/* 上方：交通位置和地址資訊 */}
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold mb-6 serif">{location.name}</h3>
-                  <div className="space-y-6">
+                <div className="p-6 sm:p-8">
+                  <h3 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 serif">{location.name}</h3>
+                  <div className="space-y-4 sm:space-y-6">
                     {location.address && (
                       <div className="flex items-start gap-4">
                         <div className="w-10 h-10 bg-[#f0f9f6] text-teal-600 rounded-full flex items-center justify-center shrink-0">
