@@ -312,10 +312,7 @@ const ContactInfosPage: React.FC = () => {
                   {uploading ? (
                     <Loader2 className="animate-spin" size={18} />
                   ) : (
-                    <>
-                      <Plus size={18} />
-                      <span>{editingContactInfo ? '更新' : '新增'}</span>
-                    </>
+                    <span>{editingContactInfo ? '更新' : '新增'}</span>
                   )}
                 </button>
               </div>

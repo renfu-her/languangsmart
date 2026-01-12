@@ -462,10 +462,7 @@ const LocationsPage: React.FC = () => {
                   {uploading ? (
                     <Loader2 className="animate-spin" size={18} />
                   ) : (
-                    <>
-                      <Plus size={18} />
-                      <span>{editingLocation ? '更新' : '新增'}</span>
-                    </>
+                    <span>{editingLocation ? '更新' : '新增'}</span>
                   )}
                 </button>
               </div>
