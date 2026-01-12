@@ -29,13 +29,13 @@ echo "✓ 配置快取完成"
 echo ""
 
 echo "[6/6] 構建後端 (React)..."
-cd ~/htdocs/scooter-rental.ai-tracks.com/system/backend
+cd ~/htdocs/languangsmart.com/system/backend
 pnpm build
 echo "✓ 後端構建完成"
 echo ""
 
 echo "[7/7] 構建前端 (React)..."
-cd ~/htdocs/scooter-rental.ai-tracks.com/system/frontend
+cd ~/htdocs/languangsmart.com/system/frontend
 pnpm build
 echo "✓ 前端構建完成"
 echo ""
