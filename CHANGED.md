@@ -1,5 +1,27 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-12 20:51:00 (+8) - 為 mobile 選單添加 logo 和關閉按鈕
+
+### 變更內容
+
+#### 前端
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 在 mobile menu overlay 頂部添加 header 區塊
+  - 包含 logo（可點擊返回首頁）和關閉按鈕（X 圖標）
+  - 調整選單結構：
+    - Header：logo + 關閉按鈕
+    - Navigation：導航連結列表
+    - Footer：行動按鈕（線上預約、聯絡我們）
+  - 移除原本的 `pt-24` padding，改用結構化的 header
+
+### 功能說明
+- Mobile 選單現在包含完整的 header，顯示 logo 和關閉按鈕
+- Logo 可點擊返回首頁並關閉選單
+- 關閉按鈕（X）位於右上角，方便關閉選單
+- 選單結構更清晰，符合常見的 mobile menu 設計模式
+
+---
+
 ## 2026-01-12 20:46:00 (+8) - 修復 mobile 選單中「關於我們」被 header 遮擋的問題
 
 ### 問題分析
