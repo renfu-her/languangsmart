@@ -23,7 +23,7 @@ const DEFAULT_IMAGES: Record<string, string> = {
 
 const Home: React.FC = () => {
   const [homeImages, setHomeImages] = useState<Record<string, HomeImage>>({});
-  const [viewMode, setViewMode] = useState<'auto' | 'mobile' | 'desktop'>('auto');
+  const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
 
   useEffect(() => {
     const fetchHomeImages = async () => {
@@ -94,17 +94,6 @@ const Home: React.FC = () => {
       
       {/* 視圖切換按鈕 */}
       <div className="fixed top-20 right-4 z-[100] flex flex-col gap-2 bg-white rounded-lg shadow-lg p-2 border border-gray-200">
-        <button
-          onClick={() => setViewMode('auto')}
-          className={`p-2 rounded transition-all ${
-            viewMode === 'auto' 
-              ? 'bg-teal-600 text-white' 
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-          title="自動（響應式）"
-        >
-          <span className="text-xs font-bold">AUTO</span>
-        </button>
         <button
           onClick={() => setViewMode('mobile')}
           className={`p-2 rounded transition-all ${
