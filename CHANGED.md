@@ -1,5 +1,68 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-12 22:05:00 (+8) - 建立聯絡資訊管理功能並移除 footer 聯絡資訊
+
+### 變更內容
+
+#### 後端
+- **Migration** (`database/migrations/2026_01_12_214342_create_contact_infos_table.php`)
+  - 建立 `contact_infos` 資料表
+  - 欄位：`store_name`（店名）、`address`（地址）、`phone`（電話）、`line_id`（LINE ID）、`sort_order`（排序）、`is_active`（是否啟用）
+
+- **Model** (`app/Models/ContactInfo.php`)
+  - 建立 ContactInfo Model
+  - 定義 fillable 欄位和 casts
+
+- **Controller** (`app/Http/Controllers/Api/ContactInfoController.php`)
+  - 建立 ContactInfoController
+  - 實作 CRUD 操作（index, store, show, update, destroy）
+  - 支援 `active_only` 和 `search` 參數
+
+- **API Routes** (`routes/api.php`)
+  - 新增 `/api/contact-infos` 路由
+  - 公開 GET 端點，保護的 POST/PUT/DELETE 端點
+
+#### 前端
+- **Contact.tsx** (`system/frontend/pages/Contact.tsx`)
+  - 更新為從 API 取得聯絡資訊
+  - 動態顯示多個聯絡資訊卡片
+  - 每個卡片顯示店名、地址、電話、LINE ID
+  - 地址和電話可點擊（Google Maps 和電話連結）
+  - LINE ID 可點擊開啟 LINE
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - 新增 `contactInfos.list()` API 方法
+
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 移除 footer 中的地址、LINE ID、電話資訊
+  - 只保留 Logo 和社群媒體連結
+
+#### 後台
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 在「網站內容管理」選單中新增「聯絡我們」選項
+  - 位置在「租車須知」之後、「門市據點」之前
+
+- **ContactInfosPage.tsx** (`system/backend/pages/ContactInfosPage.tsx`)
+  - 建立聯絡資訊管理頁面
+  - 功能包括：列表顯示、新增、編輯、刪除
+  - 表單欄位：店名、地址、電話、LINE ID、排序、狀態
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 新增 `contactInfosApi` API 客戶端
+  - 包含 list, get, create, update, delete 方法
+
+- **App.tsx** (`system/backend/App.tsx`)
+  - 新增 `/contact-infos` 路由
+  - 使用 lazy loading 載入 ContactInfosPage
+
+### 功能說明
+- 後台可以管理多個聯絡資訊（店名、地址、電話、LINE ID）
+- 前端「聯絡我們」頁面會動態顯示所有啟用的聯絡資訊
+- Footer 不再顯示固定的聯絡資訊，改由「聯絡我們」頁面統一管理
+- 後台選單中「聯絡我們」位於「門市據點」前面
+
+---
+
 ## 2026-01-12 21:16:00 (+8) - 更新「門市據點」頁面描述文字
 
 ### 變更內容

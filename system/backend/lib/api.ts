@@ -330,6 +330,15 @@ export const guidelinesApi = {
   delete: (id: string | number) => api.delete(`/guidelines/${id}`),
 };
 
+export const contactInfosApi = {
+  list: (params?: { active_only?: boolean; search?: string }) =>
+    api.get('/contact-infos', params),
+  get: (id: string | number) => api.get(`/contact-infos/${id}`),
+  create: (data: any) => api.post('/contact-infos', data),
+  update: (id: string | number, data: any) => api.put(`/contact-infos/${id}`, data),
+  delete: (id: string | number) => api.delete(`/contact-infos/${id}`),
+};
+
 export const locationsApi = {
   list: (params?: { active_only?: boolean; search?: string }) =>
     api.get('/locations', params),

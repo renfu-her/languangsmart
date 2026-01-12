@@ -16,6 +16,7 @@ const AdminsPage = React.lazy(() => import('./pages/AdminsPage'));
 const BannersPage = React.lazy(() => import('./pages/BannersPage'));
 const RentalPlansPage = React.lazy(() => import('./pages/RentalPlansPage'));
 const GuidelinesPage = React.lazy(() => import('./pages/GuidelinesPage'));
+const ContactInfosPage = React.lazy(() => import('./pages/ContactInfosPage'));
 const LocationsPage = React.lazy(() => import('./pages/LocationsPage'));
 const GuesthousesPage = React.lazy(() => import('./pages/GuesthousesPage'));
 const BookingsPage = React.lazy(() => import('./pages/BookingsPage'));
@@ -113,6 +114,11 @@ const App: React.FC = () => {
             <Route path="guidelines" element={
               <Suspense fallback={<LoadingFallback />}>
                 <GuidelinesPage />
+              </Suspense>
+            } />
+            <Route path="contact-infos" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ContactInfosPage />
               </Suspense>
             } />
             <Route path="locations" element={
