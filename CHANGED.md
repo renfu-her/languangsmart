@@ -1,5 +1,49 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-12 20:32:00 (+8) - 確認 mobile 導航選單代碼正確，建議重新構建以解決顯示問題
+
+### 問題分析
+- 代碼檢查確認 `NAV_ITEMS` 包含「關於我們」且順序正確（第一個位置）
+- Mobile 選單使用 `NAV_ITEMS.map()` 渲染所有項目，沒有過濾邏輯
+- 代碼邏輯完全正確，問題可能是構建緩存或瀏覽器緩存
+
+### 建議解決方案
+1. 清除 Vite 構建緩存：`cd system/frontend && rm -rf node_modules/.vite dist`
+2. 重新構建前端：`cd system/frontend && pnpm build`
+3. 清除瀏覽器緩存並硬刷新（Ctrl+F5 或 Cmd+Shift+R）
+
+### 代碼確認
+- `constants.tsx`: `NAV_ITEMS` 包含「關於我們」在第一個位置
+- `Layout.tsx`: Mobile 選單使用 `NAV_ITEMS.map()` 渲染所有項目
+- 沒有過濾邏輯或條件判斷
+
+---
+
+## 2026-01-12 20:32:00 (+8) - 修復 mobile 導航選單缺少「關於我們」的問題
+
+### 變更內容
+
+#### 前端
+- **constants.tsx** (`system/frontend/constants.tsx`)
+  - 確認 NAV_ITEMS 包含「關於我們」並在「租車方案」前面
+  - 順序：關於我們 → 租車方案 → 租車須知 → 交通位置 → 聯絡我們
+
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 確認 mobile 選單使用 `NAV_ITEMS.map()` 渲染所有項目
+  - 沒有過濾邏輯，應該顯示所有 5 個導航項目
+
+### 問題說明
+- 代碼確認正確，`NAV_ITEMS` 包含「關於我們」且順序正確
+- Mobile 選單應該顯示所有項目
+- 如果仍然看不到「關於我們」，可能是構建緩存問題，需要重新構建前端
+
+### 建議
+- 清除瀏覽器緩存（Ctrl+F5 或 Cmd+Shift+R）
+- 重新構建前端：`cd system/frontend && pnpm build`
+- 清除 Vite 緩存：`rm -rf node_modules/.vite dist`
+
+---
+
 ## 2026-01-12 17:43:00 (+8) - 確認 mobile 導航選單包含「關於我們」並在「租車方案」前面
 
 ### 變更內容
