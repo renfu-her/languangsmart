@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronRight, Smartphone, Monitor } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import BannerCarousel from '../components/BannerCarousel';
 import SEO from '../components/SEO';
 import { publicApi } from '../lib/api';
@@ -23,7 +23,6 @@ const DEFAULT_IMAGES: Record<string, string> = {
 
 const Home: React.FC = () => {
   const [homeImages, setHomeImages] = useState<Record<string, HomeImage>>({});
-  const [viewMode, setViewMode] = useState<'mobile' | 'desktop'>('mobile');
 
   useEffect(() => {
     const fetchHomeImages = async () => {
@@ -72,16 +71,6 @@ const Home: React.FC = () => {
     serviceType: '電動機車租賃服務'
   };
 
-  // 根據 viewMode 設置容器類別
-  const getContainerClass = () => {
-    if (viewMode === 'mobile') {
-      return 'max-w-[375px] mx-auto';
-    } else if (viewMode === 'desktop') {
-      return 'min-w-[1024px]';
-    }
-    return '';
-  };
-
   return (
     <div className="animate-in fade-in duration-700 relative">
       <SEO
@@ -92,36 +81,8 @@ const Home: React.FC = () => {
         structuredData={structuredData}
       />
       
-      {/* 視圖切換按鈕 */}
-      <div className="fixed top-20 right-4 z-[100] flex flex-col gap-2 bg-white rounded-lg shadow-lg p-2 border border-gray-200">
-        <button
-          onClick={() => setViewMode('mobile')}
-          className={`p-2 rounded transition-all ${
-            viewMode === 'mobile' 
-              ? 'bg-teal-600 text-white' 
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-          title="移動端視圖"
-        >
-          <Smartphone size={20} />
-        </button>
-        <button
-          onClick={() => setViewMode('desktop')}
-          className={`p-2 rounded transition-all ${
-            viewMode === 'desktop' 
-              ? 'bg-teal-600 text-white' 
-              : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          }`}
-          title="桌面端視圖"
-        >
-          <Monitor size={20} />
-        </button>
-      </div>
-
-      {/* 視圖容器 */}
-      <div className={getContainerClass()}>
-        {/* Banner Carousel */}
-        <BannerCarousel />
+      {/* Banner Carousel */}
+      <BannerCarousel />
 
       {/* Hero Section */}
       <section className="relative min-h-[60vh] sm:min-h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden py-12 sm:py-16 md:py-0">
@@ -181,8 +142,6 @@ const Home: React.FC = () => {
           </div>
         </div>
       </section>
-
-      </div>
     </div>
   );
 };
