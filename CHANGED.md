@@ -1,5 +1,45 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-12 22:30:00 (+8) - 新增行動潛水月報表匯出功能
+
+### 變更內容
+
+#### 後端
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 新增 `monthlyReport` 方法，生成月報表數據
+  - 以 start_time 的月份為主來篩選訂單（使用 DATE_FORMAT 查詢）
+  - 每個訂單的每個車型都單獨顯示一行
+  - 日期使用 start_time 的日期（例如：訂單 1/11-1/15，key 在 1/11）
+  - 只顯示有訂單的日期
+  - 計算天數（夜）：從 start_time 到 end_time 的夜數
+  - 金額：每個車型顯示完整的訂單金額（當天金額就以該訂單key的金額為主）
+
+- **api.php** (`routes/api.php`)
+  - 新增 `/orders/monthly-report` API 路由，接收月份參數（YYYY-MM 格式）
+
+#### 前端
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 在 `ordersApi` 中新增 `monthlyReport` 方法，調用月報表 API
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 新增 `handleExportMonthlyReport` 函數，匯出月報表為 Excel 格式
+  - 新增「匯出月報表」按鈕（藍色），位於「匯出 Excel」按鈕旁邊
+  - 月報表格式：
+    - 標題：行動潛水月報表
+    - 月份：YYYY年MM月
+    - 表頭：日期、車型、台數、天數（夜）、金額
+    - 只顯示有訂單的日期
+    - 文件名：行動潛水月報表-YYYYMM.xlsx
+
+### 功能說明
+- 月報表用於告知合作商每個月幾號叫了什麼車、幾台、幾天、多少錢
+- 每個月都需要這一份報表來對帳和收款
+- 日期以訂單的 start_time 日期為準（例如：訂單 1/11-1/15，key 在 1/11）
+- 天數計算以「夜」為單位（例如：1/11-1/15 = 4 夜）
+- 當天金額以該訂單的完整金額為主
+
+---
+
 ## 2026-01-12 22:24:00 (+8) - 移除後台表單提交按鈕中的 Plus 圖標
 
 ### 變更內容

@@ -456,5 +456,78 @@ class OrderController extends Controller
             'data' => $months,
         ]);
     }
+
+    /**
+     * Get monthly report for a specific month
+     * Returns data grouped by date (only dates with orders) and scooter model
+     */
+    public function monthlyReport(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'month' => 'required|date_format:Y-m',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $month = $request->get('month');
+        $startDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->startOfMonth();
+        $endDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->endOfMonth();
+
+        // Get orders for the month with scooters and partner
+        // 以 start_time 的月份為主來篩選訂單
+        $orders = Order::with(['partner', 'scooters'])
+            ->whereNotNull('start_time')
+            ->whereNotNull('end_time')
+            ->whereRaw('DATE_FORMAT(start_time, "%Y-%m") = ?', [$month])
+            ->get();
+
+        // Group by date (start_time date) and scooter model
+        // 每個訂單的每個車型都單獨顯示一行
+        $reportData = [];
+
+        foreach ($orders as $order) {
+            // Use start_time date as the key date
+            $keyDate = Carbon::parse($order->start_time)->timezone('Asia/Taipei')->format('Y-m-d');
+            
+            // Calculate nights (days between start_time and end_time)
+            $startTime = Carbon::parse($order->start_time)->timezone('Asia/Taipei');
+            $endTime = Carbon::parse($order->end_time)->timezone('Asia/Taipei');
+            $nights = $startTime->diffInDays($endTime);
+
+            // Group scooters by model
+            $scootersByModel = $order->scooters->groupBy('model');
+            $orderAmount = (float) $order->payment_amount;
+
+            foreach ($scootersByModel as $model => $scooters) {
+                $scooterCount = $scooters->count();
+                
+                // 每個訂單的每個車型都單獨顯示一行
+                $reportData[] = [
+                    'date' => $keyDate,
+                    'model' => $model,
+                    'count' => $scooterCount,
+                    'nights' => $nights,
+                    'amount' => $orderAmount, // 當天金額就以該訂單key的金額為主
+                ];
+            }
+        }
+
+        // Sort by date
+        usort($reportData, function ($a, $b) {
+            return strcmp($a['date'], $b['date']);
+        });
+        
+        $result = $reportData;
+
+        return response()->json([
+            'data' => $result,
+            'month' => $month,
+        ]);
+    }
 }
 

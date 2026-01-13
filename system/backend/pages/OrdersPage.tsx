@@ -512,6 +512,71 @@ const OrdersPage: React.FC = () => {
     }
   };
 
+  const handleExportMonthlyReport = async () => {
+    try {
+      const selectedMonthString = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
+      
+      // 獲取月報表數據
+      const response = await ordersApi.monthlyReport(selectedMonthString);
+      const reportData = response.data || [];
+
+      if (reportData.length === 0) {
+        alert('該月份沒有訂單資料可匯出');
+        return;
+      }
+
+      // 創建工作簿
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([]);
+
+      // 第一行：標題
+      XLSX.utils.sheet_add_aoa(ws, [['行動潛水月報表']], { origin: 'A1' });
+      
+      // 第二行：月份
+      XLSX.utils.sheet_add_aoa(ws, [[`${selectedYear}年${String(selectedMonth).padStart(2, '0')}月`]], { origin: 'A2' });
+      
+      // 空一行（第3行）
+      
+      // 第4行：表頭
+      XLSX.utils.sheet_add_aoa(ws, [['日期', '車型', '台數', '天數（夜）', '金額']], { origin: 'A4' });
+      
+      // 準備數據行
+      const dataRows = reportData.map((item: { date: string; model: string; count: number; nights: number; amount: number }) => [
+        item.date,           // 日期
+        item.model,          // 車型
+        item.count,          // 台數
+        item.nights,         // 天數（夜）
+        item.amount          // 金額
+      ]);
+      
+      // 添加數據行（從第5行開始）
+      if (dataRows.length > 0) {
+        XLSX.utils.sheet_add_aoa(ws, dataRows, { origin: 'A5' });
+      }
+      
+      // 設置列寬
+      ws['!cols'] = [
+        { wch: 12 }, // 日期
+        { wch: 20 }, // 車型
+        { wch: 10 }, // 台數
+        { wch: 12 }, // 天數（夜）
+        { wch: 15 }  // 金額
+      ];
+      
+      // 添加工作表
+      XLSX.utils.book_append_sheet(wb, ws, '月報表');
+
+      // 生成文件名：行動潛水月報表-YYYYMM.xlsx
+      const fileName = `行動潛水月報表-${selectedYear}${String(selectedMonth).padStart(2, '0')}.xlsx`;
+
+      // 下載文件
+      XLSX.writeFile(wb, fileName);
+    } catch (error) {
+      console.error('匯出月報表時發生錯誤:', error);
+      alert('匯出月報表時發生錯誤，請稍後再試');
+    }
+  };
+
   // 獲取可選的年份列表（從 API 獲取）
   const getAvailableYears = () => {
     // 確保當前選中的年份也在列表中（即使 API 沒有返回）
@@ -1116,6 +1181,13 @@ const OrdersPage: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center space-x-3">
+            <button
+              onClick={handleExportMonthlyReport}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2.5 rounded-xl flex items-center space-x-1.5 transition-all shadow-sm active:scale-95 text-xs font-medium h-[42px]"
+            >
+              <Download size={14} />
+              <span>匯出月報表</span>
+            </button>
             <button
               onClick={handleExportExcel}
               className="bg-green-600 hover:bg-green-700 text-white px-3 py-2.5 rounded-xl flex items-center space-x-1.5 transition-all shadow-sm active:scale-95 text-xs font-medium h-[42px]"
