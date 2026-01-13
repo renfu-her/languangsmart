@@ -14,8 +14,14 @@ interface Partner {
   color: string | null;
   is_default_for_booking?: boolean;
   default_shipping_company?: string | null;
-  same_day_transfer_fee?: number | null;
-  overnight_transfer_fee?: number | null;
+  same_day_transfer_fee_white?: number | null;
+  same_day_transfer_fee_green?: number | null;
+  same_day_transfer_fee_electric?: number | null;
+  same_day_transfer_fee_tricycle?: number | null;
+  overnight_transfer_fee_white?: number | null;
+  overnight_transfer_fee_green?: number | null;
+  overnight_transfer_fee_electric?: number | null;
+  overnight_transfer_fee_tricycle?: number | null;
 }
 
 const PartnersPage: React.FC = () => {
@@ -32,8 +38,14 @@ const PartnersPage: React.FC = () => {
     manager: '',
     color: '',
     is_default_for_booking: false,
-    same_day_transfer_fee: '',
-    overnight_transfer_fee: '',
+    same_day_transfer_fee_white: '',
+    same_day_transfer_fee_green: '',
+    same_day_transfer_fee_electric: '',
+    same_day_transfer_fee_tricycle: '',
+    overnight_transfer_fee_white: '',
+    overnight_transfer_fee_green: '',
+    overnight_transfer_fee_electric: '',
+    overnight_transfer_fee_tricycle: '',
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -74,8 +86,14 @@ const PartnersPage: React.FC = () => {
         manager: partner.manager || '',
         color: partner.color || '',
         is_default_for_booking: partner.is_default_for_booking || false,
-        same_day_transfer_fee: partner.same_day_transfer_fee?.toString() || '',
-        overnight_transfer_fee: partner.overnight_transfer_fee?.toString() || '',
+        same_day_transfer_fee_white: partner.same_day_transfer_fee_white?.toString() || '',
+        same_day_transfer_fee_green: partner.same_day_transfer_fee_green?.toString() || '',
+        same_day_transfer_fee_electric: partner.same_day_transfer_fee_electric?.toString() || '',
+        same_day_transfer_fee_tricycle: partner.same_day_transfer_fee_tricycle?.toString() || '',
+        overnight_transfer_fee_white: partner.overnight_transfer_fee_white?.toString() || '',
+        overnight_transfer_fee_green: partner.overnight_transfer_fee_green?.toString() || '',
+        overnight_transfer_fee_electric: partner.overnight_transfer_fee_electric?.toString() || '',
+        overnight_transfer_fee_tricycle: partner.overnight_transfer_fee_tricycle?.toString() || '',
       });
       setPhotoPreview(partner.photo_path || null);
     } else {
@@ -88,8 +106,14 @@ const PartnersPage: React.FC = () => {
         manager: '',
         color: '',
         is_default_for_booking: false,
-        same_day_transfer_fee: '',
-        overnight_transfer_fee: '',
+        same_day_transfer_fee_white: '',
+        same_day_transfer_fee_green: '',
+        same_day_transfer_fee_electric: '',
+        same_day_transfer_fee_tricycle: '',
+        overnight_transfer_fee_white: '',
+        overnight_transfer_fee_green: '',
+        overnight_transfer_fee_electric: '',
+        overnight_transfer_fee_tricycle: '',
       });
       setPhotoPreview(null);
     }
@@ -108,8 +132,14 @@ const PartnersPage: React.FC = () => {
       manager: '',
       color: '',
       is_default_for_booking: false,
-      same_day_transfer_fee: '',
-      overnight_transfer_fee: '',
+      same_day_transfer_fee_white: '',
+      same_day_transfer_fee_green: '',
+      same_day_transfer_fee_electric: '',
+      same_day_transfer_fee_tricycle: '',
+      overnight_transfer_fee_white: '',
+      overnight_transfer_fee_green: '',
+      overnight_transfer_fee_electric: '',
+      overnight_transfer_fee_tricycle: '',
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -120,8 +150,14 @@ const PartnersPage: React.FC = () => {
       // 準備提交數據，將費用欄位轉換為數字或 null
       const submitData = {
         ...formData,
-        same_day_transfer_fee: formData.same_day_transfer_fee ? parseFloat(formData.same_day_transfer_fee) : null,
-        overnight_transfer_fee: formData.overnight_transfer_fee ? parseFloat(formData.overnight_transfer_fee) : null,
+        same_day_transfer_fee_white: formData.same_day_transfer_fee_white ? parseFloat(formData.same_day_transfer_fee_white) : null,
+        same_day_transfer_fee_green: formData.same_day_transfer_fee_green ? parseFloat(formData.same_day_transfer_fee_green) : null,
+        same_day_transfer_fee_electric: formData.same_day_transfer_fee_electric ? parseFloat(formData.same_day_transfer_fee_electric) : null,
+        same_day_transfer_fee_tricycle: formData.same_day_transfer_fee_tricycle ? parseFloat(formData.same_day_transfer_fee_tricycle) : null,
+        overnight_transfer_fee_white: formData.overnight_transfer_fee_white ? parseFloat(formData.overnight_transfer_fee_white) : null,
+        overnight_transfer_fee_green: formData.overnight_transfer_fee_green ? parseFloat(formData.overnight_transfer_fee_green) : null,
+        overnight_transfer_fee_electric: formData.overnight_transfer_fee_electric ? parseFloat(formData.overnight_transfer_fee_electric) : null,
+        overnight_transfer_fee_tricycle: formData.overnight_transfer_fee_tricycle ? parseFloat(formData.overnight_transfer_fee_tricycle) : null,
       };
       
       if (editingPartner) {
@@ -418,33 +454,115 @@ const PartnersPage: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
                   />
                 </div>
-                <div>
-                  <label className={labelClasses}>
+                <div className="col-span-2">
+                  <label className={`${labelClasses} text-base font-bold mb-3`}>
                     當日調車費用
                   </label>
-                  <input 
-                    type="number" 
-                    className={inputClasses}
-                    placeholder="0"
-                    min="0"
-                    step="0.01"
-                    value={formData.same_day_transfer_fee}
-                    onChange={(e) => setFormData({ ...formData, same_day_transfer_fee: e.target.value })}
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={`${labelClasses} text-sm`}>白牌</label>
+                      <input 
+                        type="number" 
+                        className={inputClasses}
+                        placeholder="0"
+                        min="0"
+                        step="0.01"
+                        value={formData.same_day_transfer_fee_white}
+                        onChange={(e) => setFormData({ ...formData, same_day_transfer_fee_white: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className={`${labelClasses} text-sm`}>綠牌</label>
+                      <input 
+                        type="number" 
+                        className={inputClasses}
+                        placeholder="0"
+                        min="0"
+                        step="0.01"
+                        value={formData.same_day_transfer_fee_green}
+                        onChange={(e) => setFormData({ ...formData, same_day_transfer_fee_green: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className={`${labelClasses} text-sm`}>電輔車</label>
+                      <input 
+                        type="number" 
+                        className={inputClasses}
+                        placeholder="0"
+                        min="0"
+                        step="0.01"
+                        value={formData.same_day_transfer_fee_electric}
+                        onChange={(e) => setFormData({ ...formData, same_day_transfer_fee_electric: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className={`${labelClasses} text-sm`}>三輪車</label>
+                      <input 
+                        type="number" 
+                        className={inputClasses}
+                        placeholder="0"
+                        min="0"
+                        step="0.01"
+                        value={formData.same_day_transfer_fee_tricycle}
+                        onChange={(e) => setFormData({ ...formData, same_day_transfer_fee_tricycle: e.target.value })}
+                      />
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <label className={labelClasses}>
+                <div className="col-span-2">
+                  <label className={`${labelClasses} text-base font-bold mb-3`}>
                     跨日調車費用
                   </label>
-                  <input 
-                    type="number" 
-                    className={inputClasses}
-                    placeholder="0"
-                    min="0"
-                    step="0.01"
-                    value={formData.overnight_transfer_fee}
-                    onChange={(e) => setFormData({ ...formData, overnight_transfer_fee: e.target.value })}
-                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className={`${labelClasses} text-sm`}>白牌</label>
+                      <input 
+                        type="number" 
+                        className={inputClasses}
+                        placeholder="0"
+                        min="0"
+                        step="0.01"
+                        value={formData.overnight_transfer_fee_white}
+                        onChange={(e) => setFormData({ ...formData, overnight_transfer_fee_white: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className={`${labelClasses} text-sm`}>綠牌</label>
+                      <input 
+                        type="number" 
+                        className={inputClasses}
+                        placeholder="0"
+                        min="0"
+                        step="0.01"
+                        value={formData.overnight_transfer_fee_green}
+                        onChange={(e) => setFormData({ ...formData, overnight_transfer_fee_green: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className={`${labelClasses} text-sm`}>電輔車</label>
+                      <input 
+                        type="number" 
+                        className={inputClasses}
+                        placeholder="0"
+                        min="0"
+                        step="0.01"
+                        value={formData.overnight_transfer_fee_electric}
+                        onChange={(e) => setFormData({ ...formData, overnight_transfer_fee_electric: e.target.value })}
+                      />
+                    </div>
+                    <div>
+                      <label className={`${labelClasses} text-sm`}>三輪車</label>
+                      <input 
+                        type="number" 
+                        className={inputClasses}
+                        placeholder="0"
+                        min="0"
+                        step="0.01"
+                        value={formData.overnight_transfer_fee_tricycle}
+                        onChange={(e) => setFormData({ ...formData, overnight_transfer_fee_tricycle: e.target.value })}
+                      />
+                    </div>
+                  </div>
                 </div>
                 <div className="col-span-2">
                   <label className={labelClasses}>

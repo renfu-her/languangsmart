@@ -19,8 +19,14 @@ class Partner extends Model
         'color',
         'is_default_for_booking',
         'default_shipping_company',
-        'same_day_transfer_fee',
-        'overnight_transfer_fee',
+        'same_day_transfer_fee_white',
+        'same_day_transfer_fee_green',
+        'same_day_transfer_fee_electric',
+        'same_day_transfer_fee_tricycle',
+        'overnight_transfer_fee_white',
+        'overnight_transfer_fee_green',
+        'overnight_transfer_fee_electric',
+        'overnight_transfer_fee_tricycle',
     ];
 
     /**
