@@ -147,17 +147,17 @@ const PartnersPage: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      // 準備提交數據，將費用欄位轉換為數字或 null
+      // 準備提交數據，將費用欄位轉換為正整數或 null
       const submitData = {
         ...formData,
-        same_day_transfer_fee_white: formData.same_day_transfer_fee_white ? parseFloat(formData.same_day_transfer_fee_white) : null,
-        same_day_transfer_fee_green: formData.same_day_transfer_fee_green ? parseFloat(formData.same_day_transfer_fee_green) : null,
-        same_day_transfer_fee_electric: formData.same_day_transfer_fee_electric ? parseFloat(formData.same_day_transfer_fee_electric) : null,
-        same_day_transfer_fee_tricycle: formData.same_day_transfer_fee_tricycle ? parseFloat(formData.same_day_transfer_fee_tricycle) : null,
-        overnight_transfer_fee_white: formData.overnight_transfer_fee_white ? parseFloat(formData.overnight_transfer_fee_white) : null,
-        overnight_transfer_fee_green: formData.overnight_transfer_fee_green ? parseFloat(formData.overnight_transfer_fee_green) : null,
-        overnight_transfer_fee_electric: formData.overnight_transfer_fee_electric ? parseFloat(formData.overnight_transfer_fee_electric) : null,
-        overnight_transfer_fee_tricycle: formData.overnight_transfer_fee_tricycle ? parseFloat(formData.overnight_transfer_fee_tricycle) : null,
+        same_day_transfer_fee_white: formData.same_day_transfer_fee_white ? parseInt(formData.same_day_transfer_fee_white, 10) : null,
+        same_day_transfer_fee_green: formData.same_day_transfer_fee_green ? parseInt(formData.same_day_transfer_fee_green, 10) : null,
+        same_day_transfer_fee_electric: formData.same_day_transfer_fee_electric ? parseInt(formData.same_day_transfer_fee_electric, 10) : null,
+        same_day_transfer_fee_tricycle: formData.same_day_transfer_fee_tricycle ? parseInt(formData.same_day_transfer_fee_tricycle, 10) : null,
+        overnight_transfer_fee_white: formData.overnight_transfer_fee_white ? parseInt(formData.overnight_transfer_fee_white, 10) : null,
+        overnight_transfer_fee_green: formData.overnight_transfer_fee_green ? parseInt(formData.overnight_transfer_fee_green, 10) : null,
+        overnight_transfer_fee_electric: formData.overnight_transfer_fee_electric ? parseInt(formData.overnight_transfer_fee_electric, 10) : null,
+        overnight_transfer_fee_tricycle: formData.overnight_transfer_fee_tricycle ? parseInt(formData.overnight_transfer_fee_tricycle, 10) : null,
       };
       
       if (editingPartner) {
@@ -466,9 +466,15 @@ const PartnersPage: React.FC = () => {
                         className={inputClasses}
                         placeholder="0"
                         min="0"
-                        step="0.01"
+                        step="1"
                         value={formData.same_day_transfer_fee_white}
-                        onChange={(e) => setFormData({ ...formData, same_day_transfer_fee_white: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 只允許正整數或空值
+                          if (value === '' || /^\d+$/.test(value)) {
+                            setFormData({ ...formData, same_day_transfer_fee_white: value });
+                          }
+                        }}
                       />
                     </div>
                     <div>
@@ -478,9 +484,15 @@ const PartnersPage: React.FC = () => {
                         className={inputClasses}
                         placeholder="0"
                         min="0"
-                        step="0.01"
+                        step="1"
                         value={formData.same_day_transfer_fee_green}
-                        onChange={(e) => setFormData({ ...formData, same_day_transfer_fee_green: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 只允許正整數或空值
+                          if (value === '' || /^\d+$/.test(value)) {
+                            setFormData({ ...formData, same_day_transfer_fee_green: value });
+                          }
+                        }}
                       />
                     </div>
                     <div>
@@ -490,9 +502,15 @@ const PartnersPage: React.FC = () => {
                         className={inputClasses}
                         placeholder="0"
                         min="0"
-                        step="0.01"
+                        step="1"
                         value={formData.same_day_transfer_fee_electric}
-                        onChange={(e) => setFormData({ ...formData, same_day_transfer_fee_electric: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 只允許正整數或空值
+                          if (value === '' || /^\d+$/.test(value)) {
+                            setFormData({ ...formData, same_day_transfer_fee_electric: value });
+                          }
+                        }}
                       />
                     </div>
                     <div>
@@ -502,9 +520,15 @@ const PartnersPage: React.FC = () => {
                         className={inputClasses}
                         placeholder="0"
                         min="0"
-                        step="0.01"
+                        step="1"
                         value={formData.same_day_transfer_fee_tricycle}
-                        onChange={(e) => setFormData({ ...formData, same_day_transfer_fee_tricycle: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 只允許正整數或空值
+                          if (value === '' || /^\d+$/.test(value)) {
+                            setFormData({ ...formData, same_day_transfer_fee_tricycle: value });
+                          }
+                        }}
                       />
                     </div>
                   </div>
@@ -521,9 +545,15 @@ const PartnersPage: React.FC = () => {
                         className={inputClasses}
                         placeholder="0"
                         min="0"
-                        step="0.01"
+                        step="1"
                         value={formData.overnight_transfer_fee_white}
-                        onChange={(e) => setFormData({ ...formData, overnight_transfer_fee_white: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 只允許正整數或空值
+                          if (value === '' || /^\d+$/.test(value)) {
+                            setFormData({ ...formData, overnight_transfer_fee_white: value });
+                          }
+                        }}
                       />
                     </div>
                     <div>
@@ -533,9 +563,15 @@ const PartnersPage: React.FC = () => {
                         className={inputClasses}
                         placeholder="0"
                         min="0"
-                        step="0.01"
+                        step="1"
                         value={formData.overnight_transfer_fee_green}
-                        onChange={(e) => setFormData({ ...formData, overnight_transfer_fee_green: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 只允許正整數或空值
+                          if (value === '' || /^\d+$/.test(value)) {
+                            setFormData({ ...formData, overnight_transfer_fee_green: value });
+                          }
+                        }}
                       />
                     </div>
                     <div>
@@ -545,9 +581,15 @@ const PartnersPage: React.FC = () => {
                         className={inputClasses}
                         placeholder="0"
                         min="0"
-                        step="0.01"
+                        step="1"
                         value={formData.overnight_transfer_fee_electric}
-                        onChange={(e) => setFormData({ ...formData, overnight_transfer_fee_electric: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 只允許正整數或空值
+                          if (value === '' || /^\d+$/.test(value)) {
+                            setFormData({ ...formData, overnight_transfer_fee_electric: value });
+                          }
+                        }}
                       />
                     </div>
                     <div>
@@ -557,9 +599,15 @@ const PartnersPage: React.FC = () => {
                         className={inputClasses}
                         placeholder="0"
                         min="0"
-                        step="0.01"
+                        step="1"
                         value={formData.overnight_transfer_fee_tricycle}
-                        onChange={(e) => setFormData({ ...formData, overnight_transfer_fee_tricycle: e.target.value })}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // 只允許正整數或空值
+                          if (value === '' || /^\d+$/.test(value)) {
+                            setFormData({ ...formData, overnight_transfer_fee_tricycle: value });
+                          }
+                        }}
                       />
                     </div>
                   </div>

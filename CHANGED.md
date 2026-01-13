@@ -29,42 +29,51 @@
       - 刪除新的8個欄位
       - 回復舊的兩個欄位（`same_day_transfer_fee` 和 `overnight_transfer_fee`），如果需要的話
 
+- **Migration** (`database/migrations/2026_01_12_223200_change_transfer_fees_to_integer.php`)
+  - 新增 migration，將8個調車費用欄位從 decimal 改為 unsignedInteger（正整數）：
+    - 在 `up()` 方法中：
+      - 先將現有的 decimal 值轉換為整數（使用 ROUND 函數四捨五入）
+      - 然後使用 `change()` 方法將欄位類型從 `decimal(10, 2)` 改為 `unsignedInteger`
+    - 在 `down()` 方法中：
+      - 將欄位類型回復為 `decimal(10, 2)`
+
 - **Partner.php** (`app/Models/Partner.php`)
   - 在 `$fillable` 陣列中新增8個調車費用欄位
 
 - **PartnerController.php** (`app/Http/Controllers/Api/PartnerController.php`)
   - 在 `store` 和 `update` 方法的驗證規則中新增8個費用欄位的驗證：
-    - 所有費用欄位：nullable|numeric|min:0
+    - 所有費用欄位：nullable|integer|min:0（只允許正整數，0以上）
 
 - **PartnerResource.php** (`app/Http/Resources/PartnerResource.php`)
   - 在返回數據中新增8個調車費用欄位
-  - 將 decimal 值轉換為 float 類型返回
+  - 將 integer 值轉換為 int 類型返回
 
 #### 前端
 - **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
   - 更新 `Partner` interface，新增8個調車費用欄位
   - 更新 `formData` state，新增8個費用欄位
   - 更新 `handleOpenModal` 和 `handleCloseModal`，處理新欄位的初始化和重置
-  - 更新 `handleSubmit`，將所有費用欄位轉換為數字或 null 後提交
+  - 更新 `handleSubmit`，將所有費用欄位轉換為正整數或 null 後提交（使用 parseInt）
   - 在表單中新增調車費用區塊（位於「商店主管」下方）：
     - **當日調車費用**區塊：
-      - 白牌：數字輸入框
-      - 綠牌：數字輸入框
-      - 電輔車：數字輸入框
-      - 三輪車：數字輸入框
+      - 白牌：數字輸入框（只允許正整數）
+      - 綠牌：數字輸入框（只允許正整數）
+      - 電輔車：數字輸入框（只允許正整數）
+      - 三輪車：數字輸入框（只允許正整數）
     - **跨日調車費用**區塊：
-      - 白牌：數字輸入框
-      - 綠牌：數字輸入框
-      - 電輔車：數字輸入框
-      - 三輪車：數字輸入框
-    - 所有費用欄位：最小值 0，步長 0.01，支援小數點
+      - 白牌：數字輸入框（只允許正整數）
+      - 綠牌：數字輸入框（只允許正整數）
+      - 電輔車：數字輸入框（只允許正整數）
+      - 三輪車：數字輸入框（只允許正整數）
+    - 所有費用欄位：最小值 0，步長 1，只允許正整數（使用正則表達式驗證 `/^\d+$/`）
 
 ### 功能說明
 - 合作商現在可以按車型分別設定當日調車費用和跨日調車費用
 - 支援4種車型：白牌、綠牌、電輔車、三輪車
 - 每個車型可以分別設定當日調車費用和跨日調車費用
 - 所有費用欄位都是可選的（nullable），可以為空
-- 費用欄位支援小數點（步長 0.01），最小值為 0
+- 費用欄位只允許正整數（0以上），不支援小數點
+- 前端使用正則表達式驗證，只允許輸入數字
 - 在新增和編輯合作商時都可以設定這些費用
 
 ---
