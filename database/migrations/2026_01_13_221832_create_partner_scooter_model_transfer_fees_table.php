@@ -19,8 +19,8 @@ return new class extends Migration
             $table->unsignedInteger('overnight_transfer_fee')->nullable()->comment('跨日調車費用');
             $table->timestamps();
             
-            // 確保每個合作商對每個機車型號只有一筆記錄
-            $table->unique(['partner_id', 'scooter_model_id']);
+            // 確保每個合作商對每個機車型號只有一筆記錄（使用較短的索引名稱）
+            $table->unique(['partner_id', 'scooter_model_id'], 'partner_scooter_model_unique');
         });
     }
 
