@@ -686,16 +686,30 @@ const PartnersPage: React.FC = () => {
                       <p className="text-sm font-bold text-gray-700 dark:text-gray-300">拖放檔案，或者 <span className="text-orange-600 dark:text-orange-400">點擊瀏覽</span></p>
                       <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-medium">建議比例 16:9, 最高支援 10MB JPG/PNG</p>
                       {photoPreview && (
-                        <img 
-                          src={photoPreview} 
-                          alt="Preview" 
-                          className="mt-4 max-w-full max-h-48 rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setImageViewerUrl(photoPreview);
-                            setImageViewerOpen(true);
-                          }}
-                        />
+                        <div className="relative mt-4">
+                          <img 
+                            src={photoPreview} 
+                            alt="Preview" 
+                            className="max-w-full max-h-48 rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setImageViewerUrl(photoPreview);
+                              setImageViewerOpen(true);
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPhotoPreview(null);
+                              setPhotoFile(null);
+                            }}
+                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10 hover:bg-red-600 transition-colors"
+                            title="刪除圖片"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
                       )}
                    </div>
                 </div>
