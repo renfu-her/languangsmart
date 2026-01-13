@@ -44,5 +44,13 @@ class Partner extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    /**
+     * Get the scooter model transfer fees for the partner.
+     */
+    public function scooterModelTransferFees()
+    {
+        return $this->hasMany(PartnerScooterModelTransferFee::class);
+    }
 }
 

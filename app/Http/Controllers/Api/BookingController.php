@@ -9,7 +9,9 @@ use App\Mail\BookingConfirmedMail;
 use App\Models\Booking;
 use App\Models\Order;
 use App\Models\Partner;
+use App\Models\PartnerScooterModelTransferFee;
 use App\Models\Scooter;
+use App\Models\ScooterModel;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
@@ -93,6 +95,7 @@ class BookingController extends Controller
 
             // 針對每個車型計算：調車費用 × 台數 × 天數
             foreach ($data['scooters'] as $scooterItem) {
+                $model = $scooterItem['model'] ?? null; // 機車型號名稱，如 "ES-1000"
                 $type = $scooterItem['type'] ?? null; // 白牌 / 綠牌 / 電輔車 / 三輪車
                 $count = $scooterItem['count'] ?? 0;
 
@@ -102,36 +105,24 @@ class BookingController extends Controller
 
                 $transferFee = 0;
 
-                if ($defaultPartner) {
-                    if ($isSameDayRental) {
-                        switch ($type) {
-                            case '白牌':
-                                $transferFee = $defaultPartner->same_day_transfer_fee_white ?? 0;
-                                break;
-                            case '綠牌':
-                                $transferFee = $defaultPartner->same_day_transfer_fee_green ?? 0;
-                                break;
-                            case '電輔車':
-                                $transferFee = $defaultPartner->same_day_transfer_fee_electric ?? 0;
-                                break;
-                            case '三輪車':
-                                $transferFee = $defaultPartner->same_day_transfer_fee_tricycle ?? 0;
-                                break;
-                        }
-                    } else {
-                        switch ($type) {
-                            case '白牌':
-                                $transferFee = $defaultPartner->overnight_transfer_fee_white ?? 0;
-                                break;
-                            case '綠牌':
-                                $transferFee = $defaultPartner->overnight_transfer_fee_green ?? 0;
-                                break;
-                            case '電輔車':
-                                $transferFee = $defaultPartner->overnight_transfer_fee_electric ?? 0;
-                                break;
-                            case '三輪車':
-                                $transferFee = $defaultPartner->overnight_transfer_fee_tricycle ?? 0;
-                                break;
+                if ($defaultPartner && $model && $type) {
+                    // 從 model + type 查找對應的 ScooterModel
+                    $scooterModel = ScooterModel::where('name', $model)
+                        ->where('type', $type)
+                        ->first();
+
+                    if ($scooterModel) {
+                        // 從 partner_scooter_model_transfer_fees 表查找調車費用
+                        $transferFeeRecord = PartnerScooterModelTransferFee::where('partner_id', $defaultPartner->id)
+                            ->where('scooter_model_id', $scooterModel->id)
+                            ->first();
+
+                        if ($transferFeeRecord) {
+                            if ($isSameDayRental) {
+                                $transferFee = $transferFeeRecord->same_day_transfer_fee ?? 0;
+                            } else {
+                                $transferFee = $transferFeeRecord->overnight_transfer_fee ?? 0;
+                            }
                         }
                     }
                 }

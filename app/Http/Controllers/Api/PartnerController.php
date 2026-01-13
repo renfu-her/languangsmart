@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\PartnerResource;
 use App\Models\Partner;
+use App\Models\PartnerScooterModelTransferFee;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class PartnerController extends Controller
 {
@@ -36,7 +38,7 @@ class PartnerController extends Controller
             });
         }
 
-        $partners = $query->orderBy('created_at', 'desc')->get();
+        $partners = $query->with('scooterModelTransferFees.scooterModel')->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'data' => PartnerResource::collection($partners),
@@ -57,14 +59,10 @@ class PartnerController extends Controller
             'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'is_default_for_booking' => 'nullable|boolean',
             'default_shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船',
-            'same_day_transfer_fee_white' => 'nullable|integer|min:0',
-            'same_day_transfer_fee_green' => 'nullable|integer|min:0',
-            'same_day_transfer_fee_electric' => 'nullable|integer|min:0',
-            'same_day_transfer_fee_tricycle' => 'nullable|integer|min:0',
-            'overnight_transfer_fee_white' => 'nullable|integer|min:0',
-            'overnight_transfer_fee_green' => 'nullable|integer|min:0',
-            'overnight_transfer_fee_electric' => 'nullable|integer|min:0',
-            'overnight_transfer_fee_tricycle' => 'nullable|integer|min:0',
+            'transfer_fees' => 'nullable|array',
+            'transfer_fees.*.scooter_model_id' => 'required_with:transfer_fees|exists:scooter_models,id',
+            'transfer_fees.*.same_day_transfer_fee' => 'nullable|integer|min:0',
+            'transfer_fees.*.overnight_transfer_fee' => 'nullable|integer|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -75,13 +73,37 @@ class PartnerController extends Controller
         }
 
         $data = $validator->validated();
+        $transferFees = $data['transfer_fees'] ?? [];
+        unset($data['transfer_fees']);
         
         // 如果設置為預設，取消其他合作商的預設狀態
         if (isset($data['is_default_for_booking']) && $data['is_default_for_booking']) {
             Partner::where('id', '!=', 0)->update(['is_default_for_booking' => false]);
         }
 
-        $partner = Partner::create($data);
+        DB::beginTransaction();
+        try {
+            $partner = Partner::create($data);
+            
+            // 儲存調車費用
+            foreach ($transferFees as $fee) {
+                PartnerScooterModelTransferFee::updateOrCreate(
+                    [
+                        'partner_id' => $partner->id,
+                        'scooter_model_id' => $fee['scooter_model_id'],
+                    ],
+                    [
+                        'same_day_transfer_fee' => $fee['same_day_transfer_fee'] ?? null,
+                        'overnight_transfer_fee' => $fee['overnight_transfer_fee'] ?? null,
+                    ]
+                );
+            }
+            
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
 
         return response()->json([
             'message' => 'Partner created successfully',
@@ -94,6 +116,7 @@ class PartnerController extends Controller
      */
     public function show(Partner $partner): JsonResponse
     {
+        $partner->load('scooterModelTransferFees.scooterModel');
         return response()->json([
             'data' => new PartnerResource($partner),
         ]);
@@ -105,7 +128,7 @@ class PartnerController extends Controller
     public function update(Request $request, Partner $partner): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'name' => 'required|string|max:255',
+            'name' => 'sometimes|required|string|max:255',
             'address' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'tax_id' => 'nullable|string|max:20',
@@ -113,14 +136,10 @@ class PartnerController extends Controller
             'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'is_default_for_booking' => 'nullable|boolean',
             'default_shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船',
-            'same_day_transfer_fee_white' => 'nullable|integer|min:0',
-            'same_day_transfer_fee_green' => 'nullable|integer|min:0',
-            'same_day_transfer_fee_electric' => 'nullable|integer|min:0',
-            'same_day_transfer_fee_tricycle' => 'nullable|integer|min:0',
-            'overnight_transfer_fee_white' => 'nullable|integer|min:0',
-            'overnight_transfer_fee_green' => 'nullable|integer|min:0',
-            'overnight_transfer_fee_electric' => 'nullable|integer|min:0',
-            'overnight_transfer_fee_tricycle' => 'nullable|integer|min:0',
+            'transfer_fees' => 'nullable|array',
+            'transfer_fees.*.scooter_model_id' => 'required_with:transfer_fees|exists:scooter_models,id',
+            'transfer_fees.*.same_day_transfer_fee' => 'nullable|integer|min:0',
+            'transfer_fees.*.overnight_transfer_fee' => 'nullable|integer|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -131,13 +150,39 @@ class PartnerController extends Controller
         }
 
         $data = $validator->validated();
+        $transferFees = $data['transfer_fees'] ?? null;
+        unset($data['transfer_fees']);
         
         // 如果設置為預設，取消其他合作商的預設狀態
         if (isset($data['is_default_for_booking']) && $data['is_default_for_booking']) {
             Partner::where('id', '!=', $partner->id)->update(['is_default_for_booking' => false]);
         }
 
-        $partner->update($data);
+        DB::beginTransaction();
+        try {
+            $partner->update($data);
+            
+            // 如果有提供 transfer_fees，更新調車費用
+            if ($transferFees !== null) {
+                // 刪除現有的調車費用
+                PartnerScooterModelTransferFee::where('partner_id', $partner->id)->delete();
+                
+                // 儲存新的調車費用
+                foreach ($transferFees as $fee) {
+                    PartnerScooterModelTransferFee::create([
+                        'partner_id' => $partner->id,
+                        'scooter_model_id' => $fee['scooter_model_id'],
+                        'same_day_transfer_fee' => $fee['same_day_transfer_fee'] ?? null,
+                        'overnight_transfer_fee' => $fee['overnight_transfer_fee'] ?? null,
+                    ]);
+                }
+            }
+            
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            throw $e;
+        }
 
         return response()->json([
             'message' => 'Partner updated successfully',

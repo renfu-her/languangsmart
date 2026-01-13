@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\ScooterController;
+use App\Http\Controllers\Api\ScooterModelController;
 use App\Http\Controllers\Api\ScooterModelColorController;
 use App\Http\Controllers\Api\FineController;
 use App\Http\Controllers\Api\AccessoryController;
@@ -107,6 +108,16 @@ Route::prefix('scooters')->group(function () {
     Route::put('/{scooter}', [ScooterController::class, 'update']);
     Route::delete('/{scooter}', [ScooterController::class, 'destroy']);
     Route::post('/{scooter}/upload-photo', [ScooterController::class, 'uploadPhoto']);
+});
+
+// Scooter Models API
+Route::prefix('scooter-models')->group(function () {
+    Route::get('/', [ScooterModelController::class, 'index']);
+    Route::post('/', [ScooterModelController::class, 'store']);
+    Route::get('/{scooterModel}', [ScooterModelController::class, 'show']);
+    Route::put('/{scooterModel}', [ScooterModelController::class, 'update']);
+    Route::delete('/{scooterModel}', [ScooterModelController::class, 'destroy']);
+    Route::post('/{scooterModel}/upload-image', [ScooterModelController::class, 'uploadImage']);
 });
 
 // Scooter Model Colors API

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ScooterResource;
 use App\Models\Scooter;
+use App\Models\ScooterModel;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -40,7 +41,7 @@ class ScooterController extends Controller
             });
         }
 
-        $scooters = $query->with('store')->orderBy('created_at', 'desc')->get();
+        $scooters = $query->with(['store', 'scooterModel'])->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'data' => ScooterResource::collection($scooters),
@@ -53,7 +54,7 @@ class ScooterController extends Controller
     public function available(): JsonResponse
     {
         $scooters = Scooter::where('status', '待出租')
-            ->with('store')
+            ->with(['store', 'scooterModel'])
             ->orderBy('plate_number')
             ->get();
 
@@ -64,19 +65,19 @@ class ScooterController extends Controller
 
     /**
      * Get unique model + type combinations for booking form (Public)
+     * Now returns from ScooterModel table
      */
     public function models(): JsonResponse
     {
-        $models = Scooter::select('model', 'type')
-            ->distinct()
-            ->orderBy('model')
+        $models = ScooterModel::orderBy('name')
             ->orderBy('type')
             ->get()
-            ->map(function ($scooter) {
+            ->map(function ($scooterModel) {
                 return [
-                    'model' => $scooter->model,
-                    'type' => $scooter->type,
-                    'label' => $scooter->model . ' ' . $scooter->type, // 組合顯示：例如 "ES-2000 白牌"
+                    'id' => $scooterModel->id,
+                    'model' => $scooterModel->name,
+                    'type' => $scooterModel->type,
+                    'label' => $scooterModel->name . ' ' . $scooterModel->type, // 組合顯示：例如 "ES-2000 白牌"
                 ];
             });
 
@@ -93,8 +94,8 @@ class ScooterController extends Controller
         $validator = Validator::make($request->all(), [
             'store_id' => 'required|exists:stores,id',
             'plate_number' => 'required|string|max:20|unique:scooters,plate_number',
-            'model' => 'required|string|max:255',
-            'type' => 'required|in:白牌,綠牌,電輔車,三輪車',
+            'scooter_model_id' => 'required|exists:scooter_models,id',
+            'type' => 'nullable|in:白牌,綠牌,電輔車,三輪車',
             'color' => 'nullable|string|max:50',
             'status' => 'required|in:待出租,出租中,保養中',
         ], [
@@ -102,8 +103,8 @@ class ScooterController extends Controller
             'store_id.exists' => '所選擇的商店不存在',
             'plate_number.required' => '請輸入車牌號碼',
             'plate_number.unique' => '此車牌號碼已被使用',
-            'model.required' => '請輸入機車型號',
-            'type.required' => '請選擇車款類型',
+            'scooter_model_id.required' => '請選擇機車型號',
+            'scooter_model_id.exists' => '所選擇的機車型號不存在',
             'type.in' => '車款類型必須為：白牌、綠牌、電輔車或三輪車',
             'status.required' => '請選擇狀態',
             'status.in' => '狀態必須為：待出租、出租中或保養中',
@@ -116,11 +117,22 @@ class ScooterController extends Controller
             ], 422);
         }
 
-        $scooter = Scooter::create($validator->validated());
+        $data = $validator->validated();
+        
+        // 從 scooter_model 自動帶出 type 和 color
+        $scooterModel = ScooterModel::find($data['scooter_model_id']);
+        if ($scooterModel) {
+            $data['type'] = $data['type'] ?? $scooterModel->type;
+            $data['color'] = $data['color'] ?? $scooterModel->color;
+            // 保留 model 欄位以便向後兼容
+            $data['model'] = $scooterModel->name;
+        }
+
+        $scooter = Scooter::create($data);
 
         return response()->json([
             'message' => 'Scooter created successfully',
-            'data' => new ScooterResource($scooter->load('store')),
+            'data' => new ScooterResource($scooter->load(['store', 'scooterModel'])),
         ], 201);
     }
 
@@ -130,7 +142,7 @@ class ScooterController extends Controller
     public function show(Scooter $scooter): JsonResponse
     {
         return response()->json([
-            'data' => new ScooterResource($scooter->load('store')),
+            'data' => new ScooterResource($scooter->load(['store', 'scooterModel'])),
         ]);
     }
 
@@ -140,19 +152,19 @@ class ScooterController extends Controller
     public function update(Request $request, Scooter $scooter): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'store_id' => 'required|exists:stores,id',
-            'plate_number' => 'required|string|max:20|unique:scooters,plate_number,' . $scooter->id,
-            'model' => 'required|string|max:255',
-            'type' => 'required|in:白牌,綠牌,電輔車,三輪車',
+            'store_id' => 'sometimes|required|exists:stores,id',
+            'plate_number' => 'sometimes|required|string|max:20|unique:scooters,plate_number,' . $scooter->id,
+            'scooter_model_id' => 'sometimes|required|exists:scooter_models,id',
+            'type' => 'nullable|in:白牌,綠牌,電輔車,三輪車',
             'color' => 'nullable|string|max:50',
-            'status' => 'required|in:待出租,出租中,保養中',
+            'status' => 'sometimes|required|in:待出租,出租中,保養中',
         ], [
             'store_id.required' => '請選擇所屬商店',
             'store_id.exists' => '所選擇的商店不存在',
             'plate_number.required' => '請輸入車牌號碼',
             'plate_number.unique' => '此車牌號碼已被使用',
-            'model.required' => '請輸入機車型號',
-            'type.required' => '請選擇車款類型',
+            'scooter_model_id.required' => '請選擇機車型號',
+            'scooter_model_id.exists' => '所選擇的機車型號不存在',
             'type.in' => '車款類型必須為：白牌、綠牌、電輔車或三輪車',
             'status.required' => '請選擇狀態',
             'status.in' => '狀態必須為：待出租、出租中或保養中',
@@ -165,11 +177,24 @@ class ScooterController extends Controller
             ], 422);
         }
 
-        $scooter->update($validator->validated());
+        $data = $validator->validated();
+        
+        // 如果更新了 scooter_model_id，自動帶出 type 和 color
+        if (isset($data['scooter_model_id'])) {
+            $scooterModel = ScooterModel::find($data['scooter_model_id']);
+            if ($scooterModel) {
+                $data['type'] = $data['type'] ?? $scooterModel->type;
+                $data['color'] = $data['color'] ?? $scooterModel->color;
+                // 保留 model 欄位以便向後兼容
+                $data['model'] = $scooterModel->name;
+            }
+        }
+
+        $scooter->update($data);
 
         return response()->json([
             'message' => 'Scooter updated successfully',
-            'data' => new ScooterResource($scooter->load('store')),
+            'data' => new ScooterResource($scooter->load(['store', 'scooterModel'])),
         ]);
     }
 
@@ -216,7 +241,7 @@ class ScooterController extends Controller
 
         return response()->json([
             'message' => 'Photo uploaded successfully',
-            'data' => new ScooterResource($scooter->load('store')),
+            'data' => new ScooterResource($scooter->load(['store', 'scooterModel'])),
         ]);
     }
 }

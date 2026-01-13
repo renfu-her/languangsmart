@@ -25,14 +25,20 @@ class PartnerResource extends JsonResource
             'color' => $this->color,
             'is_default_for_booking' => $this->is_default_for_booking ?? false,
             'default_shipping_company' => $this->default_shipping_company,
-            'same_day_transfer_fee_white' => $this->same_day_transfer_fee_white ? (int) $this->same_day_transfer_fee_white : null,
-            'same_day_transfer_fee_green' => $this->same_day_transfer_fee_green ? (int) $this->same_day_transfer_fee_green : null,
-            'same_day_transfer_fee_electric' => $this->same_day_transfer_fee_electric ? (int) $this->same_day_transfer_fee_electric : null,
-            'same_day_transfer_fee_tricycle' => $this->same_day_transfer_fee_tricycle ? (int) $this->same_day_transfer_fee_tricycle : null,
-            'overnight_transfer_fee_white' => $this->overnight_transfer_fee_white ? (int) $this->overnight_transfer_fee_white : null,
-            'overnight_transfer_fee_green' => $this->overnight_transfer_fee_green ? (int) $this->overnight_transfer_fee_green : null,
-            'overnight_transfer_fee_electric' => $this->overnight_transfer_fee_electric ? (int) $this->overnight_transfer_fee_electric : null,
-            'overnight_transfer_fee_tricycle' => $this->overnight_transfer_fee_tricycle ? (int) $this->overnight_transfer_fee_tricycle : null,
+            'transfer_fees' => $this->whenLoaded('scooterModelTransferFees', function () {
+                return $this->scooterModelTransferFees->map(function ($fee) {
+                    return [
+                        'scooter_model_id' => $fee->scooter_model_id,
+                        'scooter_model' => $fee->scooterModel ? [
+                            'id' => $fee->scooterModel->id,
+                            'name' => $fee->scooterModel->name,
+                            'type' => $fee->scooterModel->type,
+                        ] : null,
+                        'same_day_transfer_fee' => $fee->same_day_transfer_fee ? (int) $fee->same_day_transfer_fee : null,
+                        'overnight_transfer_fee' => $fee->overnight_transfer_fee ? (int) $fee->overnight_transfer_fee : null,
+                    ];
+                });
+            }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
