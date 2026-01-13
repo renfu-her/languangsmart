@@ -673,45 +673,34 @@ const PartnersPage: React.FC = () => {
               <div>
                 <label className={`${labelClasses} mb-3`}>店面形象照片</label>
                 <div className={uploadAreaBaseClasses}>
+                  {photoPreview ? (
+                    <div className="relative">
+                      <img src={photoPreview} alt="Preview" className="max-h-48 mx-auto rounded" />
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPhotoPreview(null);
+                          setPhotoFile(null);
+                        }}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10 hover:bg-red-600 transition-colors"
+                        title="刪除圖片"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <ImageIcon className="mx-auto text-gray-400 mb-2" size={32} />
+                      <p className="text-sm text-gray-500">點擊或拖放圖片到此處</p>
+                    </div>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handlePhotoChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                   <div className="flex flex-col items-center">
-                      <div className="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                        <ImageIcon size={32} className="text-gray-400 dark:text-gray-500 group-hover:text-orange-500 transition-colors" />
-                      </div>
-                      <p className="text-sm font-bold text-gray-700 dark:text-gray-300">拖放檔案，或者 <span className="text-orange-600 dark:text-orange-400">點擊瀏覽</span></p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-medium">建議比例 16:9, 最高支援 10MB JPG/PNG</p>
-                      {photoPreview && (
-                        <div className="relative mt-4">
-                          <img 
-                            src={photoPreview} 
-                            alt="Preview" 
-                            className="max-w-full max-h-48 rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setImageViewerUrl(photoPreview);
-                              setImageViewerOpen(true);
-                            }}
-                          />
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPhotoPreview(null);
-                              setPhotoFile(null);
-                            }}
-                            className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10 hover:bg-red-600 transition-colors"
-                            title="刪除圖片"
-                          >
-                            <X size={16} />
-                          </button>
-                        </div>
-                      )}
-                   </div>
                 </div>
               </div>
             </div>

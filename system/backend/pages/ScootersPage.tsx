@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Plus, Search, Bike, Edit3, Trash2, X, Loader2, MoreHorizontal, ChevronDown } from 'lucide-react';
+import { Plus, Search, Bike, Edit3, Trash2, X, Loader2, MoreHorizontal, ChevronDown, Image as ImageIcon } from 'lucide-react';
 import { scootersApi, storesApi, scooterModelColorsApi, scooterModelsApi, scooterTypesApi } from '../lib/api';
 import { inputClasses, selectClasses, labelClasses, searchInputClasses, chevronDownClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
 
@@ -343,6 +343,11 @@ const ScootersPage: React.FC = () => {
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleDeleteImage = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
   };
 
   // 根據所有機車計算計數（不受過濾器影響）
@@ -699,31 +704,32 @@ const ScootersPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">機車外觀照片</label>
-                <div className="border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-2xl p-10 bg-gray-50/50 dark:bg-gray-700/30 flex flex-col items-center justify-center hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50/10 dark:hover:bg-gray-700/50 cursor-pointer transition-all group relative">
+                <label className={labelClasses}>機車外觀照片</label>
+                <div className={uploadAreaBaseClasses}>
+                  {photoPreview ? (
+                    <div className="relative">
+                      <img src={photoPreview} alt="Preview" className="max-h-48 mx-auto rounded" />
+                      <button
+                        type="button"
+                        onClick={handleDeleteImage}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10 hover:bg-red-600 transition-colors"
+                        title="刪除圖片"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <ImageIcon className="mx-auto text-gray-400 mb-2" size={32} />
+                      <p className="text-sm text-gray-500">點擊或拖放圖片到此處</p>
+                    </div>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handlePhotoChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                   <div className="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                     <Bike size={32} className="text-gray-400 dark:text-gray-500 group-hover:text-orange-500 transition-colors" />
-                   </div>
-                   <p className="text-sm font-bold text-gray-700 dark:text-gray-300">點擊或拖放照片至此</p>
-                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">建議解析度 1280x720 以上的清晰照片</p>
-                   {photoPreview && (
-                     <img 
-                       src={photoPreview} 
-                       alt="Preview" 
-                       className="mt-4 max-w-full max-h-48 rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         setImageViewerUrl(photoPreview);
-                         setImageViewerOpen(true);
-                       }}
-                     />
-                   )}
                 </div>
               </div>
             </div>
