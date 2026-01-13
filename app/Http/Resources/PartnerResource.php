@@ -25,6 +25,8 @@ class PartnerResource extends JsonResource
             'color' => $this->color,
             'is_default_for_booking' => $this->is_default_for_booking ?? false,
             'default_shipping_company' => $this->default_shipping_company,
+            'same_day_transfer_fee' => $this->same_day_transfer_fee ? (float) $this->same_day_transfer_fee : null,
+            'overnight_transfer_fee' => $this->overnight_transfer_fee ? (float) $this->overnight_transfer_fee : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

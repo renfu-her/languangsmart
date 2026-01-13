@@ -14,6 +14,8 @@ interface Partner {
   color: string | null;
   is_default_for_booking?: boolean;
   default_shipping_company?: string | null;
+  same_day_transfer_fee?: number | null;
+  overnight_transfer_fee?: number | null;
 }
 
 const PartnersPage: React.FC = () => {
@@ -30,6 +32,8 @@ const PartnersPage: React.FC = () => {
     manager: '',
     color: '',
     is_default_for_booking: false,
+    same_day_transfer_fee: '',
+    overnight_transfer_fee: '',
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -70,6 +74,8 @@ const PartnersPage: React.FC = () => {
         manager: partner.manager || '',
         color: partner.color || '',
         is_default_for_booking: partner.is_default_for_booking || false,
+        same_day_transfer_fee: partner.same_day_transfer_fee?.toString() || '',
+        overnight_transfer_fee: partner.overnight_transfer_fee?.toString() || '',
       });
       setPhotoPreview(partner.photo_path || null);
     } else {
@@ -82,6 +88,8 @@ const PartnersPage: React.FC = () => {
         manager: '',
         color: '',
         is_default_for_booking: false,
+        same_day_transfer_fee: '',
+        overnight_transfer_fee: '',
       });
       setPhotoPreview(null);
     }
@@ -98,6 +106,10 @@ const PartnersPage: React.FC = () => {
       phone: '',
       tax_id: '',
       manager: '',
+      color: '',
+      is_default_for_booking: false,
+      same_day_transfer_fee: '',
+      overnight_transfer_fee: '',
     });
     setPhotoFile(null);
     setPhotoPreview(null);
@@ -105,13 +117,20 @@ const PartnersPage: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
+      // 準備提交數據，將費用欄位轉換為數字或 null
+      const submitData = {
+        ...formData,
+        same_day_transfer_fee: formData.same_day_transfer_fee ? parseFloat(formData.same_day_transfer_fee) : null,
+        overnight_transfer_fee: formData.overnight_transfer_fee ? parseFloat(formData.overnight_transfer_fee) : null,
+      };
+      
       if (editingPartner) {
-        await partnersApi.update(editingPartner.id, formData);
+        await partnersApi.update(editingPartner.id, submitData);
         if (photoFile) {
           await partnersApi.uploadPhoto(editingPartner.id, photoFile);
         }
       } else {
-        const response = await partnersApi.create(formData);
+        const response = await partnersApi.create(submitData);
         if (photoFile) {
           const partnerId = editingPartner ? editingPartner.id : (response.data?.data?.id || response.data?.id);
           if (partnerId) {
@@ -397,6 +416,34 @@ const PartnersPage: React.FC = () => {
                     placeholder=""
                     value={formData.manager}
                     onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className={labelClasses}>
+                    當日調車費用
+                  </label>
+                  <input 
+                    type="number" 
+                    className={inputClasses}
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
+                    value={formData.same_day_transfer_fee}
+                    onChange={(e) => setFormData({ ...formData, same_day_transfer_fee: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label className={labelClasses}>
+                    跨日調車費用
+                  </label>
+                  <input 
+                    type="number" 
+                    className={inputClasses}
+                    placeholder="0"
+                    min="0"
+                    step="0.01"
+                    value={formData.overnight_transfer_fee}
+                    onChange={(e) => setFormData({ ...formData, overnight_transfer_fee: e.target.value })}
                   />
                 </div>
                 <div className="col-span-2">

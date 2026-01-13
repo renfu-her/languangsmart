@@ -19,6 +19,8 @@ class Partner extends Model
         'color',
         'is_default_for_booking',
         'default_shipping_company',
+        'same_day_transfer_fee',
+        'overnight_transfer_fee',
     ];
 
     /**

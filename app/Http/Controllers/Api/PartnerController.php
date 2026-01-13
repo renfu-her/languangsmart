@@ -57,6 +57,8 @@ class PartnerController extends Controller
             'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'is_default_for_booking' => 'nullable|boolean',
             'default_shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船',
+            'same_day_transfer_fee' => 'nullable|numeric|min:0',
+            'overnight_transfer_fee' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -105,6 +107,8 @@ class PartnerController extends Controller
             'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'is_default_for_booking' => 'nullable|boolean',
             'default_shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船',
+            'same_day_transfer_fee' => 'nullable|numeric|min:0',
+            'overnight_transfer_fee' => 'nullable|numeric|min:0',
         ]);
 
         if ($validator->fails()) {

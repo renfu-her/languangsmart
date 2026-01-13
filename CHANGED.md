@@ -1,5 +1,45 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-12 22:40:00 (+8) - 合作商新增調車費用欄位
+
+### 變更內容
+
+#### 後端
+- **Migration** (`database/migrations/2026_01_12_223000_add_transfer_fees_to_partners_table.php`)
+  - 新增 migration 添加兩個欄位到 partners 表：
+    - `same_day_transfer_fee` (decimal, nullable): 當日調車費用
+    - `overnight_transfer_fee` (decimal, nullable): 跨日調車費用
+
+- **Partner.php** (`app/Models/Partner.php`)
+  - 在 `$fillable` 陣列中新增 `same_day_transfer_fee` 和 `overnight_transfer_fee`
+
+- **PartnerController.php** (`app/Http/Controllers/Api/PartnerController.php`)
+  - 在 `store` 和 `update` 方法的驗證規則中新增：
+    - `same_day_transfer_fee`: nullable|numeric|min:0
+    - `overnight_transfer_fee`: nullable|numeric|min:0
+
+- **PartnerResource.php** (`app/Http/Resources/PartnerResource.php`)
+  - 在返回數據中新增 `same_day_transfer_fee` 和 `overnight_transfer_fee` 欄位
+  - 將 decimal 值轉換為 float 類型返回
+
+#### 前端
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 更新 `Partner` interface，新增 `same_day_transfer_fee` 和 `overnight_transfer_fee` 欄位
+  - 更新 `formData` state，新增兩個費用欄位
+  - 更新 `handleOpenModal` 和 `handleCloseModal`，處理新欄位的初始化和重置
+  - 更新 `handleSubmit`，將費用欄位轉換為數字或 null 後提交
+  - 在表單中新增兩個輸入欄位（位於「商店主管」下方）：
+    - 當日調車費用：數字輸入框，最小值 0，步長 0.01
+    - 跨日調車費用：數字輸入框，最小值 0，步長 0.01
+
+### 功能說明
+- 合作商現在可以設定當日調車費用和跨日調車費用
+- 兩個欄位都是可選的（nullable），可以為空
+- 費用欄位支援小數點（步長 0.01），最小值為 0
+- 在新增和編輯合作商時都可以設定這兩個費用
+
+---
+
 ## 2026-01-12 22:30:00 (+8) - 新增行動潛水月報表匯出功能
 
 ### 變更內容
