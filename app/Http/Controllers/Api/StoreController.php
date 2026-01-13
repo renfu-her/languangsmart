@@ -100,7 +100,14 @@ class StoreController extends Controller
             ], 422);
         }
 
-        $store->update($validator->validated());
+        $data = $validator->validated();
+        
+        // Handle photo deletion (if photo_path is explicitly set to null)
+        if (isset($data['photo_path']) && $data['photo_path'] === null && $store->photo_path) {
+            $this->imageService->deleteImage($store->photo_path);
+        }
+        
+        $store->update($data);
 
         return response()->json([
             'message' => 'Store updated successfully',

@@ -26,6 +26,7 @@ const StoresPage: React.FC = () => {
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [shouldDeletePhoto, setShouldDeletePhoto] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const dropdownRefs = useRef<Record<number, HTMLDivElement | null>>({});
@@ -60,6 +61,7 @@ const StoresPage: React.FC = () => {
         manager: store.manager,
       });
       setPhotoPreview(store.photo_path || null);
+      setShouldDeletePhoto(false);
     } else {
       setEditingStore(null);
       setFormData({
@@ -85,14 +87,20 @@ const StoresPage: React.FC = () => {
     });
     setPhotoFile(null);
     setPhotoPreview(null);
+    setShouldDeletePhoto(false);
   };
 
   const handleSubmit = async () => {
     try {
       if (editingStore) {
-        await storesApi.update(editingStore.id, formData);
-        if (photoFile) {
-          await storesApi.uploadPhoto(editingStore.id, photoFile);
+        // 如果要刪除圖片，發送 photo_path: null
+        if (shouldDeletePhoto && !photoFile) {
+          await storesApi.update(editingStore.id, { ...formData, photo_path: null });
+        } else {
+          await storesApi.update(editingStore.id, formData);
+          if (photoFile) {
+            await storesApi.uploadPhoto(editingStore.id, photoFile);
+          }
         }
       } else {
         const response = await storesApi.create(formData);
@@ -175,11 +183,21 @@ const StoresPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       setPhotoFile(file);
+      setShouldDeletePhoto(false); // 選擇新圖片時清除刪除標記
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDeleteImage = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    // 如果是編輯模式且有現有圖片，標記為要刪除
+    if (editingStore && editingStore.photo_path) {
+      setShouldDeletePhoto(true);
     }
   };
 
@@ -351,32 +369,31 @@ const StoresPage: React.FC = () => {
               </div>
               <div>
                 <label className={`${labelClasses} mb-3`}>店面形象照片</label>
-                <div className={`${uploadAreaBaseClasses} hover:bg-white`}>
+                <div className={uploadAreaBaseClasses}>
+                  {photoPreview ? (
+                    <div className="relative">
+                      <img src={photoPreview} alt="Preview" className="max-h-48 mx-auto rounded" />
+                      <button
+                        type="button"
+                        onClick={handleDeleteImage}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10 hover:bg-red-600 transition-colors"
+                        title="刪除圖片"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <ImageIcon className="mx-auto text-gray-400 mb-2" size={32} />
+                      <p className="text-sm text-gray-500">點擊或拖放圖片到此處</p>
+                    </div>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handlePhotoChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                   <div className="flex flex-col items-center">
-                      <div className="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                        <ImageIcon size={32} className="text-gray-400 dark:text-gray-500 group-hover:text-orange-500 transition-colors" />
-                      </div>
-                      <p className="text-sm font-bold text-gray-700 dark:text-gray-300">拖放檔案，或者 <span className="text-orange-600 dark:text-orange-400">點擊瀏覽</span></p>
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 font-medium">建議比例 16:9, 最高支援 10MB JPG/PNG</p>
-                      {photoPreview && (
-                        <img 
-                          src={photoPreview} 
-                          alt="Preview" 
-                          className="mt-4 max-w-full max-h-48 rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setImageViewerUrl(photoPreview);
-                            setImageViewerOpen(true);
-                          }}
-                        />
-                      )}
-                   </div>
                 </div>
               </div>
             </div>
