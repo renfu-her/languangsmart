@@ -1,5 +1,54 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-14 21:53:18 (+8) - 修改合作商月報表 Excel 格式：當日租1欄，跨日租3欄，按 order_number 分開顯示
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 Excel 表頭結構：
+    - 第一層：機車型號標題（每個型號佔 4 欄）
+    - 第二層：當日租（1 欄）、跨日租（3 欄）
+    - 第三層：台數（當日租下，1 欄）、台數、天數、金額（跨日租下，3 欄）
+  - 修改數據行格式：
+    - 當日租：只顯示台數（1 欄）
+    - 跨日租：顯示台數、天數、金額（3 欄）
+  - 修改總計行和小計行以符合新格式
+  - 支援按 `order_number` 分開顯示：同一天有多個訂單時，每個訂單顯示一行
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修改 `processPartnerOrders()` 方法，按 `order_number` 分開存儲數據
+  - 修改 `partnerDailyReport()` 返回結構：
+    - 將 `dates[].models` 改為 `dates[].orders[]`
+    - 每個 `order` 包含 `order_number` 和 `models` 陣列
+    - 即使型號相同，不同的 `order_number` 也會分開顯示
+
+### 問題說明
+- 用戶要求 Excel 格式調整：
+  - 當日租：只有台數（1 欄）
+  - 跨日租：台數、天數、金額（3 欄）
+  - 每個型號總共 4 欄（1 + 3）
+- 不同的 `order_number`，即使型號相同，也要寫成不同資料（分開顯示）
+
+### 技術細節
+- Excel 表頭結構：
+  ```
+  第一層：機車型號（每個型號 4 欄）
+  第二層：當日租（1欄）、跨日租（3欄）
+  第三層：台數（當日租）、台數、天數、金額（跨日租）
+  ```
+- 數據結構變更：
+  ```php
+  // 舊結構
+  dates[].models[]
+  
+  // 新結構
+  dates[].orders[].models[]
+  dates[].orders[].order_number
+  ```
+- 前端處理：如果同一天有多個訂單，每個訂單顯示一行，只有第一個訂單顯示日期
+
 ## 2026-01-14 21:37:19 (+8) - 修復合作商月報表匯出功能錯誤
 
 ### 變更內容

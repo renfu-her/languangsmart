@@ -64,8 +64,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet([]);
 
-      // 計算總列數：日期(1) + 星期(1) + 空白(1) + 每個型號(4列：當日租台數、當日租金額、跨日租台數、跨日租金額)
-      const totalCols = 2 + 1 + allModels.length * 4;
+      // 計算總列數：日期(1) + 星期(1) + 每個型號(4列：當日租台數(1) + 跨日租台數、天數、金額(3))
+      const totalCols = 2 + allModels.length * 4;
       
       // 星期對應表
       const weekdayMap: Record<string, string> = {
@@ -80,8 +80,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
 
       let row = 1;
 
-      // 第一行：標題（合併所有列）
-      const titleRow: any[][] = [[`${partnerName}機車出租月報表`]];
+      // 第一行：標題「合作商出租月報表」（合併所有列）
+      const titleRow: any[][] = [[`${partnerName}出租月報表`]];
       XLSX.utils.sheet_add_aoa(ws, titleRow, { origin: `A${row}` });
       // 合併單元格（從 A1 到最後一列）
       if (!ws['!merges']) ws['!merges'] = [];
@@ -89,14 +89,14 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       ws['!merges'].push({ s: { r: row - 1, c: 0 }, e: { r: row - 1, c: totalCols - 1 } });
       row++;
 
-      // 第二行：A2 當日租，B2 空白，然後是機車型號標題
-      const headerRow2: any[] = ['當日租', '']; // 左邊多一個空白列
+      // 第二行：前面兩欄空白，然後機車型號標題（每個型號佔 4 欄）
+      const headerRow2: any[] = ['', '']; // 前面兩欄空白
       allModels.forEach((model: string) => {
         headerRow2.push(model, '', '', ''); // 每個型號佔 4 列
       });
       XLSX.utils.sheet_add_aoa(ws, [headerRow2], { origin: `A${row}` });
       // 合併每個型號的標題
-      let col = 2; // 從第 3 列開始（索引 2，跳過 A2 當日租和 B2 空白）
+      let col = 2; // 從第 3 列開始（索引 2，跳過前面兩欄空白）
       allModels.forEach(() => {
         if (!ws['!merges']) ws['!merges'] = [];
         ws['!merges'].push({ s: { r: row - 1, c: col }, e: { r: row - 1, c: col + 3 } });
@@ -104,77 +104,93 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       row++;
 
-      // 第三行：A3 跨日租，B3 空白，然後每個型號下分為當日租和跨日租
-      const headerRow3: any[] = ['跨日租', '']; // 左邊多一個空白列
+      // 第三行：前面兩欄空白，然後當日租（1 欄）、跨日租（3 欄）
+      const headerRow3: any[] = ['', '']; // 前面兩欄空白
       allModels.forEach(() => {
-        headerRow3.push('當日租', '跨日租', '', ''); // 當日租(2列合併)，跨日租(2列合併)
+        headerRow3.push('當日租', '跨日租', '', ''); // 當日租(1欄)，跨日租(3欄合併)
       });
       XLSX.utils.sheet_add_aoa(ws, [headerRow3], { origin: `A${row}` });
-      // 合併當日租和跨日租的標題（每個都是2列：台數、金額）
-      col = 2; // 從第 3 列開始（索引 2，跳過 A3 跨日租和 B3 空白）
+      // 合併跨日租的標題（3 欄：台數、天數、金額）
+      col = 2; // 從第 3 列開始（索引 2）
       allModels.forEach(() => {
         if (!ws['!merges']) ws['!merges'] = [];
-        // 當日租合併 2 列（台數、金額）
-        ws['!merges'].push({ s: { r: row - 1, c: col }, e: { r: row - 1, c: col + 1 } });
-        // 跨日租合併 2 列（台數、金額）
-        ws['!merges'].push({ s: { r: row - 1, c: col + 2 }, e: { r: row - 1, c: col + 3 } });
+        // 跨日租合併 3 列（台數、天數、金額）
+        ws['!merges'].push({ s: { r: row - 1, c: col + 1 }, e: { r: row - 1, c: col + 3 } });
         col += 4;
       });
       row++;
 
-      // 第四行：A4 日期，B4 星期，C4 空白，然後每個型號下：當日租台數、當日租金額、跨日租台數、跨日租金額
-      const headerRow4: any[] = ['日期', '星期', '']; // 左邊多一個空白列
+      // 第四行：前面兩欄空白，然後台數（當日租下）、台數、天數、金額（跨日租下）
+      const headerRow4: any[] = ['', '']; // 前面兩欄空白
       allModels.forEach(() => {
-        headerRow4.push('台數', '金額', '台數', '金額');
+        headerRow4.push('台數', '台數', '天數', '金額'); // 當日租：台數(1欄)，跨日租：台數、天數、金額(3欄)
       });
       XLSX.utils.sheet_add_aoa(ws, [headerRow4], { origin: `A${row}` });
       row++;
 
-      // 數據行
+      // 第五行開始：日期、星期、數據
+
+      // 數據行（按 order_number 分開顯示）
       dates.forEach((dateItem: any) => {
         const dateStr = dateItem.date;
         const dateObj = new Date(dateStr + 'T00:00:00');
         const formattedDate = `${dateObj.getFullYear()}年${String(dateObj.getMonth() + 1).padStart(2, '0')}月${String(dateObj.getDate()).padStart(2, '0')}日`;
         const weekday = weekdayMap[dateItem.weekday] || dateItem.weekday;
-        // 日期和星期合併在一個單元格
-        const dateWithWeekday = `${formattedDate} ${weekday}`;
 
-        const dataRow: any[] = [dateWithWeekday, '', '']; // 左邊多一個空白列
+        // 如果該日期有多個訂單，每個訂單顯示一行
+        const orders = dateItem.orders || [];
+        
+        if (orders.length === 0) {
+          // 沒有訂單的日期，顯示空行
+          const emptyRow: any[] = [dateWithWeekday, weekday]; // 日期、星期
+          allModels.forEach(() => {
+            emptyRow.push('', '', '', ''); // 每個型號 4 欄都為空
+          });
+          XLSX.utils.sheet_add_aoa(ws, [emptyRow], { origin: `A${row}` });
+          row++;
+        } else {
+          // 每個訂單顯示一行
+          orders.forEach((order: any, orderIndex: number) => {
+            const dataRow: any[] = orderIndex === 0 
+              ? [dateWithWeekday, weekday] // 第一個訂單顯示日期和星期
+              : ['', '']; // 其他訂單不顯示日期和星期
 
-        allModels.forEach((model: string) => {
-          const modelData = dateItem.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
-            same_day_count: '',
-            same_day_days: '',
-            same_day_amount: '',
-            overnight_count: '',
-            overnight_days: '',
-            overnight_amount: '',
-          };
+            allModels.forEach((model: string) => {
+              const modelData = order.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
+                same_day_count: '',
+                same_day_days: '',
+                same_day_amount: '',
+                overnight_count: '',
+                overnight_days: '',
+                overnight_amount: '',
+              };
 
-          // 將空字符串轉換為數字 0 進行比較
-          const sameDayCount = modelData.same_day_count === '' ? 0 : Number(modelData.same_day_count) || 0;
-          const sameDayAmount = modelData.same_day_amount === '' ? 0 : Number(modelData.same_day_amount) || 0;
-          const overnightCount = modelData.overnight_count === '' ? 0 : Number(modelData.overnight_count) || 0;
-          const overnightAmount = modelData.overnight_amount === '' ? 0 : Number(modelData.overnight_amount) || 0;
+              // 將空字符串轉換為數字 0 進行比較
+              const sameDayCount = modelData.same_day_count === '' ? 0 : Number(modelData.same_day_count) || 0;
+              const overnightCount = modelData.overnight_count === '' ? 0 : Number(modelData.overnight_count) || 0;
+              const overnightDays = modelData.overnight_days === '' ? 0 : Number(modelData.overnight_days) || 0;
+              const overnightAmount = modelData.overnight_amount === '' ? 0 : Number(modelData.overnight_amount) || 0;
 
-          const hasSameDay = sameDayCount > 0;
-          const hasOvernight = overnightCount > 0;
+              const hasSameDay = sameDayCount > 0;
+              const hasOvernight = overnightCount > 0;
 
-          // 每個型號：當日租台數、當日租金額、跨日租台數、跨日租金額
-          dataRow.push(
-            hasSameDay ? sameDayCount : '',
-            hasSameDay ? sameDayAmount : '',
-            hasOvernight ? overnightCount : '',
-            hasOvernight ? overnightAmount : ''
-          );
-        });
+              // 每個型號：當日租台數(1欄)、跨日租台數、天數、金額(3欄)
+              dataRow.push(
+                hasSameDay ? sameDayCount : '', // 當日租：台數
+                hasOvernight ? overnightCount : '', // 跨日租：台數
+                hasOvernight ? overnightDays : '', // 跨日租：天數
+                hasOvernight ? overnightAmount : '' // 跨日租：金額
+              );
+            });
 
-        XLSX.utils.sheet_add_aoa(ws, [dataRow], { origin: `A${row}` });
-        row++;
+            XLSX.utils.sheet_add_aoa(ws, [dataRow], { origin: `A${row}` });
+            row++;
+          });
+        }
       });
 
       // 月結總計 - 總台數/天數行
-      const totalRow1: any[] = ['月結總計', '總台數/天數', '']; // 左邊多一個空白列
+      const totalRow1: any[] = ['月結總計', '總台數/天數']; // 前面兩欄：月結總計、總台數/天數
       let grandTotalAmount = 0;
 
       allModels.forEach((model: string) => {
@@ -186,32 +202,36 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         let modelOvernightTotalAmount = 0;
 
         dates.forEach((dateItem: any) => {
-          const modelData = dateItem.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
-            same_day_count: '',
-            same_day_days: '',
-            same_day_amount: '',
-            overnight_count: '',
-            overnight_days: '',
-            overnight_amount: '',
-          };
-          // 將空字符串轉換為數字 0
-          modelSameDayTotalCount += modelData.same_day_count === '' ? 0 : Number(modelData.same_day_count) || 0;
-          modelSameDayTotalDays += modelData.same_day_days === '' ? 0 : Number(modelData.same_day_days) || 0;
-          modelSameDayTotalAmount += modelData.same_day_amount === '' ? 0 : Number(modelData.same_day_amount) || 0;
-          modelOvernightTotalCount += modelData.overnight_count === '' ? 0 : Number(modelData.overnight_count) || 0;
-          modelOvernightTotalDays += modelData.overnight_days === '' ? 0 : Number(modelData.overnight_days) || 0;
-          modelOvernightTotalAmount += modelData.overnight_amount === '' ? 0 : Number(modelData.overnight_amount) || 0;
+          // 處理該日期的所有訂單
+          const orders = dateItem.orders || [];
+          orders.forEach((order: any) => {
+            const modelData = order.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
+              same_day_count: '',
+              same_day_days: '',
+              same_day_amount: '',
+              overnight_count: '',
+              overnight_days: '',
+              overnight_amount: '',
+            };
+            // 將空字符串轉換為數字 0
+            modelSameDayTotalCount += modelData.same_day_count === '' ? 0 : Number(modelData.same_day_count) || 0;
+            modelSameDayTotalDays += modelData.same_day_days === '' ? 0 : Number(modelData.same_day_days) || 0;
+            modelSameDayTotalAmount += modelData.same_day_amount === '' ? 0 : Number(modelData.same_day_amount) || 0;
+            modelOvernightTotalCount += modelData.overnight_count === '' ? 0 : Number(modelData.overnight_count) || 0;
+            modelOvernightTotalDays += modelData.overnight_days === '' ? 0 : Number(modelData.overnight_days) || 0;
+            modelOvernightTotalAmount += modelData.overnight_amount === '' ? 0 : Number(modelData.overnight_amount) || 0;
+          });
         });
 
         const modelTotalAmount = modelSameDayTotalAmount + modelOvernightTotalAmount;
         grandTotalAmount += modelTotalAmount;
 
-        // 每個型號：當日租台數、當日租金額、跨日租台數、跨日租金額
+        // 每個型號：當日租台數(1欄)、跨日租台數、天數、金額(3欄)
         totalRow1.push(
-          modelSameDayTotalCount > 0 ? modelSameDayTotalCount : '',
-          modelSameDayTotalAmount > 0 ? modelSameDayTotalAmount : '',
-          modelOvernightTotalCount > 0 ? modelOvernightTotalCount : '',
-          modelOvernightTotalAmount > 0 ? modelOvernightTotalAmount : ''
+          modelSameDayTotalCount > 0 ? modelSameDayTotalCount : '', // 當日租：台數
+          modelOvernightTotalCount > 0 ? modelOvernightTotalCount : '', // 跨日租：台數
+          modelOvernightTotalDays > 0 ? modelOvernightTotalDays : '', // 跨日租：天數
+          modelOvernightTotalAmount > 0 ? modelOvernightTotalAmount : '' // 跨日租：金額
         );
       });
 
@@ -219,29 +239,33 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       row++;
 
       // 小計行
-      const subtotalRow: any[] = ['', '小計', '']; // 左邊多一個空白列
+      const subtotalRow: any[] = ['', '小計']; // 前面兩欄：空白、小計
       allModels.forEach((model: string) => {
         let modelSameDayTotalAmount = 0;
         let modelOvernightTotalAmount = 0;
         dates.forEach((dateItem: any) => {
-          const modelData = dateItem.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
-            same_day_amount: '',
-            overnight_amount: '',
-          };
-          // 將空字符串轉換為數字 0
-          modelSameDayTotalAmount += modelData.same_day_amount === '' ? 0 : Number(modelData.same_day_amount) || 0;
-          modelOvernightTotalAmount += modelData.overnight_amount === '' ? 0 : Number(modelData.overnight_amount) || 0;
+          // 處理該日期的所有訂單
+          const orders = dateItem.orders || [];
+          orders.forEach((order: any) => {
+            const modelData = order.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
+              same_day_amount: '',
+              overnight_amount: '',
+            };
+            // 將空字符串轉換為數字 0
+            modelSameDayTotalAmount += modelData.same_day_amount === '' ? 0 : Number(modelData.same_day_amount) || 0;
+            modelOvernightTotalAmount += modelData.overnight_amount === '' ? 0 : Number(modelData.overnight_amount) || 0;
+          });
         });
-        // 每個型號：空白、當日租金額、空白、跨日租金額
-        subtotalRow.push('', modelSameDayTotalAmount > 0 ? modelSameDayTotalAmount : '', '', modelOvernightTotalAmount > 0 ? modelOvernightTotalAmount : '');
+        // 每個型號：空白、空白、空白、跨日租金額（當日租沒有金額欄位）
+        subtotalRow.push('', '', '', modelOvernightTotalAmount > 0 ? modelOvernightTotalAmount : '');
       });
       XLSX.utils.sheet_add_aoa(ws, [subtotalRow], { origin: `A${row}` });
       row++;
 
       // 總金額行
-      const totalAmountRow: any[] = ['', '總金額', '']; // 左邊多一個空白列
-      // 第一個型號的跨日租金額欄位位置（索引從 0 開始：日期=0, 星期=1, 空白=2, 第一個型號的跨日租金額=2+4*0+3=5）
-      const firstModelOvernightAmountCol = 3 + 3; // 日期(1) + 星期(1) + 空白(1) + 當日租台數(1) + 當日租金額(1) + 跨日租台數(1) = 6，索引是 5
+      const totalAmountRow: any[] = ['', '總金額']; // 前面兩欄：空白、總金額
+      // 第一個型號的跨日租金額欄位位置（索引從 0 開始：日期=0, 星期=1, 第一個型號的跨日租金額=1+4*0+3=4）
+      const firstModelOvernightAmountCol = 2 + 3; // 日期(1) + 星期(1) + 當日租台數(1) + 跨日租台數(1) + 跨日租天數(1) = 5，索引是 4
       // 最後一個型號的跨日租金額欄位位置
       const lastModelOvernightAmountCol = firstModelOvernightAmountCol + (allModels.length - 1) * 4;
 
@@ -255,6 +279,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         }
       });
       XLSX.utils.sheet_add_aoa(ws, [totalAmountRow], { origin: `A${row}` });
+      
       // 合併總金額欄位（如果有多個型號，合併所有型號的跨日租金額欄位）
       if (allModels.length > 1) {
         if (!ws['!merges']) ws['!merges'] = [];
@@ -263,6 +288,16 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
           e: { r: row - 1, c: lastModelOvernightAmountCol } 
         });
       }
+      
+      // 合併「月結總計」垂直方向（合併總台數/天數、小計、總金額三行）
+      if (!ws['!merges']) ws['!merges'] = [];
+      ws['!merges'].push({ 
+        s: { r: row - 3, c: 0 }, // 總台數/天數行
+        e: { r: row - 1, c: 0 }  // 總金額行
+      });
+      
+      // 注意：XLSX.js 的樣式支持有限，如果需要黃色背景和紅色文字，可能需要使用 xlsx-style 或其他庫
+      // 這裡先設置基本的格式，樣式可以在 Excel 中手動調整或使用其他庫
 
       // 設置列寬
       ws['!cols'] = Array(totalCols).fill(null).map(() => ({ wch: 12 }));

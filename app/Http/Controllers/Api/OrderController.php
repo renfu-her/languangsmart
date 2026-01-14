@@ -711,28 +711,43 @@ class OrderController extends Controller
             $datesData = $this->processPartnerOrders($partnerOrders, $transferFeesMap, $partnerId);
 
             // 合併完整日期列表，將 datesData 轉換為 models 陣列格式
+            // 按 order_number 分開顯示，即使型號相同也要分開
             $dates = $allDates->map(function ($dateInfo) use ($datesData) {
                 $dateStr = $dateInfo['date'];
-                $dateModels = $datesData->get($dateStr, collect());
+                $dateOrders = $datesData->get($dateStr, collect());
                 
-                // 將數據轉換為 models 陣列，當值為 0 時返回空字符串
-                $models = $dateModels->map(function ($modelData) {
-                    return [
-                        'model' => $modelData['model'] ?? '',
-                        'type' => $modelData['type'] ?? '',
-                        'same_day_count' => ($modelData['same_day_count'] ?? 0) > 0 ? $modelData['same_day_count'] : '',
-                        'same_day_days' => ($modelData['same_day_days'] ?? 0) > 0 ? $modelData['same_day_days'] : '',
-                        'same_day_amount' => ($modelData['same_day_amount'] ?? 0) > 0 ? $modelData['same_day_amount'] : '',
-                        'overnight_count' => ($modelData['overnight_count'] ?? 0) > 0 ? $modelData['overnight_count'] : '',
-                        'overnight_days' => ($modelData['overnight_days'] ?? 0) > 0 ? $modelData['overnight_days'] : '',
-                        'overnight_amount' => ($modelData['overnight_amount'] ?? 0) > 0 ? $modelData['overnight_amount'] : '',
-                    ];
-                })->values()->toArray();
+                // 如果該日期有數據，按 order_number 分組
+                $ordersArray = [];
+                if ($dateOrders->isNotEmpty()) {
+                    // 將數據轉換為按 order_number 分組的陣列
+                    $ordersByNumber = $dateOrders->groupBy('order_number');
+                    
+                    foreach ($ordersByNumber as $orderNumber => $orderModels) {
+                        // 將該訂單的 models 轉換為陣列
+                        $models = $orderModels->map(function ($modelData) {
+                            return [
+                                'model' => $modelData['model'] ?? '',
+                                'type' => $modelData['type'] ?? '',
+                                'same_day_count' => ($modelData['same_day_count'] ?? 0) > 0 ? $modelData['same_day_count'] : '',
+                                'same_day_days' => ($modelData['same_day_days'] ?? 0) > 0 ? $modelData['same_day_days'] : '',
+                                'same_day_amount' => ($modelData['same_day_amount'] ?? 0) > 0 ? $modelData['same_day_amount'] : '',
+                                'overnight_count' => ($modelData['overnight_count'] ?? 0) > 0 ? $modelData['overnight_count'] : '',
+                                'overnight_days' => ($modelData['overnight_days'] ?? 0) > 0 ? $modelData['overnight_days'] : '',
+                                'overnight_amount' => ($modelData['overnight_amount'] ?? 0) > 0 ? $modelData['overnight_amount'] : '',
+                            ];
+                        })->values()->toArray();
+                        
+                        $ordersArray[] = [
+                            'order_number' => $orderNumber,
+                            'models' => $models,
+                        ];
+                    }
+                }
                 
                 return [
                     'date' => $dateStr,
                     'weekday' => $dateInfo['weekday'],
-                    'models' => $models,
+                    'orders' => $ordersArray, // 改為 orders 陣列，每個元素代表一個訂單
                 ];
             })->values();
 
@@ -966,7 +981,7 @@ class OrderController extends Controller
                 return $orderScooter->model_string;
             })->filter(function ($orderScooters, $modelString) {
                 return !empty($modelString);
-            })->each(function ($orderScooters, $modelString) use ($datesData, $keyDate, $days, $isSameDay, $transferFeesMap, $partnerId) {
+            })->each(function ($orderScooters, $modelString) use ($datesData, $keyDate, $days, $isSameDay, $transferFeesMap, $partnerId, $order) {
                 $scooterCount = $orderScooters->count();
 
                 // 獲取合作商的機車型號單價（當日租或跨日租）
@@ -978,41 +993,35 @@ class OrderController extends Controller
                 // 計算費用：金額 × 天數 × 台數
                 $amount = (int) $transferFeePerUnit * $days * $scooterCount;
 
-                // 初始化該日期的數據
+                // 初始化該日期的數據（按 order_number 分組）
                 if (!$datesData->has($keyDate)) {
                     $datesData->put($keyDate, collect());
                 }
 
-                $dateModels = $datesData->get($keyDate);
+                $dateOrders = $datesData->get($keyDate);
+                $orderNumber = $order->order_number ?? $order->id; // 使用 order_number，如果沒有則使用 id
+                
+                // 初始化該訂單的數據
+                if (!$dateOrders->has($orderNumber)) {
+                    $dateOrders->put($orderNumber, collect());
+                }
+
+                $orderModels = $dateOrders->get($orderNumber);
                 $modelParts = explode(' ', $modelString, 2);
 
-                // 累加到該日期該 model 的數據（當日租和跨日租分開計算）
-                if ($dateModels->has($modelString)) {
-                    $existing = $dateModels->get($modelString);
-                    $dateModels->put($modelString, [
-                        'model_string' => $modelString,
-                        'model' => $modelParts[0] ?? '',
-                        'type' => $modelParts[1] ?? '',
-                        'same_day_count' => ($existing['same_day_count'] ?? 0) + ($isSameDay ? $scooterCount : 0),
-                        'same_day_days' => ($existing['same_day_days'] ?? 0) + ($isSameDay ? $days : 0),
-                        'same_day_amount' => ($existing['same_day_amount'] ?? 0) + ($isSameDay ? $amount : 0),
-                        'overnight_count' => ($existing['overnight_count'] ?? 0) + (!$isSameDay ? $scooterCount : 0),
-                        'overnight_days' => ($existing['overnight_days'] ?? 0) + (!$isSameDay ? $days : 0),
-                        'overnight_amount' => ($existing['overnight_amount'] ?? 0) + (!$isSameDay ? $amount : 0),
-                    ]);
-                } else {
-                    $dateModels->put($modelString, [
-                        'model_string' => $modelString,
-                        'model' => $modelParts[0] ?? '',
-                        'type' => $modelParts[1] ?? '',
-                        'same_day_count' => $isSameDay ? $scooterCount : 0,
-                        'same_day_days' => $isSameDay ? $days : 0,
-                        'same_day_amount' => $isSameDay ? $amount : 0,
-                        'overnight_count' => !$isSameDay ? $scooterCount : 0,
-                        'overnight_days' => !$isSameDay ? $days : 0,
-                        'overnight_amount' => !$isSameDay ? $amount : 0,
-                    ]);
-                }
+                // 按 order_number 分開存儲，即使型號相同也要分開
+                $orderModels->put($modelString, [
+                    'model_string' => $modelString,
+                    'model' => $modelParts[0] ?? '',
+                    'type' => $modelParts[1] ?? '',
+                    'order_number' => $orderNumber,
+                    'same_day_count' => $isSameDay ? $scooterCount : 0,
+                    'same_day_days' => $isSameDay ? $days : 0,
+                    'same_day_amount' => $isSameDay ? $amount : 0,
+                    'overnight_count' => !$isSameDay ? $scooterCount : 0,
+                    'overnight_days' => !$isSameDay ? $days : 0,
+                    'overnight_amount' => !$isSameDay ? $amount : 0,
+                ]);
             });
         }
         
