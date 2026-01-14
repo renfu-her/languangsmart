@@ -601,8 +601,24 @@ class OrderController extends Controller
      */
     public function partnerDailyReport(Request $request)
     {
+        // Debug: 記錄請求信息
+        \Log::info('partnerDailyReport called', [
+            'request_all' => $request->all(),
+            'request_method' => $request->method(),
+            'request_url' => $request->fullUrl(),
+            'request_headers' => $request->headers->all(),
+        ]);
 
-        dd($request->all());
+        // Debug: 使用 dd 查看請求數據（開發環境）
+        if (config('app.debug')) {
+            dd([
+                'request_all' => $request->all(),
+                'request_method' => $request->method(),
+                'request_url' => $request->fullUrl(),
+                'month' => $request->get('month'),
+                'partner_id' => $request->get('partner_id'),
+            ]);
+        }
 
         $validator = Validator::make($request->all(), [
             'month' => 'required|date_format:Y-m',
@@ -610,6 +626,10 @@ class OrderController extends Controller
         ]);
 
         if ($validator->fails()) {
+            \Log::warning('partnerDailyReport validation failed', [
+                'errors' => $validator->errors()->toArray(),
+                'request' => $request->all(),
+            ]);
             return response()->json([
                 'message' => 'Validation error',
                 'errors' => $validator->errors(),
@@ -619,29 +639,54 @@ class OrderController extends Controller
         $month = $request->get('month');
         $partnerId = $request->get('partner_id');
         
-        // 獲取所有機車型號（從機車型號管理）
-        $allScooterModels = ScooterModel::orderBy('sort_order', 'desc')->get();
-        $allModels = $allScooterModels->map(function ($model) {
-            return $model->name . ' ' . $model->type;
-        })->toArray();
-        $monthStartDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->startOfMonth();
-        $monthEndDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->endOfMonth();
+        \Log::info('partnerDailyReport processing', [
+            'month' => $month,
+            'partner_id' => $partnerId,
+        ]);
+        
+        try {
+            // 獲取所有機車型號（從機車型號管理）
+            $allScooterModels = ScooterModel::orderBy('sort_order', 'desc')->get();
+            if ($allScooterModels->isEmpty()) {
+                \Log::warning('No scooter models found');
+                return response()->json([
+                    'message' => 'No scooter models found',
+                ], 404);
+            }
+            
+            $allModels = $allScooterModels->map(function ($model) {
+                return $model->name . ' ' . $model->type;
+            })->toArray();
+            
+            \Log::info('Scooter models loaded', [
+                'count' => count($allModels),
+                'models' => $allModels,
+            ]);
+            
+            $monthStartDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->startOfMonth();
+            $monthEndDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->endOfMonth();
 
-        // Get orders for the month with scooters and partner
-        $query = Order::with(['partner', 'scooters.scooterModel'])
-            ->whereNotNull('start_time')
-            ->whereNotNull('end_time')
-            ->whereRaw('DATE_FORMAT(start_time, "%Y-%m") = ?', [$month]);
+            // Get orders for the month with scooters and partner
+            $query = Order::with(['partner', 'scooters.scooterModel'])
+                ->whereNotNull('start_time')
+                ->whereNotNull('end_time')
+                ->whereRaw('DATE_FORMAT(start_time, "%Y-%m") = ?', [$month]);
 
-        if ($partnerId) {
-            $query->where('partner_id', $partnerId);
-        }
+            if ($partnerId) {
+                $query->where('partner_id', $partnerId);
+            }
 
-        $orders = $query->get();
+            $orders = $query->get();
+            
+            \Log::info('Orders loaded', [
+                'count' => $orders->count(),
+                'month' => $month,
+                'partner_id' => $partnerId,
+            ]);
 
-        // Group by partner, date, and scooter model
-        $reportData = [];
-        // 注意：$allModels 已經在上面定義為所有機車型號（從資料庫獲取），不需要重新初始化
+            // Group by partner, date, and scooter model
+            $reportData = [];
+            // 注意：$allModels 已經在上面定義為所有機車型號（從資料庫獲取），不需要重新初始化
 
         foreach ($orders as $order) {
             $partnerName = $order->partner ? $order->partner->name : '無合作商';
@@ -753,43 +798,43 @@ class OrderController extends Controller
                     }
                 }
             }
-        }
-
-        // 生成整個月份的日期列表（只包含有費用的日期）
-        $currentDate = $monthStartDate->copy();
-        $allDates = [];
-        
-        while ($currentDate->lte($monthEndDate)) {
-            $dateStr = $currentDate->format('Y-m-d');
-            $weekday = $currentDate->format('l');
-            $allDates[] = [
-                'date' => $dateStr,
-                'weekday' => $weekday,
-            ];
-            $currentDate->addDay();
-        }
-
-        // 為每個合作商生成完整的日期列表
-        foreach ($reportData as $partnerName => &$partnerData) {
-            $partnerDates = [];
-            foreach ($allDates as $dateInfo) {
-                $dateStr = $dateInfo['date'];
-                if (isset($partnerData['dates'][$dateStr])) {
-                    $partnerDates[] = $partnerData['dates'][$dateStr];
-                } else {
-                    // 沒有費用的日期，但為了完整性可以包含（前端可以過濾）
-                    $partnerDates[] = [
-                        'date' => $dateStr,
-                        'weekday' => $dateInfo['weekday'],
-                        'models' => [],
-                    ];
-                }
             }
-            $partnerData['dates'] = $partnerDates;
-        }
 
-        // 如果提供了 partner_id，生成並返回 Excel 檔案
-        if ($partnerId) {
+            // 生成整個月份的日期列表（只包含有費用的日期）
+            $currentDate = $monthStartDate->copy();
+            $allDates = [];
+            
+            while ($currentDate->lte($monthEndDate)) {
+                $dateStr = $currentDate->format('Y-m-d');
+                $weekday = $currentDate->format('l');
+                $allDates[] = [
+                    'date' => $dateStr,
+                    'weekday' => $weekday,
+                ];
+                $currentDate->addDay();
+            }
+
+            // 為每個合作商生成完整的日期列表
+            foreach ($reportData as $partnerName => &$partnerData) {
+                $partnerDates = [];
+                foreach ($allDates as $dateInfo) {
+                    $dateStr = $dateInfo['date'];
+                    if (isset($partnerData['dates'][$dateStr])) {
+                        $partnerDates[] = $partnerData['dates'][$dateStr];
+                    } else {
+                        // 沒有費用的日期，但為了完整性可以包含（前端可以過濾）
+                        $partnerDates[] = [
+                            'date' => $dateStr,
+                            'weekday' => $dateInfo['weekday'],
+                            'models' => [],
+                        ];
+                    }
+                }
+                $partnerData['dates'] = $partnerDates;
+            }
+
+            // 如果提供了 partner_id，生成並返回 Excel 檔案
+            if ($partnerId) {
             $partnerData = null;
             foreach ($reportData as $pName => $pData) {
                 if ($pData['partner_id'] == $partnerId) {
@@ -798,38 +843,45 @@ class OrderController extends Controller
                 }
             }
             
-            if (!$partnerData) {
-                return response()->json([
-                    'message' => 'Partner not found or no data for this month',
-                ], 404);
-            }
-            
-            // 獲取合作商名稱
-            $partner = \App\Models\Partner::find($partnerId);
-            $partnerName = $partner ? $partner->name : '無合作商';
-            
-            // 生成整個月份的日期列表
-            $currentDate = $monthStartDate->copy();
-            $allDates = [];
-            
-            while ($currentDate->lte($monthEndDate)) {
-                $dateStr = $currentDate->format('Y-m-d');
-                $weekday = $currentDate->format('l');
-                if (isset($partnerData['dates'][$dateStr])) {
-                    $allDates[] = $partnerData['dates'][$dateStr];
-                } else {
-                    $allDates[] = [
-                        'date' => $dateStr,
-                        'weekday' => $weekday,
-                        'models' => [],
-                    ];
+                if (!$partnerData) {
+                    return response()->json([
+                        'message' => 'Partner not found or no data for this month',
+                    ], 404);
                 }
-                $currentDate->addDay();
-            }
-            
-            [$year, $monthNum] = explode('-', $month);
-            
-            try {
+                
+                // 獲取合作商名稱
+                $partner = \App\Models\Partner::find($partnerId);
+                $partnerName = $partner ? $partner->name : '無合作商';
+                
+                // 生成整個月份的日期列表
+                $currentDate = $monthStartDate->copy();
+                $allDates = [];
+                
+                while ($currentDate->lte($monthEndDate)) {
+                    $dateStr = $currentDate->format('Y-m-d');
+                    $weekday = $currentDate->format('l');
+                    if (isset($partnerData['dates'][$dateStr])) {
+                        $allDates[] = $partnerData['dates'][$dateStr];
+                    } else {
+                        $allDates[] = [
+                            'date' => $dateStr,
+                            'weekday' => $weekday,
+                            'models' => [],
+                        ];
+                    }
+                    $currentDate->addDay();
+                }
+                
+                [$year, $monthNum] = explode('-', $month);
+                
+                \Log::info('Generating Excel', [
+                    'partner_name' => $partnerName,
+                    'year' => $year,
+                    'month' => $monthNum,
+                    'dates_count' => count($allDates),
+                    'models_count' => count($allModels),
+                ]);
+                
                 // 使用 Export 類生成 Excel
                 $export = new PartnerMonthlyReportExport($partnerName, $year, $monthNum, $allDates, $allModels);
                 $spreadsheet = $export->generate();
@@ -858,57 +910,67 @@ class OrderController extends Controller
                     ], 500);
                 }
                 
+                \Log::info('Excel file generated successfully', [
+                    'file' => $tempFile,
+                    'filename' => $fileName,
+                ]);
+                
                 // 返回檔案下載響應
                 return response()->download($tempFile, $fileName, [
                     'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 ])->deleteFileAfterSend(true);
-            } catch (\Exception $e) {
-                \Log::error('Excel export error', [
-                    'message' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                    'partner_id' => $partnerId,
-                    'month' => $month,
-                ]);
-                
-                return response()->json([
-                    'message' => 'Failed to generate Excel file: ' . $e->getMessage(),
-                    'error' => config('app.debug') ? $e->getTraceAsString() : null,
-                ], 500);
             }
-        }
 
-        // 如果沒有提供 partner_id，返回 JSON 數據（保持向後兼容）
-        // 為每個合作商生成完整的日期列表
-        foreach ($reportData as $partnerName => &$partnerData) {
-            $partnerDates = [];
-            $currentDate = $monthStartDate->copy();
-            while ($currentDate->lte($monthEndDate)) {
-                $dateStr = $currentDate->format('Y-m-d');
-                $weekday = $currentDate->format('l');
-                if (isset($partnerData['dates'][$dateStr])) {
-                    $partnerDates[] = $partnerData['dates'][$dateStr];
-                } else {
-                    $partnerDates[] = [
-                        'date' => $dateStr,
-                        'weekday' => $weekday,
-                        'models' => [],
-                    ];
+            // 如果沒有提供 partner_id，返回 JSON 數據（保持向後兼容）
+            // 為每個合作商生成完整的日期列表
+            foreach ($reportData as $partnerName => &$partnerData) {
+                $partnerDates = [];
+                $currentDate = $monthStartDate->copy();
+                while ($currentDate->lte($monthEndDate)) {
+                    $dateStr = $currentDate->format('Y-m-d');
+                    $weekday = $currentDate->format('l');
+                    if (isset($partnerData['dates'][$dateStr])) {
+                        $partnerDates[] = $partnerData['dates'][$dateStr];
+                    } else {
+                        $partnerDates[] = [
+                            'date' => $dateStr,
+                            'weekday' => $weekday,
+                            'models' => [],
+                        ];
+                    }
+                    $currentDate->addDay();
                 }
-                $currentDate->addDay();
+                $partnerData['dates'] = $partnerDates;
             }
-            $partnerData['dates'] = $partnerDates;
+
+            // 轉換為數組格式
+            $result = [
+                'partners' => array_values($reportData),
+                'models' => $allModels,
+                'month' => $month,
+            ];
+
+            return response()->json([
+                'data' => $result,
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('partnerDailyReport exception', [
+                'message' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'request' => $request->all(),
+            ]);
+            
+            return response()->json([
+                'message' => 'An error occurred while processing the request',
+                'error' => config('app.debug') ? [
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ] : null,
+            ], 500);
         }
-
-        // 轉換為數組格式
-        $result = [
-            'partners' => array_values($reportData),
-            'models' => $allModels,
-            'month' => $month,
-        ];
-
-        return response()->json([
-            'data' => $result,
-        ]);
     }
 }
 
