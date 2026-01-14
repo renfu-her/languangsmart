@@ -1,5 +1,39 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-14 17:18:09 (+8) - 修正調車費用計算邏輯，確保所有機車型號都顯示，0 值顯示為空白
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 移除過濾邏輯：刪除 `if ($transferFee <= 0) return null;`，確保所有機車型號都顯示
+  - 修改返回數據邏輯：當金額、台數、天數為 0 時，返回空字符串 `''` 而不是 `0`
+  - 改進機車型號分組邏輯：即使 `scooterModel` 為 null，也使用機車本身的 `model` 和 `type` 屬性作為後備
+  - 調整聚合邏輯：在按日期和型號聚合時，當累加的值為 0 時也返回空字符串
+
+### 問題說明
+- `order_scooter` 表有 3 筆記錄，但 JSON 響應中只顯示了部分機車型號
+- 原因是當調車費用為 0 時，記錄被過濾掉
+- 即使沒有設置調車費用，也應該顯示機車型號的數據（台數、天數），金額顯示為空白
+
+### 技術細節
+- 移除的過濾邏輯：
+  ```php
+  if ($transferFee <= 0)
+      return null;
+  ```
+- 修改的返回數據邏輯：
+  ```php
+  "{$field}_count" => $scooterCount > 0 ? $scooterCount : '',
+  "{$field}_days" => $days > 0 ? $days : '',
+  "{$field}_amount" => $transferFee > 0 ? $transferFee : '',
+  ```
+- 改進的機車型號分組：
+  - 優先使用 `scooterModel` 關聯
+  - 如果沒有，使用機車本身的 `model` 和 `type` 屬性
+- 聚合邏輯調整：
+  - 計算總和時，當值為 0 時返回空字符串
+
 ## 2026-01-14 17:03:52 (+8) - 統一調車費用計算邏輯：合作商的機車型號單價 × 天數 × 台數
 
 ### 變更內容

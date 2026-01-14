@@ -716,9 +716,17 @@ class OrderController extends Controller
 
                 // 按機車型號分組
                 return $order->scooters->groupBy(function ($scooter) {
+                    // 優先使用 scooterModel 關聯，如果沒有則使用機車本身的 model 和 type 屬性
                     $model = $scooter->scooterModel;
-                    return $model ? "{$model->name} {$model->type}" : '';
+                    if ($model) {
+                        return "{$model->name} {$model->type}";
+                    }
+                    // 如果沒有 scooterModel，使用機車本身的 model 和 type（通過 getModelAttribute 和 getTypeAttribute）
+                    $modelName = $scooter->model ?? '';
+                    $modelType = $scooter->type ?? '';
+                    return !empty($modelName) && !empty($modelType) ? "{$modelName} {$modelType}" : '';
                 })->map(function ($scooters, $modelString) use ($keyDate, $startTime, $isSameDay, $days, $transferFeesMap, $partnerId) {
+                    // 如果 modelString 為空，跳過（無法確定型號）
                     if (empty($modelString))
                         return null;
 
@@ -734,8 +742,8 @@ class OrderController extends Controller
                     // 計算調車費用：合作商的機車型號單價 × 天數 × 台數
                     $transferFee = (int) $transferFeePerUnit * $days * $scooterCount;
 
-                    if ($transferFee <= 0)
-                        return null;
+                    // 移除過濾邏輯，確保所有機車型號都顯示
+                    // 即使調車費用為 0 或沒有設置調車費用，也要顯示數據
 
                     [$model, $type] = explode(' ', $modelString, 2) + ['', ''];
                     $field = $isSameDay ? 'same_day' : 'overnight';
@@ -746,9 +754,10 @@ class OrderController extends Controller
                         'model_string' => $modelString,
                         'model' => $model,
                         'type' => $type,
-                        "{$field}_count" => $scooterCount,
-                        "{$field}_days" => $days,
-                        "{$field}_amount" => $transferFee,
+                        // 當值為 0 時返回空字符串，而不是 0
+                        "{$field}_count" => $scooterCount > 0 ? $scooterCount : '',
+                        "{$field}_days" => $days > 0 ? $days : '',
+                        "{$field}_amount" => $transferFee > 0 ? $transferFee : '',
                     ];
                 })->filter();
             });
@@ -766,15 +775,23 @@ class OrderController extends Controller
                 $firstItem = $dateItems->first();
                 $models = $dateItems->groupBy('model_string')->map(function ($items) {
                     $first = $items->first();
+                    // 計算總和，但當值為 0 時返回空字符串
+                    $sameDayCount = $items->sum(fn($item) => is_numeric($item['same_day_count'] ?? '') ? (int)$item['same_day_count'] : 0);
+                    $sameDayDays = $items->sum(fn($item) => is_numeric($item['same_day_days'] ?? '') ? (int)$item['same_day_days'] : 0);
+                    $sameDayAmount = $items->sum(fn($item) => is_numeric($item['same_day_amount'] ?? '') ? (int)$item['same_day_amount'] : 0);
+                    $overnightCount = $items->sum(fn($item) => is_numeric($item['overnight_count'] ?? '') ? (int)$item['overnight_count'] : 0);
+                    $overnightDays = $items->sum(fn($item) => is_numeric($item['overnight_days'] ?? '') ? (int)$item['overnight_days'] : 0);
+                    $overnightAmount = $items->sum(fn($item) => is_numeric($item['overnight_amount'] ?? '') ? (int)$item['overnight_amount'] : 0);
+                    
                     return [
                         'model' => $first['model'] ?? '',
                         'type' => $first['type'] ?? '',
-                        'same_day_count' => $items->sum(fn($item) => $item['same_day_count'] ?? 0),
-                        'same_day_days' => $items->sum(fn($item) => $item['same_day_days'] ?? 0),
-                        'same_day_amount' => $items->sum(fn($item) => $item['same_day_amount'] ?? 0),
-                        'overnight_count' => $items->sum(fn($item) => $item['overnight_count'] ?? 0),
-                        'overnight_days' => $items->sum(fn($item) => $item['overnight_days'] ?? 0),
-                        'overnight_amount' => $items->sum(fn($item) => $item['overnight_amount'] ?? 0),
+                        'same_day_count' => $sameDayCount > 0 ? $sameDayCount : '',
+                        'same_day_days' => $sameDayDays > 0 ? $sameDayDays : '',
+                        'same_day_amount' => $sameDayAmount > 0 ? $sameDayAmount : '',
+                        'overnight_count' => $overnightCount > 0 ? $overnightCount : '',
+                        'overnight_days' => $overnightDays > 0 ? $overnightDays : '',
+                        'overnight_amount' => $overnightAmount > 0 ? $overnightAmount : '',
                     ];
                 })->values();
 
