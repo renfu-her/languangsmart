@@ -1,5 +1,37 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-14 12:04:52 (+8) - 修正部署腳本：在清除快取前先刪除舊配置檔案
+
+### 變更內容
+
+#### 部署腳本
+- **build.sh** (`build.sh`)
+  - 在清除快取前先刪除 `config/excel.php` 檔案（如果存在）
+  - 確保在執行 `php artisan config:clear` 前不會載入舊配置
+  - 調整執行順序：先刪除配置檔案，再清除快取，最後執行 artisan 命令
+
+### 問題說明
+- 執行 `php artisan config:clear` 時出現錯誤：`Class "Maatwebsite\Excel\Excel" not found`
+- 原因是 `config/excel.php` 配置檔案仍然存在，Laravel 在清除快取時會嘗試載入這個檔案
+- 當 Laravel 載入配置時，會嘗試載入已移除套件的類別，導致錯誤
+- 解決方案：在執行任何 artisan 命令前，先手動刪除 `config/excel.php` 檔案
+
+### 技術細節
+- 執行順序很重要：
+  1. 先刪除 `config/excel.php`（如果存在）
+  2. 刪除快取的配置檔案 `bootstrap/cache/config.php`
+  3. 然後才執行 `php artisan config:clear` 等命令
+- 這樣可以確保 Laravel 不會嘗試載入已移除套件的配置檔案
+
+## 2026-01-14 12:03:18 (+8) - 修正部署腳本：在安裝依賴前清除快取，避免舊配置衝突
+
+### 技術細節
+- `php artisan config:clear`：清除配置快取
+- `php artisan cache:clear`：清除應用程式快取
+- `php artisan route:clear`：清除路由快取
+- `php artisan view:clear`：清除視圖快取
+- 手動刪除 `bootstrap/cache/config.php`：確保完全清除快取的配置
+
 ## 2026-01-14 12:01:07 (+8) - 修正部署腳本：解決 Composer 安裝時的腳本執行問題
 
 ### 變更內容

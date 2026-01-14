@@ -263,19 +263,38 @@ class PartnerMonthlyReportExport
         $sheet->setCellValueByColumnAndRow($col, $row, '');
         $col++;
         
-        // 第一個型號的跨日租金額欄位
-        $firstModelOvernightAmountCol = $col + 2; // 跳過當日租台數、跨日租台數、跨日租天數
+        // 第一個型號的跨日租金額欄位位置
+        // $col 現在指向第一個型號的「當日租台數」欄位
+        // 每個型號有 4 列：當日租台數(0)、跨日租台數(1)、跨日租天數(2)、跨日租金額(3)
+        // 所以第一個型號的「跨日租金額」欄位 = $col + 3
+        $firstModelOvernightAmountCol = $col + 3;
+        // 最後一個型號的「跨日租金額」欄位 = 第一個型號的「跨日租金額」 + (型號數量-1) * 4
         $lastModelOvernightAmountCol = $firstModelOvernightAmountCol + (count($this->models) - 1) * 4;
         
+        // 填充第一個型號的前三列（當日租台數、跨日租台數、跨日租天數）為空白
         $sheet->setCellValueByColumnAndRow($col, $row, '');
         $col++;
         $sheet->setCellValueByColumnAndRow($col, $row, '');
         $col++;
         $sheet->setCellValueByColumnAndRow($col, $row, '');
         $col++;
+        // 在第一個型號的「跨日租金額」欄位設置總金額
         $sheet->setCellValueByColumnAndRow($col, $row, $grandTotalAmount > 0 ? $grandTotalAmount : '');
+        $col++;
         
-        // 合併總金額欄位
+        // 填充其他型號的欄位為空白
+        for ($i = 1; $i < count($this->models); $i++) {
+            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $col++;
+            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $col++;
+            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $col++;
+            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $col++;
+        }
+        
+        // 合併總金額欄位（從第一個型號的「跨日租金額」到最後一個型號的「跨日租金額」）
         if (count($this->models) > 1) {
             $sheet->mergeCells(Coordinate::stringFromColumnIndex($firstModelOvernightAmountCol) . $row . ':' . Coordinate::stringFromColumnIndex($lastModelOvernightAmountCol) . $row);
         }
