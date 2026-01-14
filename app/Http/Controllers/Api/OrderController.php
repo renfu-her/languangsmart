@@ -806,16 +806,30 @@ class OrderController extends Controller
 
             // 為每個合作商生成完整的日期列表
             foreach ($reportData as $partnerName => &$partnerData) {
+                // 確保 $partnerData 是數組且包含 dates 鍵
+                if (!is_array($partnerData)) {
+                    \Log::warning('Invalid partnerData structure', [
+                        'partner_name' => $partnerName,
+                        'partner_data' => $partnerData,
+                    ]);
+                    continue;
+                }
+                
+                // 確保 dates 鍵存在且為數組
+                if (!isset($partnerData['dates']) || !is_array($partnerData['dates'])) {
+                    $partnerData['dates'] = [];
+                }
+                
                 $partnerDates = [];
                 foreach ($allDates as $dateInfo) {
-                    $dateStr = $dateInfo['date'];
-                    if (isset($partnerData['dates'][$dateStr])) {
+                    $dateStr = $dateInfo['date'] ?? null;
+                    if ($dateStr && isset($partnerData['dates'][$dateStr])) {
                         $partnerDates[] = $partnerData['dates'][$dateStr];
                     } else {
                         // 沒有費用的日期，但為了完整性可以包含（前端可以過濾）
                         $partnerDates[] = [
-                            'date' => $dateStr,
-                            'weekday' => $dateInfo['weekday'],
+                            'date' => $dateStr ?? '',
+                            'weekday' => $dateInfo['weekday'] ?? '',
                             'models' => [],
                         ];
                     }
@@ -825,13 +839,14 @@ class OrderController extends Controller
 
             // 如果提供了 partner_id，生成並返回 Excel 檔案
             if ($partnerId) {
-            $partnerData = null;
-            foreach ($reportData as $pName => $pData) {
-                if ($pData['partner_id'] == $partnerId) {
-                    $partnerData = $pData;
-                    break;
+                $partnerData = null;
+                foreach ($reportData as $pName => $pData) {
+                    // 檢查 $pData 是否為數組且包含 partner_id
+                    if (is_array($pData) && isset($pData['partner_id']) && $pData['partner_id'] == $partnerId) {
+                        $partnerData = $pData;
+                        break;
+                    }
                 }
-            }
             
                 if (!$partnerData) {
                     return response()->json([
@@ -850,7 +865,8 @@ class OrderController extends Controller
                 while ($currentDate->lte($monthEndDate)) {
                     $dateStr = $currentDate->format('Y-m-d');
                     $weekday = $currentDate->format('l');
-                    if (isset($partnerData['dates'][$dateStr])) {
+                    // 檢查 partnerData 和 dates 是否存在
+                    if (isset($partnerData['dates']) && is_array($partnerData['dates']) && isset($partnerData['dates'][$dateStr])) {
                         $allDates[] = $partnerData['dates'][$dateStr];
                     } else {
                         $allDates[] = [
