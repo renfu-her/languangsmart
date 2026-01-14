@@ -678,7 +678,7 @@ class OrderController extends Controller
             $reportData = [];
             // 注意：$allModels 已經在上面定義為所有機車型號（從資料庫獲取），不需要重新初始化
 
-        foreach ($orders as $order) {
+            foreach ($orders as $order) {
             $partnerName = $order->partner ? $order->partner->name : '無合作商';
             $partnerId = $order->partner_id;
 
@@ -739,6 +739,17 @@ class OrderController extends Controller
 
                 // 計算該型號的總費用：調車費用 × 台數 × 天數
                 $transferFee = (int) $transferFeePerUnit * (int) $scooterCount * (int) $days;
+                
+                \Log::debug('Transfer fee calculation', [
+                    'partner_id' => $partnerId,
+                    'model' => $model,
+                    'type' => $type,
+                    'transfer_fee_per_unit' => $transferFeePerUnit,
+                    'scooter_count' => $scooterCount,
+                    'days' => $days,
+                    'transfer_fee' => $transferFee,
+                    'is_same_day' => $isSameDay,
+                ]);
 
                 // 只記錄有費用的部分
                 if ($transferFee > 0) {
@@ -787,7 +798,6 @@ class OrderController extends Controller
                         $reportData[$partnerName]['dates'][$keyDate]['models'][$modelString]['overnight_amount'] += $transferFee;
                     }
                 }
-            }
             }
 
             // 生成整個月份的日期列表（只包含有費用的日期）
@@ -839,18 +849,44 @@ class OrderController extends Controller
 
             // 如果提供了 partner_id，生成並返回 Excel 檔案
             if ($partnerId) {
+                \Log::info('Looking for partner data', [
+                    'partner_id' => $partnerId,
+                    'month' => $month,
+                    'report_data_count' => count($reportData),
+                    'report_data_keys' => array_keys($reportData),
+                ]);
+                
                 $partnerData = null;
                 foreach ($reportData as $pName => $pData) {
                     // 檢查 $pData 是否為數組且包含 partner_id
                     if (is_array($pData) && isset($pData['partner_id']) && $pData['partner_id'] == $partnerId) {
                         $partnerData = $pData;
+                        \Log::info('Partner data found', [
+                            'partner_name' => $pName,
+                            'partner_id' => $pData['partner_id'],
+                            'dates_count' => isset($pData['dates']) ? count($pData['dates']) : 0,
+                        ]);
                         break;
                     }
                 }
             
                 if (!$partnerData) {
+                    \Log::warning('Partner data not found', [
+                        'partner_id' => $partnerId,
+                        'month' => $month,
+                        'report_data_keys' => array_keys($reportData),
+                        'report_data_structure' => array_map(function($pData) {
+                            return is_array($pData) && isset($pData['partner_id']) ? $pData['partner_id'] : 'invalid';
+                        }, $reportData),
+                        'orders_count' => $orders->count(),
+                    ]);
                     return response()->json([
                         'message' => 'Partner not found or no data for this month',
+                        'debug' => config('app.debug') ? [
+                            'partner_id' => $partnerId,
+                            'report_data_keys' => array_keys($reportData),
+                            'orders_count' => $orders->count(),
+                        ] : null,
                     ], 404);
                 }
                 
