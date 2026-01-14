@@ -44,7 +44,29 @@ class Order extends Model
 
         static::creating(function ($order) {
             if (empty($order->order_number)) {
-                $order->order_number = 'ORD-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+                // 格式：ORD-年月-流水號（例如：ORD-202601-00001）
+                $yearMonth = date('Ym'); // 例如：202601
+                $prefix = 'ORD-' . $yearMonth . '-';
+                
+                // 查詢該月份的最大訂單編號
+                $lastOrder = self::where('order_number', 'like', $prefix . '%')
+                    ->orderBy('order_number', 'desc')
+                    ->first();
+                
+                // 獲取下一個流水號
+                if ($lastOrder) {
+                    // 從訂單編號中提取流水號（例如：ORD-202601-00005 -> 00005）
+                    $lastNumber = (int) substr($lastOrder->order_number, -5);
+                    $nextNumber = $lastNumber + 1;
+                } else {
+                    // 該月份還沒有訂單，從 00001 開始
+                    $nextNumber = 1;
+                }
+                
+                // 格式化為5位數（前面補0）
+                $sequence = str_pad($nextNumber, 5, '0', STR_PAD_LEFT);
+                
+                $order->order_number = $prefix . $sequence;
             }
         });
     }
