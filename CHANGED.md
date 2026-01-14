@@ -1,5 +1,41 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-14 21:26:09 (+8) - 改寫 partnerDailyReport 使用 partnerMonthlyStatistics 的計算方式
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 改寫 `partnerDailyReport()` 方法，使用與 `partnerMonthlyStatistics()` 相同的計算邏輯
+  - 統一計算方式：
+    - 天數計算：當日租 = 1 天，跨日租 = 夜數（`diffInDays`）
+    - 費用計算：金額 × 天數 × 台數
+    - 數據結構：按日期分組，然後按機車型號分組，分別累加當日租和跨日租
+  - 改進數據處理流程：
+    - 使用 `foreach` 循環處理訂單，而不是 `flatMap`
+    - 使用 `collect()` 按日期和機車型號分組累加
+    - 確保當日租和跨日租分開計算和累加
+
+### 問題說明
+- `partnerDailyReport` 和 `partnerMonthlyStatistics` 應該使用相同的計算邏輯
+- 確保兩個 API 的計算結果一致
+
+### 技術細節
+- 計算邏輯統一：
+  ```php
+  // 判斷當日租或跨日租
+  $isSameDay = $startTime->isSameDay($endTime);
+  if ($isSameDay) {
+      $days = 1; // 當日租
+  } else {
+      $days = $startTime->diffInDays($endTime); // 跨日租：夜數
+  }
+  
+  // 費用計算
+  $amount = (int) $transferFeePerUnit * $days * $scooterCount;
+  ```
+- 數據累加：按日期和機車型號分組，分別累加當日租和跨日租的數據
+
 ## 2026-01-14 21:16:16 (+8) - 修正跨日天數計算：改為計算夜數（start_date ~ end_date - 1）
 
 ### 變更內容

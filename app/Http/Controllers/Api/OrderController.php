@@ -707,123 +707,32 @@ class OrderController extends Controller
             $firstOrder = $partnerOrders->first();
             $partnerId = $firstOrder->partner_id;
 
-            // 處理每個訂單：直接查詢 order_scooter 表，確保每一筆記錄都被計算
-            $datesData = $partnerOrders->flatMap(function ($order) use ($transferFeesMap, $partnerId) {
-                $startTime = Carbon::parse($order->start_time)->timezone('Asia/Taipei');
-                $endTime = Carbon::parse($order->end_time)->timezone('Asia/Taipei');
-                $keyDate = $startTime->format('Y-m-d');
-                $isSameDay = $startTime->isSameDay($endTime);
-                $days = $isSameDay ? 1 : $startTime->diffInDays($endTime);
+            // 處理訂單數據
+            $datesData = $this->processPartnerOrders($partnerOrders, $transferFeesMap, $partnerId);
 
-                // 步驟 1: 用 order_id 查詢 order_scooter 表，取得該訂單的所有機車記錄
-                // order_scooter 表有 scooter_id，對應到 scooters 表的 id
-                $orderScooters = OrderScooter::where('order_id', '=', $order->id)
-                    ->with(['scooter'])  // 載入 scooter 關聯，透過 scooter_id 取得 scooters 資料
-                    ->get();
-
-                // 步驟 2: 按機車型號分組
-                // 透過 order_scooter.scooter_id -> scooters.id -> scooters.model + scooters.type
-                // 相同型號的 order_scooter 記錄會被分在同一組
-                return $orderScooters->groupBy(function ($orderScooter) {
-                    // 透過 scooter_id 對應到 scooters.id，取得 scooters.model + scooters.type
-                    return $orderScooter->model_string;
-                })->filter(function ($orderScooters, $modelString) {
-                    // 過濾掉空字串的 model_string（無法確定型號）
-                    return !empty($modelString);
-                })->map(function ($orderScooters, $modelString) use ($keyDate, $startTime, $isSameDay, $days, $transferFeesMap, $partnerId) {
-
-                    // 步驟 3: 計算台數
-                    // $orderScooters 是經過 groupBy 分組後的同一 model 的 order_scooter 記錄集合
-                    // 計算該集合的數量，即為該 model 的台數
-                    // 例如：
-                    // - order_scooter 表有 3 筆記錄，scooter_id 分別對應到 scooters 表的 id
-                    // - 透過 scooter_id -> scooters.id -> scooters.model，發現 3 筆都是 "ES-1000 綠牌"
-                    // - 則 $scooterCount = 3（該 model 有 3 臺機車）
-                    $scooterCount = $orderScooters->count();
-                    
-                    // 步驟 4: 獲取合作商的機車型號單價（當日租或跨日租）
-                    $feeKey = $transferFeesMap->get($partnerId)?->get($modelString);
-                    $transferFeePerUnit = $feeKey
-                        ? ($isSameDay ? ($feeKey->same_day_transfer_fee ?? 0) : ($feeKey->overnight_transfer_fee ?? 0))
-                        : 0;
-                    
-                    // 步驟 5: 計算調車費用
-                    // 公式：合作商的機車型號單價 × 天數 × 台數
-                    // 例如：單價 100 × 3 天 × 3 臺 = 900
-                    $transferFee = (int) $transferFeePerUnit * $days * $scooterCount;
-
-                    // 移除過濾邏輯，確保所有機車型號都顯示
-                    // 即使調車費用為 0 或沒有設置調車費用，也要顯示數據
-
-                    [$model, $type] = explode(' ', $modelString, 2) + ['', ''];
-                    $field = $isSameDay ? 'same_day' : 'overnight';
-
-                    return [
-                        'date' => $keyDate,
-                        'weekday' => $startTime->format('l'),
-                        'model_string' => $modelString,
-                        'model' => $model,
-                        'type' => $type,
-                        // 當值為 0 時返回空字符串，而不是 0
-                        "{$field}_count" => $scooterCount > 0 ? $scooterCount : '',
-                        "{$field}_days" => $days > 0 ? $days : '',
-                        "{$field}_amount" => $transferFee > 0 ? $transferFee : '',
-                    ];
-                })->filter();
-            });
-
-            // dd("Step 7: 處理合作商 [{$partnerName}] 的訂單數據", [
-            //     'partnerName' => $partnerName,
-            //     'partnerId' => $partnerId,
-            //     'partnerOrders_count' => $partnerOrders->count(),
-            //     'datesData_count' => $datesData->count(),
-            //     'first_date_item' => $datesData->first(),
-            // ]);
-
-            // 按日期分組並聚合
-            $datesDataGrouped = $datesData->groupBy('date')->map(function ($dateItems, $date) {
-                $firstItem = $dateItems->first();
-                $models = $dateItems->groupBy('model_string')->map(function ($items) {
-                    $first = $items->first();
-                    // 計算總和，但當值為 0 時返回空字符串
-                    $sameDayCount = $items->sum(fn($item) => is_numeric($item['same_day_count'] ?? '') ? (int)$item['same_day_count'] : 0);
-                    $sameDayDays = $items->sum(fn($item) => is_numeric($item['same_day_days'] ?? '') ? (int)$item['same_day_days'] : 0);
-                    $sameDayAmount = $items->sum(fn($item) => is_numeric($item['same_day_amount'] ?? '') ? (int)$item['same_day_amount'] : 0);
-                    $overnightCount = $items->sum(fn($item) => is_numeric($item['overnight_count'] ?? '') ? (int)$item['overnight_count'] : 0);
-                    $overnightDays = $items->sum(fn($item) => is_numeric($item['overnight_days'] ?? '') ? (int)$item['overnight_days'] : 0);
-                    $overnightAmount = $items->sum(fn($item) => is_numeric($item['overnight_amount'] ?? '') ? (int)$item['overnight_amount'] : 0);
-                    
-                    return [
-                        'model' => $first['model'] ?? '',
-                        'type' => $first['type'] ?? '',
-                        'same_day_count' => $sameDayCount > 0 ? $sameDayCount : '',
-                        'same_day_days' => $sameDayDays > 0 ? $sameDayDays : '',
-                        'same_day_amount' => $sameDayAmount > 0 ? $sameDayAmount : '',
-                        'overnight_count' => $overnightCount > 0 ? $overnightCount : '',
-                        'overnight_days' => $overnightDays > 0 ? $overnightDays : '',
-                        'overnight_amount' => $overnightAmount > 0 ? $overnightAmount : '',
-                    ];
-                })->values();
-
-                return [
-                    'date' => $date,
-                    'weekday' => $firstItem['weekday'] ?? Carbon::parse($date)->format('l'),
-                    'models' => $models,
-                ];
-            });
-
-            // dd("Step 7.1: 合作商 [{$partnerName}] 的日期數據聚合完成", [
-            //     'datesDataGrouped_count' => $datesDataGrouped->count(),
-            //     'first_date_data' => $datesDataGrouped->first(),
-            // ]);
-
-            // 合併完整日期列表
-            $dates = $allDates->map(function ($dateInfo) use ($datesDataGrouped) {
+            // 合併完整日期列表，將 datesData 轉換為 models 陣列格式
+            $dates = $allDates->map(function ($dateInfo) use ($datesData) {
                 $dateStr = $dateInfo['date'];
-                return $datesDataGrouped->get($dateStr) ?? [
+                $dateModels = $datesData->get($dateStr, collect());
+                
+                // 將數據轉換為 models 陣列，當值為 0 時返回空字符串
+                $models = $dateModels->map(function ($modelData) {
+                    return [
+                        'model' => $modelData['model'] ?? '',
+                        'type' => $modelData['type'] ?? '',
+                        'same_day_count' => ($modelData['same_day_count'] ?? 0) > 0 ? $modelData['same_day_count'] : '',
+                        'same_day_days' => ($modelData['same_day_days'] ?? 0) > 0 ? $modelData['same_day_days'] : '',
+                        'same_day_amount' => ($modelData['same_day_amount'] ?? 0) > 0 ? $modelData['same_day_amount'] : '',
+                        'overnight_count' => ($modelData['overnight_count'] ?? 0) > 0 ? $modelData['overnight_count'] : '',
+                        'overnight_days' => ($modelData['overnight_days'] ?? 0) > 0 ? $modelData['overnight_days'] : '',
+                        'overnight_amount' => ($modelData['overnight_amount'] ?? 0) > 0 ? $modelData['overnight_amount'] : '',
+                    ];
+                })->values()->toArray();
+                
+                return [
                     'date' => $dateStr,
                     'weekday' => $dateInfo['weekday'],
-                    'models' => [],
+                    'models' => $models,
                 ];
             })->values();
 
@@ -1022,6 +931,92 @@ class OrderController extends Controller
             ],
             'month' => $month,
         ]);
+    }
+
+    /**
+     * 處理合作商訂單數據（提取的私有方法，用於簡化 partnerDailyReport）
+     * 
+     * @param \Illuminate\Support\Collection $partnerOrders
+     * @param \Illuminate\Support\Collection $transferFeesMap
+     * @param int $partnerId
+     * @return \Illuminate\Support\Collection<string, \Illuminate\Support\Collection<string, array>>
+     */
+    private function processPartnerOrders($partnerOrders, $transferFeesMap, $partnerId): \Illuminate\Support\Collection
+    {
+        $datesData = collect();
+        
+        foreach ($partnerOrders as $order) {
+            $startTime = Carbon::parse($order->start_time)->timezone('Asia/Taipei');
+            $endTime = Carbon::parse($order->end_time)->timezone('Asia/Taipei');
+            $keyDate = $startTime->format('Y-m-d');
+            
+            // 判斷是當日租還是跨日租
+            $isSameDay = $startTime->isSameDay($endTime);
+            
+            // 計算天數：當日租 = 1 天，跨日租 = 夜數
+            $days = $isSameDay ? 1 : $startTime->diffInDays($endTime);
+
+            // 查詢該訂單的所有 order_scooter 記錄
+            $orderScooters = OrderScooter::where('order_id', $order->id)
+                ->with(['scooter'])
+                ->get();
+
+            // 按機車型號分組並處理
+            $orderScooters->groupBy(function ($orderScooter) {
+                return $orderScooter->model_string;
+            })->filter(function ($orderScooters, $modelString) {
+                return !empty($modelString);
+            })->each(function ($orderScooters, $modelString) use ($datesData, $keyDate, $days, $isSameDay, $transferFeesMap, $partnerId) {
+                $scooterCount = $orderScooters->count();
+
+                // 獲取合作商的機車型號單價（當日租或跨日租）
+                $feeKey = $transferFeesMap->get($partnerId)?->get($modelString);
+                $transferFeePerUnit = $feeKey
+                    ? ($isSameDay ? ($feeKey->same_day_transfer_fee ?? 0) : ($feeKey->overnight_transfer_fee ?? 0))
+                    : 0;
+
+                // 計算費用：金額 × 天數 × 台數
+                $amount = (int) $transferFeePerUnit * $days * $scooterCount;
+
+                // 初始化該日期的數據
+                if (!$datesData->has($keyDate)) {
+                    $datesData->put($keyDate, collect());
+                }
+
+                $dateModels = $datesData->get($keyDate);
+                $modelParts = explode(' ', $modelString, 2);
+
+                // 累加到該日期該 model 的數據（當日租和跨日租分開計算）
+                if ($dateModels->has($modelString)) {
+                    $existing = $dateModels->get($modelString);
+                    $dateModels->put($modelString, [
+                        'model_string' => $modelString,
+                        'model' => $modelParts[0] ?? '',
+                        'type' => $modelParts[1] ?? '',
+                        'same_day_count' => ($existing['same_day_count'] ?? 0) + ($isSameDay ? $scooterCount : 0),
+                        'same_day_days' => ($existing['same_day_days'] ?? 0) + ($isSameDay ? $days : 0),
+                        'same_day_amount' => ($existing['same_day_amount'] ?? 0) + ($isSameDay ? $amount : 0),
+                        'overnight_count' => ($existing['overnight_count'] ?? 0) + (!$isSameDay ? $scooterCount : 0),
+                        'overnight_days' => ($existing['overnight_days'] ?? 0) + (!$isSameDay ? $days : 0),
+                        'overnight_amount' => ($existing['overnight_amount'] ?? 0) + (!$isSameDay ? $amount : 0),
+                    ]);
+                } else {
+                    $dateModels->put($modelString, [
+                        'model_string' => $modelString,
+                        'model' => $modelParts[0] ?? '',
+                        'type' => $modelParts[1] ?? '',
+                        'same_day_count' => $isSameDay ? $scooterCount : 0,
+                        'same_day_days' => $isSameDay ? $days : 0,
+                        'same_day_amount' => $isSameDay ? $amount : 0,
+                        'overnight_count' => !$isSameDay ? $scooterCount : 0,
+                        'overnight_days' => !$isSameDay ? $days : 0,
+                        'overnight_amount' => !$isSameDay ? $amount : 0,
+                    ]);
+                }
+            });
+        }
+        
+        return $datesData;
     }
 }
 
