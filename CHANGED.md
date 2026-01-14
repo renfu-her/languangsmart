@@ -1,5 +1,33 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-14 10:18:56 (+8) - 修復訂單日期顯示和費用計算問題
+
+### 變更內容
+
+#### 後端
+- **OrderResource.php** (`app/Http/Resources/OrderResource.php`)
+  - 修改 `start_time` 和 `end_time` 的格式化，從 `'Y-m-d H:i:s'` 改為 `'Y-m-d'`
+  - 只顯示日期，不顯示時間（符合需求：租借開始和租借結束只需要日期）
+
+#### 前端
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改訂單列表顯示，將 `start_time` 和 `end_time` 從 `formatDateTime()` 改為 `formatDate()`
+  - 租借開始和租借結束現在只顯示日期，不顯示時間
+
+- **ConvertBookingModal.tsx** (`system/backend/components/ConvertBookingModal.tsx`)
+  - 移除傳入 `payment_amount` 參數
+  - 讓後端根據合作商的機車型號費用自動計算調車費用
+  - 確保使用調車費用計算，而不是前端計算的租車費用
+
+### 功能說明
+- 訂單列表中的「租借開始」和「租借結束」現在只顯示日期（例如：2026-01-15），不顯示時間
+- 預約轉訂單時，無論使用哪個組件（`handleConvertBookingClick` 或 `ConvertBookingModal`），都會使用後端計算的調車費用
+- 確保費用計算基於合作商的機車型號費用，而不是租車費用
+
+### 問題修復
+- 修復了訂單列表中日期時間顯示問題（之前顯示 `2026-01-15 00:00`，現在只顯示 `2026-01-15`）
+- 修復了 `ConvertBookingModal` 傳入 `payment_amount` 導致覆蓋後端計算的調車費用的問題
+
 ## 2026-01-14 10:11:23 (+8) - 修改訂單開始時間和結束時間為只使用日期格式
 
 ### 變更內容

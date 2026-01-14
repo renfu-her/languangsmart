@@ -1552,8 +1552,8 @@ const OrdersPage: React.FC = () => {
                     </td>
                     <td className="px-4 py-4 w-[120px] font-bold text-gray-900 dark:text-gray-100">{order.tenant}</td>
                     <td className="px-4 py-4 w-[110px] text-gray-500 dark:text-gray-400">{formatDate(order.appointment_date)}</td>
-                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400">{formatDateTime(order.start_time)}</td>
-                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400">{formatDateTime(order.end_time)}</td>
+                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400">{formatDate(order.start_time)}</td>
+                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400">{formatDate(order.end_time)}</td>
                     <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400 font-bold">{formatDateTime(order.expected_return_time)}</td>
                     <td className="px-4 py-4 w-[130px]">
                       <div className="flex flex-col gap-1">
