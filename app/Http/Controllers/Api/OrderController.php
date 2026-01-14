@@ -638,7 +638,7 @@ class OrderController extends Controller
 
         // Group by partner, date, and scooter model
         $reportData = [];
-        $allModels = []; // 收集所有出現的機車型號
+        // 注意：$allModels 已經在上面定義為所有機車型號（從資料庫獲取），不需要重新初始化
 
         foreach ($orders as $order) {
             $partnerName = $order->partner ? $order->partner->name : '無合作商';
@@ -704,10 +704,7 @@ class OrderController extends Controller
 
                 // 只記錄有費用的部分
                 if ($transferFee > 0) {
-                    // 收集所有出現的機車型號
-                    if (!in_array($modelString, $allModels)) {
-                        $allModels[] = $modelString;
-                    }
+                    // 注意：$allModels 已經包含所有機車型號，不需要在這裡收集
 
                     // 初始化合作商數據
                     if (!isset($reportData[$partnerName])) {

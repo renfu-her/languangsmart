@@ -43,10 +43,21 @@ class PartnerMonthlyReportExport
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('月報表');
         
+        // 驗證 models 陣列
+        if (empty($this->models) || !is_array($this->models)) {
+            throw new \Exception('機車型號列表為空或無效');
+        }
+        
         $row = 1;
         
         // 計算總列數：日期(1) + 星期(1) + 當日租200/台(1) + 跨日租300/台(1) + 每個型號(4列)
         $totalCols = 2 + 2 + count($this->models) * 4;
+        
+        // 驗證總列數是否有效（PhpSpreadsheet 支援的最大列數是 16384，即 XFD）
+        if ($totalCols < 1 || $totalCols > 16384) {
+            throw new \Exception('總列數超出有效範圍: ' . $totalCols);
+        }
+        
         $lastCol = Coordinate::stringFromColumnIndex($totalCols);
         
         // 第一行：標題
