@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use App\Models\Partner;
 
 class OrderController extends Controller
 {
@@ -755,8 +756,7 @@ class OrderController extends Controller
                     ], 404);
                 }
 
-                $partner = \App\Models\Partner::find($partnerId);
-                $partnerName = $partner?->name ?? '無合作商';
+                $partnerName = $partnerData['partner_name'] ?? '無合作商';
                 [$year, $monthNum] = explode('-', $month);
 
                 // 生成 Excel
