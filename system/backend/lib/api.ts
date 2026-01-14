@@ -229,8 +229,17 @@ class ApiClient {
           window.location.hash = '/login';
         }
       }
-      const errorData = await response.json().catch(() => ({}));
-      const error: any = new Error(errorData.message || 'Download failed');
+      // 嘗試解析 JSON 錯誤訊息，但如果失敗（可能是二進制檔案），使用預設錯誤訊息
+      let errorData: any = {};
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // 如果不是 JSON，忽略
+        }
+      }
+      const error: any = new Error(errorData.message || `Download failed: ${response.status} ${response.statusText}`);
       error.response = {
         status: response.status,
         statusText: response.statusText,
