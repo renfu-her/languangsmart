@@ -782,10 +782,10 @@ class OrderController extends Controller
                 ];
             });
 
-            dd("Step 7.1: 合作商 [{$partnerName}] 的日期數據聚合完成", [
-                'datesDataGrouped_count' => $datesDataGrouped->count(),
-                'first_date_data' => $datesDataGrouped->first(),
-            ]);
+            // dd("Step 7.1: 合作商 [{$partnerName}] 的日期數據聚合完成", [
+            //     'datesDataGrouped_count' => $datesDataGrouped->count(),
+            //     'first_date_data' => $datesDataGrouped->first(),
+            // ]);
 
             // 合併完整日期列表
             $dates = $allDates->map(function ($dateInfo) use ($datesDataGrouped) {
