@@ -1839,13 +1839,14 @@ const OrdersPage: React.FC = () => {
                 >
                   點擊彈出詳細視窗
                 </button>
-                <span className="text-gray-400">|</span>
+                {/* 合作商分類功能已隱藏 */}
+                {/* <span className="text-gray-400">|</span>
                 <button 
                   onClick={() => setIsPartnerCategoryModalOpen(true)}
                   className="text-sm font-bold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-500 transition-colors"
                 >
                   合作商分類
-                </button>
+                </button> */}
               </div>
            </div>
            <Filter size={24} className="text-blue-200 dark:text-blue-600" />
@@ -2295,11 +2296,12 @@ const OrdersPage: React.FC = () => {
       
       <ChartModal isOpen={isChartModalOpen} onClose={() => setIsChartModalOpen(false)} stats={stats} />
 
-      <PartnerCategoryModal 
+      {/* 合作商分類 Modal 已隱藏 */}
+      {/* <PartnerCategoryModal 
         isOpen={isPartnerCategoryModalOpen} 
         onClose={() => setIsPartnerCategoryModalOpen(false)} 
         month={selectedMonthString}
-      />
+      /> */}
       
       {/* 狀態下拉選單使用 fixed 定位，避免被表格 overflow 裁剪 */}
       {openStatusDropdownId !== null && statusDropdownPosition && orders.find(o => o.id === openStatusDropdownId) && (
