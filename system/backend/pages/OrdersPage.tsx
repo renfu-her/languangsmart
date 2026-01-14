@@ -383,9 +383,15 @@ interface PartnerMonthlyStatisticsData {
       weekday: string;
       models: Array<{
         model: string;
-        count: number;
-        days: number;
-        amount: number;
+        same_day_count: number;
+        same_day_days: number;
+        same_day_amount: number;
+        overnight_count: number;
+        overnight_days: number;
+        overnight_amount: number;
+        total_count: number;
+        total_days: number;
+        total_amount: number;
       }>;
     }>;
   }>;
@@ -462,11 +468,12 @@ const PartnerCategoryModal: React.FC<{
                 // 只顯示有 partner_id 的合作商
                 if (!partner.partner_id) return null;
 
+                // 計算總台數和總金額（包含當日租和跨日租）
                 const totalCount = partner.dates.reduce((sum, date) => 
-                  sum + date.models.reduce((s, m) => s + m.count, 0), 0
+                  sum + date.models.reduce((s, m) => s + (m.total_count || 0), 0), 0
                 );
                 const totalAmount = partner.dates.reduce((sum, date) => 
-                  sum + date.models.reduce((s, m) => s + m.amount, 0), 0
+                  sum + date.models.reduce((s, m) => s + (m.total_amount || 0), 0), 0
                 );
 
                 return (
@@ -490,16 +497,28 @@ const PartnerCategoryModal: React.FC<{
                       <table className="w-full text-sm">
                         <thead className="bg-gray-50 dark:bg-gray-700/50">
                           <tr>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-600">
+                            <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-600">
                               日期
                             </th>
-                            <th className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-600">
+                            <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-600">
                               星期
                             </th>
                             {data.headers.map((header) => (
-                              <th key={header} className="px-4 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-600">
+                              <th key={header} colSpan={2} className="px-4 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-600">
                                 {header}
                               </th>
+                            ))}
+                          </tr>
+                          <tr>
+                            {data.headers.map((header) => (
+                              <React.Fragment key={header}>
+                                <th className="px-2 py-2 text-center text-xs font-semibold text-blue-600 dark:text-blue-400 border-r border-gray-200 dark:border-gray-600 bg-blue-50 dark:bg-blue-900/20">
+                                  當日租
+                                </th>
+                                <th className="px-2 py-2 text-center text-xs font-semibold text-orange-600 dark:text-orange-400 border-r border-gray-200 dark:border-gray-600 bg-orange-50 dark:bg-orange-900/20">
+                                  跨日租
+                                </th>
+                              </React.Fragment>
                             ))}
                           </tr>
                         </thead>
@@ -520,23 +539,44 @@ const PartnerCategoryModal: React.FC<{
                                 {data.headers.map((header) => {
                                   const modelData = dateItem.models.find(m => m.model === header);
                                   return (
-                                    <td key={header} className="px-4 py-3 text-center border-r border-gray-200 dark:border-gray-600">
-                                      {modelData ? (
-                                        <div className="space-y-1">
-                                          <div className="text-gray-800 dark:text-gray-200 font-medium">
-                                            台數: {modelData.count}
+                                    <React.Fragment key={header}>
+                                      {/* 當日租 */}
+                                      <td className="px-2 py-3 text-center border-r border-gray-200 dark:border-gray-600 bg-blue-50/30 dark:bg-blue-900/10">
+                                        {modelData && (modelData.same_day_count > 0 || modelData.same_day_amount > 0) ? (
+                                          <div className="space-y-1">
+                                            <div className="text-gray-800 dark:text-gray-200 font-medium text-xs">
+                                              台數: {modelData.same_day_count}
+                                            </div>
+                                            <div className="text-gray-600 dark:text-gray-400 text-xs">
+                                              天數: {modelData.same_day_days}
+                                            </div>
+                                            <div className="text-blue-600 dark:text-blue-400 font-bold text-xs">
+                                              ${modelData.same_day_amount.toLocaleString()}
+                                            </div>
                                           </div>
-                                          <div className="text-gray-600 dark:text-gray-400 text-xs">
-                                            天數: {modelData.days}
+                                        ) : (
+                                          <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                                        )}
+                                      </td>
+                                      {/* 跨日租 */}
+                                      <td className="px-2 py-3 text-center border-r border-gray-200 dark:border-gray-600 bg-orange-50/30 dark:bg-orange-900/10">
+                                        {modelData && (modelData.overnight_count > 0 || modelData.overnight_amount > 0) ? (
+                                          <div className="space-y-1">
+                                            <div className="text-gray-800 dark:text-gray-200 font-medium text-xs">
+                                              台數: {modelData.overnight_count}
+                                            </div>
+                                            <div className="text-gray-600 dark:text-gray-400 text-xs">
+                                              天數: {modelData.overnight_days}
+                                            </div>
+                                            <div className="text-orange-600 dark:text-orange-400 font-bold text-xs">
+                                              ${modelData.overnight_amount.toLocaleString()}
+                                            </div>
                                           </div>
-                                          <div className="text-green-600 dark:text-green-400 font-bold">
-                                            ${modelData.amount.toLocaleString()}
-                                          </div>
-                                        </div>
-                                      ) : (
-                                        <span className="text-gray-400 dark:text-gray-500">-</span>
-                                      )}
-                                    </td>
+                                        ) : (
+                                          <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                                        )}
+                                      </td>
+                                    </React.Fragment>
                                   );
                                 })}
                               </tr>

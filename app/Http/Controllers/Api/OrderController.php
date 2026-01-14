@@ -870,7 +870,7 @@ class OrderController extends Controller
         $allScooterModels = ScooterModel::orderBy('sort_order', 'desc')->get();
         $headers = $allScooterModels->map(fn($model) => "{$model->name} {$model->type}")->toArray();
 
-        // 步驟 2: 預載入所有合作商的調車費用（跨日租）
+        // 步驟 2: 預載入所有合作商的調車費用（當日租和跨日租）
         $transferFeesMap = PartnerScooterModelTransferFee::with('scooterModel')
             ->get()
             ->groupBy('partner_id')
@@ -882,7 +882,7 @@ class OrderController extends Controller
                 })->filter();
             });
 
-        // 步驟 3: 查詢該月份的所有訂單
+        // 步驟 3: 查詢該月份的所有訂單（必須有 partner_id）
         $orders = Order::whereNotNull('start_time')
             ->whereNotNull('end_time')
             ->whereNotNull('partner_id')
@@ -909,20 +909,20 @@ class OrderController extends Controller
                 $startTime = Carbon::parse($order->start_time)->timezone('Asia/Taipei');
                 $endTime = Carbon::parse($order->end_time)->timezone('Asia/Taipei');
                 
-                // 計算天數：
-                // - 同一天算 1 天（當日租）
-                // - 超過 1 天，直接減 1（跨日租）
-                // 例如：1/1-1/1=1天, 1/1-1/2=1天(2-1), 1/1-1/3=2天(3-1)
+                // 判斷是當日租還是跨日租
                 $isSameDay = $startTime->isSameDay($endTime);
+                
+                // 計算天數：
+                // - 同一天：1 天（當日租）
+                // - 跨日：計算實際天數（例如：1/1-1/3 = 3天）
                 if ($isSameDay) {
                     $days = 1;
                 } else {
-                    $diffDays = $startTime->diffInDays($endTime);
-                    $days = max(1, $diffDays - 1);
+                    $days = $startTime->diffInDays($endTime) + 1; // +1 因為包含開始和結束日期
                 }
 
                 // 查詢該訂單的所有 order_scooter 記錄
-                $orderScooters = OrderScooter::where('order_id', '=', $order->id)
+                $orderScooters = OrderScooter::where('order_id', $order->id)
                     ->with(['scooter'])
                     ->get();
 
@@ -931,16 +931,19 @@ class OrderController extends Controller
                     return $orderScooter->model_string;
                 })->filter(function ($orderScooters, $modelString) {
                     return !empty($modelString);
-                })->each(function ($orderScooters, $modelString) use ($datesData, $startTime, $days, $transferFeesMap, $partnerId) {
+                })->each(function ($orderScooters, $modelString) use ($datesData, $startTime, $days, $isSameDay, $transferFeesMap, $partnerId) {
                     // 計算該 model 的台數
                     $scooterCount = $orderScooters->count();
 
-                    // 獲取合作商的機車型號跨日租單價
+                    // 獲取合作商的機車型號單價（當日租或跨日租）
                     $feeKey = $transferFeesMap->get($partnerId)?->get($modelString);
-                    $transferFeePerUnit = $feeKey ? ($feeKey->overnight_transfer_fee ?? 0) : 0;
+                    $transferFeePerUnit = $feeKey
+                        ? ($isSameDay ? ($feeKey->same_day_transfer_fee ?? 0) : ($feeKey->overnight_transfer_fee ?? 0))
+                        : 0;
 
-                    // 計算費用：機車型號數量 * 合作商機車型號的金額 * 天數
-                    $amount = (int) $scooterCount * $transferFeePerUnit * $days;
+                    // 計算費用：金額 × 天數 × 台數
+                    // 例如：2台 = 金額 × 天數 × 2, 3台 = 金額 × 天數 × 3
+                    $amount = (int) $transferFeePerUnit * $days * $scooterCount;
 
                     // 使用 start_time 的日期作為 key
                     $dateKey = $startTime->format('Y-m-d');
@@ -951,22 +954,41 @@ class OrderController extends Controller
                     }
 
                     $dateModels = $datesData->get($dateKey);
+                    $field = $isSameDay ? 'same_day' : 'overnight';
 
-                    // 累加到該日期該 model 的數據
+                    // 累加到該日期該 model 的數據（當日租和跨日租分開計算）
                     if ($dateModels->has($modelString)) {
                         $existing = $dateModels->get($modelString);
                         $dateModels->put($modelString, [
                             'model' => $modelString,
-                            'count' => $existing['count'] + $scooterCount,
-                            'days' => $existing['days'] + $days,
-                            'amount' => $existing['amount'] + $amount,
+                            // 當日租數據
+                            'same_day_count' => ($existing['same_day_count'] ?? 0) + ($isSameDay ? $scooterCount : 0),
+                            'same_day_days' => ($existing['same_day_days'] ?? 0) + ($isSameDay ? $days : 0),
+                            'same_day_amount' => ($existing['same_day_amount'] ?? 0) + ($isSameDay ? $amount : 0),
+                            // 跨日租數據
+                            'overnight_count' => ($existing['overnight_count'] ?? 0) + (!$isSameDay ? $scooterCount : 0),
+                            'overnight_days' => ($existing['overnight_days'] ?? 0) + (!$isSameDay ? $days : 0),
+                            'overnight_amount' => ($existing['overnight_amount'] ?? 0) + (!$isSameDay ? $amount : 0),
+                            // 總計
+                            'total_count' => ($existing['total_count'] ?? 0) + $scooterCount,
+                            'total_days' => ($existing['total_days'] ?? 0) + $days,
+                            'total_amount' => ($existing['total_amount'] ?? 0) + $amount,
                         ]);
                     } else {
                         $dateModels->put($modelString, [
                             'model' => $modelString,
-                            'count' => $scooterCount,
-                            'days' => $days,
-                            'amount' => $amount,
+                            // 當日租數據
+                            'same_day_count' => $isSameDay ? $scooterCount : 0,
+                            'same_day_days' => $isSameDay ? $days : 0,
+                            'same_day_amount' => $isSameDay ? $amount : 0,
+                            // 跨日租數據
+                            'overnight_count' => !$isSameDay ? $scooterCount : 0,
+                            'overnight_days' => !$isSameDay ? $days : 0,
+                            'overnight_amount' => !$isSameDay ? $amount : 0,
+                            // 總計
+                            'total_count' => $scooterCount,
+                            'total_days' => $days,
+                            'total_amount' => $amount,
                         ]);
                     }
                 });

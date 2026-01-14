@@ -1,5 +1,59 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-14 20:44:05 (+8) - 修正合作商分類統計：區分當日租和跨日租，分別計算費用
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修改 `partnerMonthlyStatistics()` 方法，區分當日租和跨日租
+  - 使用 `start_time` 和 `end_time` 判斷：
+    - 同一天：計算當日費用（`same_day_transfer_fee`）
+    - 跨日：計算跨日費用（`overnight_transfer_fee`）
+  - 計算公式：金額 × 天數 × 台數
+    - 例如：2台 = 金額 × 天數 × 2
+    - 例如：3台 = 金額 × 天數 × 3
+  - 相同型號的費用個別計算（當日租和跨日租分開）
+  - 返回數據包含：
+    - `same_day_count`, `same_day_days`, `same_day_amount`（當日租）
+    - `overnight_count`, `overnight_days`, `overnight_amount`（跨日租）
+    - `total_count`, `total_days`, `total_amount`（總計）
+
+#### 前端顯示修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 更新 `PartnerCategoryModal` 組件
+  - 表格改為兩層表頭：第一層顯示機車型號，第二層顯示「當日租」和「跨日租」
+  - 每個機車型號下分別顯示當日租和跨日租的台數、天數、金額
+  - 總金額顯示全部費用（當日租 + 跨日租）
+
+### 問題說明
+- 需要區分當日租和跨日租，分別計算費用
+- 相同型號在同一天可能同時有當日租和跨日租的訂單，需要分開計算
+- 總金額是所有費用的總和
+
+### 技術細節
+- 天數計算：
+  - 當日租：`start_time` 和 `end_time` 同一天 = 1 天
+  - 跨日租：`start_time` 和 `end_time` 不同天 = `diffInDays + 1` 天
+- 費用計算：
+  - 當日租：`same_day_transfer_fee × 天數 × 台數`
+  - 跨日租：`overnight_transfer_fee × 天數 × 台數`
+- 數據結構：
+  ```json
+  {
+    "model": "ES-1000 綠牌",
+    "same_day_count": 1,
+    "same_day_days": 1,
+    "same_day_amount": 200,
+    "overnight_count": 2,
+    "overnight_days": 3,
+    "overnight_amount": 1800,
+    "total_count": 3,
+    "total_days": 4,
+    "total_amount": 2000
+  }
+  ```
+
 ## 2026-01-14 20:44:05 (+8) - 新增前端合作商單月統計 API（按日期分組）
 
 ### 變更內容
