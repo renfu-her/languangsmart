@@ -8,11 +8,13 @@ use App\Models\Order;
 use App\Models\Scooter;
 use App\Models\PartnerScooterModelTransferFee;
 use App\Models\ScooterModel;
+use App\Exports\PartnerMonthlyReportExport;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
 
 class OrderController extends Controller
 {
@@ -594,10 +596,10 @@ class OrderController extends Controller
     }
 
     /**
-     * Get partner detailed daily report for a specific month
-     * Returns data grouped by partner, date, and scooter model with transfer fees
+     * Get partner detailed monthly report for a specific month
+     * Returns Excel file if partner_id is provided, otherwise returns JSON data
      */
-    public function partnerDailyReport(Request $request): JsonResponse
+    public function partnerDailyReport(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'month' => 'required|date_format:Y-m',
@@ -613,6 +615,12 @@ class OrderController extends Controller
 
         $month = $request->get('month');
         $partnerId = $request->get('partner_id');
+        
+        // 獲取所有機車型號（從機車型號管理）
+        $allScooterModels = ScooterModel::orderBy('sort_order', 'desc')->get();
+        $allModels = $allScooterModels->map(function ($model) {
+            return $model->name . ' ' . $model->type;
+        })->toArray();
         $monthStartDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->startOfMonth();
         $monthEndDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->endOfMonth();
 
@@ -780,8 +788,75 @@ class OrderController extends Controller
             $partnerData['dates'] = $partnerDates;
         }
 
-        // 排序機車型號
-        sort($allModels);
+        // 如果提供了 partner_id，生成並返回 Excel 檔案
+        if ($partnerId) {
+            $partnerData = null;
+            foreach ($reportData as $pName => $pData) {
+                if ($pData['partner_id'] == $partnerId) {
+                    $partnerData = $pData;
+                    break;
+                }
+            }
+            
+            if (!$partnerData) {
+                return response()->json([
+                    'message' => 'Partner not found or no data for this month',
+                ], 404);
+            }
+            
+            // 獲取合作商名稱
+            $partner = \App\Models\Partner::find($partnerId);
+            $partnerName = $partner ? $partner->name : '無合作商';
+            
+            // 生成整個月份的日期列表
+            $currentDate = $monthStartDate->copy();
+            $allDates = [];
+            
+            while ($currentDate->lte($monthEndDate)) {
+                $dateStr = $currentDate->format('Y-m-d');
+                $weekday = $currentDate->format('l');
+                if (isset($partnerData['dates'][$dateStr])) {
+                    $allDates[] = $partnerData['dates'][$dateStr];
+                } else {
+                    $allDates[] = [
+                        'date' => $dateStr,
+                        'weekday' => $weekday,
+                        'models' => [],
+                    ];
+                }
+                $currentDate->addDay();
+            }
+            
+            [$year, $monthNum] = explode('-', $month);
+            
+            // 使用 Export 類生成 Excel
+            $export = new PartnerMonthlyReportExport($partnerName, $year, $monthNum, $allDates, $allModels);
+            $fileName = $partnerName . '-' . $year . str_pad($monthNum, 2, '0', STR_PAD_LEFT) . '.xlsx';
+            
+            return Excel::download($export, $fileName);
+        }
+
+        // 如果沒有提供 partner_id，返回 JSON 數據（保持向後兼容）
+        // 為每個合作商生成完整的日期列表
+        foreach ($reportData as $partnerName => &$partnerData) {
+            $partnerDates = [];
+            $currentDate = $monthStartDate->copy();
+            while ($currentDate->lte($monthEndDate)) {
+                $dateStr = $currentDate->format('Y-m-d');
+                $weekday = $currentDate->format('l');
+                if (isset($partnerData['dates'][$dateStr])) {
+                    $partnerDates[] = $partnerData['dates'][$dateStr];
+                } else {
+                    $partnerDates[] = [
+                        'date' => $dateStr,
+                        'weekday' => $weekday,
+                        'models' => [],
+                    ];
+                }
+                $currentDate->addDay();
+            }
+            $partnerData['dates'] = $partnerDates;
+        }
 
         // 轉換為數組格式
         $result = [

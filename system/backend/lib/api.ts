@@ -192,6 +192,75 @@ class ApiClient {
     return this.request<T>(endpoint, { method: 'DELETE' });
   }
 
+  async downloadFile(
+    endpoint: string,
+    params?: Record<string, any>,
+    filename?: string
+  ): Promise<void> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const token = localStorage.getItem('auth_token');
+    
+    // 構建查詢字符串
+    let queryString = '';
+    if (params) {
+      const filteredParams: Record<string, string> = {};
+      Object.keys(params).forEach(key => {
+        const value = params[key];
+        if (value !== undefined && value !== null && value !== '') {
+          filteredParams[key] = String(value);
+        }
+      });
+      if (Object.keys(filteredParams).length > 0) {
+        queryString = '?' + new URLSearchParams(filteredParams).toString();
+      }
+    }
+    
+    const response = await fetch(url + queryString, {
+      method: 'GET',
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('auth_token');
+        if (window.location.hash !== '#/login') {
+          window.location.hash = '/login';
+        }
+      }
+      const errorData = await response.json().catch(() => ({}));
+      const error: any = new Error(errorData.message || 'Download failed');
+      error.response = {
+        status: response.status,
+        statusText: response.statusText,
+        data: errorData,
+      };
+      throw error;
+    }
+    
+    // 獲取文件名（從 Content-Disposition header 或使用提供的文件名）
+    let downloadFilename = filename;
+    const contentDisposition = response.headers.get('Content-Disposition');
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (filenameMatch && filenameMatch[1]) {
+        downloadFilename = filenameMatch[1].replace(/['"]/g, '');
+      }
+    }
+    
+    // 下載文件
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = downloadFilename || 'download.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
+  }
+
   async uploadFile<T>(
     endpoint: string,
     file: File,
@@ -276,6 +345,8 @@ export const ordersApi = {
   monthlyReport: (month: string) => api.get('/orders/monthly-report', { month }),
   partnerDailyReport: (month: string, partnerId?: number) => 
     api.get('/orders/partner-daily-report', { month, partner_id: partnerId }),
+  downloadPartnerMonthlyReport: (month: string, partnerId: number, filename?: string) =>
+    api.downloadFile('/orders/partner-daily-report', { month, partner_id: partnerId }, filename),
   getYears: () => api.get<number[]>('/orders/years'),
   getMonthsByYear: (year: number) => api.get<number[]>('/orders/months', { year }),
 };
