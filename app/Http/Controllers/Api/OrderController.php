@@ -602,6 +602,7 @@ class OrderController extends Controller
      */
     public function partnerDailyReport(Request $request)
     {
+        // Step 1: 驗證請求參數
         $validator = Validator::make($request->all(), [
             'month' => 'required|date_format:Y-m',
             'partner_id' => 'nullable|exists:partners,id',
@@ -619,193 +620,272 @@ class OrderController extends Controller
         $monthStartDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->startOfMonth();
         $monthEndDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->endOfMonth();
 
-        try {
-            // 獲取所有機車型號
-            $allScooterModels = ScooterModel::orderBy('sort_order', 'desc')->get();
-            if ($allScooterModels->isEmpty()) {
-                return response()->json(['message' => 'No scooter models found'], 404);
-            }
+        dd('Step 1: 參數驗證完成', [
+            'month' => $month,
+            'partner_id' => $partnerId,
+            'monthStartDate' => $monthStartDate,
+            'monthEndDate' => $monthEndDate,
+        ]);
 
-            $allModels = $allScooterModels->map(fn($model) => "{$model->name} {$model->type}")->toArray();
+        // Step 2: 獲取所有機車型號
+        $allScooterModels = ScooterModel::orderBy('sort_order', 'desc')->get();
+        if ($allScooterModels->isEmpty()) {
+            return response()->json(['message' => 'No scooter models found'], 404);
+        }
 
-            // 預載入所有調車費用，建立快速查找 Map
-            $transferFeesMap = PartnerScooterModelTransferFee::with('scooterModel')
-                ->get()
-                ->groupBy('partner_id')
-                ->map(function ($fees) {
-                    return $fees->keyBy(function ($fee) {
-                        return $fee->scooterModel
-                            ? "{$fee->scooterModel->name} {$fee->scooterModel->type}"
-                            : null;
-                    })->filter();
-                });
+        $allModels = $allScooterModels->map(fn($model) => "{$model->name} {$model->type}")->toArray();
 
-            // 查詢訂單並預載入關聯
-            $orders = Order::with(['partner', 'scooters.scooterModel'])
-                ->whereNotNull('start_time')
-                ->whereNotNull('end_time')
-                ->whereBetween('start_time', [$monthStartDate, $monthEndDate])
-                ->when($partnerId, fn($q) => $q->where('partner_id', $partnerId))
-                ->get();
+        dd('Step 2: 機車型號載入完成', [
+            'allScooterModels_count' => $allScooterModels->count(),
+            'allModels' => $allModels,
+            'first_model' => $allScooterModels->first(),
+        ]);
 
-            // 生成完整月份日期列表
-            $allDates = collect();
-            $currentDate = $monthStartDate->copy();
-            while ($currentDate->lte($monthEndDate)) {
-                $allDates->push([
-                    'date' => $currentDate->format('Y-m-d'),
-                    'weekday' => $currentDate->format('l'),
-                ]);
-                $currentDate->addDay();
-            }
+        // Step 3: 預載入所有調車費用
+        $transferFeesMap = PartnerScooterModelTransferFee::with('scooterModel')
+            ->get()
+            ->groupBy('partner_id')
+            ->map(function ($fees) {
+                return $fees->keyBy(function ($fee) {
+                    return $fee->scooterModel
+                        ? "{$fee->scooterModel->name} {$fee->scooterModel->type}"
+                        : null;
+                })->filter();
+            });
 
-            // 處理訂單數據
-            $reportData = $orders->groupBy(function ($order) {
-                return $order->partner?->name ?? '無合作商';
-            })->map(function ($partnerOrders, $partnerName) use ($transferFeesMap, $allDates, $monthStartDate, $monthEndDate) {
-                $firstOrder = $partnerOrders->first();
-                $partnerId = $firstOrder->partner_id;
+        dd('Step 3: 調車費用載入完成', [
+            'transferFeesMap_count' => $transferFeesMap->count(),
+            'transferFeesMap_keys' => $transferFeesMap->keys(),
+            'first_partner_fees' => $transferFeesMap->first(),
+        ]);
 
-                // 處理每個訂單
-                $datesData = $partnerOrders->flatMap(function ($order) use ($transferFeesMap, $partnerId) {
-                    $startTime = Carbon::parse($order->start_time)->timezone('Asia/Taipei');
-                    $endTime = Carbon::parse($order->end_time)->timezone('Asia/Taipei');
-                    $keyDate = $startTime->format('Y-m-d');
-                    $isSameDay = $startTime->isSameDay($endTime);
-                    $days = $isSameDay ? 1 : $startTime->diffInDays($endTime);
+        // Step 4: 查詢訂單
+        $orders = Order::with(['partner', 'scooters.scooterModel'])
+            ->whereNotNull('start_time')
+            ->whereNotNull('end_time')
+            ->whereBetween('start_time', [$monthStartDate, $monthEndDate])
+            ->when($partnerId, fn($q) => $q->where('partner_id', $partnerId))
+            ->get();
 
-                    // 按機車型號分組
-                    return $order->scooters->groupBy(function ($scooter) {
-                        $model = $scooter->scooterModel;
-                        return $model ? "{$model->name} {$model->type}" : '';
-                    })->map(function ($scooters, $modelString) use ($keyDate, $startTime, $isSameDay, $days, $transferFeesMap, $partnerId) {
-                        if (empty($modelString))
-                            return null;
+        dd('Step 4: 訂單查詢完成', [
+            'orders_count' => $orders->count(),
+            'first_order' => $orders->first(),
+            'first_order_partner' => $orders->first()?->partner,
+            'first_order_scooters_count' => $orders->first()?->scooters->count(),
+            'first_order_scooter_model' => $orders->first()?->scooters->first()?->scooterModel,
+        ]);
 
-                        $scooterCount = $scooters->count();
-                        $feeKey = $transferFeesMap->get($partnerId)?->get($modelString);
-                        $transferFeePerUnit = $feeKey
-                            ? ($isSameDay ? ($feeKey->same_day_transfer_fee ?? 0) : ($feeKey->overnight_transfer_fee ?? 0))
-                            : 0;
-                        $transferFee = (int) $transferFeePerUnit * $scooterCount * $days;
+        // Step 5: 生成完整月份日期列表
+        $allDates = collect();
+        $currentDate = $monthStartDate->copy();
+        while ($currentDate->lte($monthEndDate)) {
+            $allDates->push([
+                'date' => $currentDate->format('Y-m-d'),
+                'weekday' => $currentDate->format('l'),
+            ]);
+            $currentDate->addDay();
+        }
 
-                        if ($transferFee <= 0)
-                            return null;
+        dd('Step 5: 日期列表生成完成', [
+            'allDates_count' => $allDates->count(),
+            'first_date' => $allDates->first(),
+            'last_date' => $allDates->last(),
+        ]);
 
-                        [$model, $type] = explode(' ', $modelString, 2) + ['', ''];
-                        $field = $isSameDay ? 'same_day' : 'overnight';
+        // Step 6: 按合作商分組訂單
+        $ordersByPartner = $orders->groupBy(function ($order) {
+            return $order->partner?->name ?? '無合作商';
+        });
 
-                        return [
-                            'date' => $keyDate,
-                            'weekday' => $startTime->format('l'),
-                            'model_string' => $modelString,
-                            'model' => $model,
-                            'type' => $type,
-                            "{$field}_count" => $scooterCount,
-                            "{$field}_days" => $days,
-                            "{$field}_amount" => $transferFee,
-                        ];
-                    })->filter();
-                })->groupBy('date')->map(function ($dateItems, $date) {
-                    $firstItem = $dateItems->first();
-                    $models = $dateItems->groupBy('model_string')->map(function ($items) {
-                        $first = $items->first();
-                        return [
-                            'model' => $first['model'] ?? '',
-                            'type' => $first['type'] ?? '',
-                            'same_day_count' => $items->sum(fn($item) => $item['same_day_count'] ?? 0),
-                            'same_day_days' => $items->sum(fn($item) => $item['same_day_days'] ?? 0),
-                            'same_day_amount' => $items->sum(fn($item) => $item['same_day_amount'] ?? 0),
-                            'overnight_count' => $items->sum(fn($item) => $item['overnight_count'] ?? 0),
-                            'overnight_days' => $items->sum(fn($item) => $item['overnight_days'] ?? 0),
-                            'overnight_amount' => $items->sum(fn($item) => $item['overnight_amount'] ?? 0),
-                        ];
-                    })->values();
+        dd('Step 6: 訂單按合作商分組完成', [
+            'ordersByPartner_count' => $ordersByPartner->count(),
+            'ordersByPartner_keys' => $ordersByPartner->keys(),
+            'first_partner_orders_count' => $ordersByPartner->first()?->count(),
+        ]);
+
+        // Step 7: 處理每個合作商的訂單數據
+        $reportData = $ordersByPartner->map(function ($partnerOrders, $partnerName) use ($transferFeesMap, $allDates) {
+            $firstOrder = $partnerOrders->first();
+            $partnerId = $firstOrder->partner_id;
+
+            // 處理每個訂單
+            $datesData = $partnerOrders->flatMap(function ($order) use ($transferFeesMap, $partnerId) {
+                $startTime = Carbon::parse($order->start_time)->timezone('Asia/Taipei');
+                $endTime = Carbon::parse($order->end_time)->timezone('Asia/Taipei');
+                $keyDate = $startTime->format('Y-m-d');
+                $isSameDay = $startTime->isSameDay($endTime);
+                $days = $isSameDay ? 1 : $startTime->diffInDays($endTime);
+
+                // 按機車型號分組
+                return $order->scooters->groupBy(function ($scooter) {
+                    $model = $scooter->scooterModel;
+                    return $model ? "{$model->name} {$model->type}" : '';
+                })->map(function ($scooters, $modelString) use ($keyDate, $startTime, $isSameDay, $days, $transferFeesMap, $partnerId) {
+                    if (empty($modelString))
+                        return null;
+
+                    $scooterCount = $scooters->count();
+                    $feeKey = $transferFeesMap->get($partnerId)?->get($modelString);
+                    $transferFeePerUnit = $feeKey
+                        ? ($isSameDay ? ($feeKey->same_day_transfer_fee ?? 0) : ($feeKey->overnight_transfer_fee ?? 0))
+                        : 0;
+                    $transferFee = (int) $transferFeePerUnit * $scooterCount * $days;
+
+                    if ($transferFee <= 0)
+                        return null;
+
+                    [$model, $type] = explode(' ', $modelString, 2) + ['', ''];
+                    $field = $isSameDay ? 'same_day' : 'overnight';
 
                     return [
-                        'date' => $date,
-                        'weekday' => $firstItem['weekday'] ?? Carbon::parse($date)->format('l'),
-                        'models' => $models,
+                        'date' => $keyDate,
+                        'weekday' => $startTime->format('l'),
+                        'model_string' => $modelString,
+                        'model' => $model,
+                        'type' => $type,
+                        "{$field}_count" => $scooterCount,
+                        "{$field}_days" => $days,
+                        "{$field}_amount" => $transferFee,
                     ];
-                });
+                })->filter();
+            });
 
-                // 合併完整日期列表
-                $dates = $allDates->map(function ($dateInfo) use ($datesData) {
-                    $dateStr = $dateInfo['date'];
-                    return $datesData->get($dateStr) ?? [
-                        'date' => $dateStr,
-                        'weekday' => $dateInfo['weekday'],
-                        'models' => [],
+            dd("Step 7: 處理合作商 [{$partnerName}] 的訂單數據", [
+                'partnerName' => $partnerName,
+                'partnerId' => $partnerId,
+                'partnerOrders_count' => $partnerOrders->count(),
+                'datesData_count' => $datesData->count(),
+                'first_date_item' => $datesData->first(),
+            ]);
+
+            // 按日期分組並聚合
+            $datesDataGrouped = $datesData->groupBy('date')->map(function ($dateItems, $date) {
+                $firstItem = $dateItems->first();
+                $models = $dateItems->groupBy('model_string')->map(function ($items) {
+                    $first = $items->first();
+                    return [
+                        'model' => $first['model'] ?? '',
+                        'type' => $first['type'] ?? '',
+                        'same_day_count' => $items->sum(fn($item) => $item['same_day_count'] ?? 0),
+                        'same_day_days' => $items->sum(fn($item) => $item['same_day_days'] ?? 0),
+                        'same_day_amount' => $items->sum(fn($item) => $item['same_day_amount'] ?? 0),
+                        'overnight_count' => $items->sum(fn($item) => $item['overnight_count'] ?? 0),
+                        'overnight_days' => $items->sum(fn($item) => $item['overnight_days'] ?? 0),
+                        'overnight_amount' => $items->sum(fn($item) => $item['overnight_amount'] ?? 0),
                     ];
                 })->values();
 
                 return [
-                    'partner_id' => $partnerId,
-                    'partner_name' => $partnerName,
-                    'dates' => $dates,
+                    'date' => $date,
+                    'weekday' => $firstItem['weekday'] ?? Carbon::parse($date)->format('l'),
+                    'models' => $models,
+                ];
+            });
+
+            dd("Step 7.1: 合作商 [{$partnerName}] 的日期數據聚合完成", [
+                'datesDataGrouped_count' => $datesDataGrouped->count(),
+                'first_date_data' => $datesDataGrouped->first(),
+            ]);
+
+            // 合併完整日期列表
+            $dates = $allDates->map(function ($dateInfo) use ($datesDataGrouped) {
+                $dateStr = $dateInfo['date'];
+                return $datesDataGrouped->get($dateStr) ?? [
+                    'date' => $dateStr,
+                    'weekday' => $dateInfo['weekday'],
+                    'models' => [],
                 ];
             })->values();
 
-            // 如果提供了 partner_id，生成 Excel
-            if ($partnerId) {
-                $partnerData = $reportData->firstWhere('partner_id', $partnerId);
+            return [
+                'partner_id' => $partnerId,
+                'partner_name' => $partnerName,
+                'dates' => $dates,
+            ];
+        })->values();
 
-                if (!$partnerData) {
-                    return response()->json([
-                        'message' => 'Partner not found or no data for this month',
-                    ], 404);
-                }
+        dd('Step 8: 所有合作商數據處理完成', [
+            'reportData_count' => $reportData->count(),
+            'reportData' => $reportData,
+        ]);
 
-                $partnerName = $partnerData['partner_name'] ?? '無合作商';
-                [$year, $monthNum] = explode('-', $month);
+        // Step 9: 如果提供了 partner_id，生成 Excel
+        if ($partnerId) {
+            $partnerData = $reportData->firstWhere('partner_id', $partnerId);
 
-                // 生成 Excel
-                $export = new PartnerMonthlyReportExport($partnerName, $year, $monthNum, $partnerData['dates'], $allModels);
-                $tempFile = tempnam(sys_get_temp_dir(), 'excel_');
+            dd('Step 9: 查找指定合作商數據', [
+                'partnerId' => $partnerId,
+                'partnerData' => $partnerData,
+                'reportData_partner_ids' => $reportData->pluck('partner_id'),
+            ]);
 
-                if ($tempFile === false) {
-                    return response()->json(['message' => 'Failed to create temporary file'], 500);
-                }
-
-                (new Xlsx($export->generate()))->save($tempFile);
-
-                if (!file_exists($tempFile)) {
-                    return response()->json(['message' => 'Failed to generate Excel file'], 500);
-                }
-
-                $fileName = "{$partnerName}-{$year}" . str_pad($monthNum, 2, '0', STR_PAD_LEFT) . '.xlsx';
-
-                return response()->download($tempFile, $fileName, [
-                    'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                ])->deleteFileAfterSend(true);
+            if (!$partnerData) {
+                return response()->json([
+                    'message' => 'Partner not found or no data for this month',
+                ], 404);
             }
 
-            // 返回 JSON 數據
-            return response()->json([
-                'data' => [
-                    'partners' => $reportData,
-                    'models' => $allModels,
-                    'month' => $month,
-                ],
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('partnerDailyReport exception', [
-                'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString(),
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-                'request' => $request->all(),
+            $partnerName = $partnerData['partner_name'] ?? '無合作商';
+            [$year, $monthNum] = explode('-', $month);
+
+            dd('Step 10: 準備生成 Excel', [
+                'partnerName' => $partnerName,
+                'year' => $year,
+                'monthNum' => $monthNum,
+                'dates_count' => count($partnerData['dates']),
+                'allModels_count' => count($allModels),
             ]);
 
-            return response()->json([
-                'message' => 'An error occurred while processing the request',
-                'error' => config('app.debug') ? [
-                    'message' => $e->getMessage(),
-                    'file' => $e->getFile(),
-                    'line' => $e->getLine(),
-                ] : null,
-            ], 500);
+            // 生成 Excel
+            $export = new PartnerMonthlyReportExport($partnerName, $year, $monthNum, $partnerData['dates'], $allModels);
+            $tempFile = tempnam(sys_get_temp_dir(), 'excel_');
+
+            dd('Step 11: Excel Export 對象創建完成', [
+                'tempFile' => $tempFile,
+                'export_class' => get_class($export),
+            ]);
+
+            if ($tempFile === false) {
+                return response()->json(['message' => 'Failed to create temporary file'], 500);
+            }
+
+            (new Xlsx($export->generate()))->save($tempFile);
+
+            dd('Step 12: Excel 檔案生成完成', [
+                'tempFile' => $tempFile,
+                'file_exists' => file_exists($tempFile),
+                'file_size' => file_exists($tempFile) ? filesize($tempFile) : 0,
+            ]);
+
+            if (!file_exists($tempFile)) {
+                return response()->json(['message' => 'Failed to generate Excel file'], 500);
+            }
+
+            $fileName = "{$partnerName}-{$year}" . str_pad($monthNum, 2, '0', STR_PAD_LEFT) . '.xlsx';
+
+            dd('Step 13: 準備下載 Excel', [
+                'fileName' => $fileName,
+            ]);
+
+            return response()->download($tempFile, $fileName, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
         }
+
+        // Step 9: 返回 JSON 數據
+        dd('Step 9: 準備返回 JSON 數據', [
+            'reportData' => $reportData,
+            'allModels' => $allModels,
+            'month' => $month,
+        ]);
+
+        return response()->json([
+            'data' => [
+                'partners' => $reportData,
+                'models' => $allModels,
+                'month' => $month,
+            ],
+        ]);
     }
 }
 
