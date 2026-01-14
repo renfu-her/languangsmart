@@ -94,7 +94,7 @@ class BookingController extends Controller
 
             $totalTransferFee = 0;
 
-            // 針對每個車型計算：調車費用 × 台數 × 天數
+            // 針對每個車型計算：合作商的機車型號單價 × 天數 × 台數
             foreach ($data['scooters'] as $scooterItem) {
                 $model = $scooterItem['model'] ?? null; // 機車型號名稱，如 "ES-1000"
                 $type = $scooterItem['type'] ?? null; // 白牌 / 綠牌 / 電輔車 / 三輪車
@@ -104,7 +104,8 @@ class BookingController extends Controller
                     continue;
                 }
 
-                $transferFee = 0;
+                // 獲取合作商的機車型號單價（當日租或跨日租）
+                $transferFeePerUnit = 0;
 
                 if ($defaultPartner && $model && $type) {
                     // 從 model + type 查找對應的 ScooterModel
@@ -120,16 +121,16 @@ class BookingController extends Controller
 
                         if ($transferFeeRecord) {
                             if ($isSameDayRental) {
-                                $transferFee = $transferFeeRecord->same_day_transfer_fee ?? 0;
+                                $transferFeePerUnit = $transferFeeRecord->same_day_transfer_fee ?? 0;
                             } else {
-                                $transferFee = $transferFeeRecord->overnight_transfer_fee ?? 0;
+                                $transferFeePerUnit = $transferFeeRecord->overnight_transfer_fee ?? 0;
                             }
                         }
                     }
                 }
 
-                // 單一車型：調車費用 × 台數 × 天數
-                $totalTransferFee += (int) $transferFee * (int) $count * (int) $days;
+                // 計算調車費用：合作商的機車型號單價 × 天數 × 台數
+                $totalTransferFee += (int) $transferFeePerUnit * (int) $days * (int) $count;
             }
             
             // 如果沒有提供船運公司，使用預設合作商的預設船運公司
@@ -416,7 +417,7 @@ class BookingController extends Controller
 
         $totalTransferFee = 0;
 
-        // 針對每個車型計算：調車費用 × 台數 × 天數
+        // 針對每個車型計算：合作商的機車型號單價 × 天數 × 台數
         if ($booking->scooters && is_array($booking->scooters) && count($booking->scooters) > 0) {
             foreach ($booking->scooters as $scooterItem) {
                 $modelString = $scooterItem['model'] ?? null; // 例如 "ES-1000 綠牌"
@@ -431,7 +432,8 @@ class BookingController extends Controller
                 $model = $parts[0] ?? ''; // 例如 "ES-1000"
                 $type = $parts[1] ?? '';  // 例如 "綠牌"
 
-                $transferFee = 0;
+                // 獲取合作商的機車型號單價（當日租或跨日租）
+                $transferFeePerUnit = 0;
 
                 if ($partner && $model && $type) {
                     // 從 model + type 查找對應的 ScooterModel
@@ -447,16 +449,16 @@ class BookingController extends Controller
 
                         if ($transferFeeRecord) {
                             if ($isSameDayRental) {
-                                $transferFee = $transferFeeRecord->same_day_transfer_fee ?? 0;
+                                $transferFeePerUnit = $transferFeeRecord->same_day_transfer_fee ?? 0;
                             } else {
-                                $transferFee = $transferFeeRecord->overnight_transfer_fee ?? 0;
+                                $transferFeePerUnit = $transferFeeRecord->overnight_transfer_fee ?? 0;
                             }
                         }
                     }
                 }
 
-                // 單一車型：調車費用 × 台數 × 天數
-                $totalTransferFee += (int) $transferFee * (int) $count * (int) $days;
+                // 計算調車費用：合作商的機車型號單價 × 天數 × 台數
+                $totalTransferFee += (int) $transferFeePerUnit * (int) $days * (int) $count;
             }
         }
 

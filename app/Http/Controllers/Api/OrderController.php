@@ -722,12 +722,17 @@ class OrderController extends Controller
                     if (empty($modelString))
                         return null;
 
+                    // 計算台數
                     $scooterCount = $scooters->count();
+                    
+                    // 獲取合作商的機車型號單價（當日租或跨日租）
                     $feeKey = $transferFeesMap->get($partnerId)?->get($modelString);
                     $transferFeePerUnit = $feeKey
                         ? ($isSameDay ? ($feeKey->same_day_transfer_fee ?? 0) : ($feeKey->overnight_transfer_fee ?? 0))
                         : 0;
-                    $transferFee = (int) $transferFeePerUnit * $scooterCount * $days;
+                    
+                    // 計算調車費用：合作商的機車型號單價 × 天數 × 台數
+                    $transferFee = (int) $transferFeePerUnit * $days * $scooterCount;
 
                     if ($transferFee <= 0)
                         return null;
