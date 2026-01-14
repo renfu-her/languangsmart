@@ -715,22 +715,24 @@ class OrderController extends Controller
                 $isSameDay = $startTime->isSameDay($endTime);
                 $days = $isSameDay ? 1 : $startTime->diffInDays($endTime);
 
-                // 使用 OrderScooter 模型查詢，載入 scooter 關聯（不使用 scooterModel）
+                // 使用 OrderScooter 模型查詢，透過 scooter_id 關聯到 scooters 表取得 model
+                // order_scooter 表有 scooter_id，對應到 scooters 表，可以查出 model 以及有幾臺
                 $orderScooters = OrderScooter::where('order_id', '=', $order->id)
                     ->with(['scooter'])
                     ->get();
 
                 // 按機車型號分組（使用 order_scooter 記錄）
-                // 使用 OrderScooter 模型的 accessor 取得 model_string
-                // 這會自動處理優先順序：scooterModel > scooter.model/type > plate_number
+                // 透過 scooter_id 關聯到 scooters 表，取得 scooters.model 和 scooters.type
+                // 使用 OrderScooter 模型的 accessor 取得 model_string（從 scooters.model + scooters.type）
                 return $orderScooters->groupBy(function ($orderScooter) {
+                    // 透過 order_scooter.scooter_id -> scooters.id -> scooters.model + scooters.type
                     return $orderScooter->model_string;
                 })->filter(function ($orderScooters, $modelString) {
                     // 過濾掉空字串的 model_string（無法確定型號）
                     return !empty($modelString);
                 })->map(function ($orderScooters, $modelString) use ($keyDate, $startTime, $isSameDay, $days, $transferFeesMap, $partnerId) {
 
-                    // 計算台數：使用 order_scooter 記錄的數量
+                    // 計算台數：同一 model 的 order_scooter 記錄數量（即該 model 有幾臺機車）
                     $scooterCount = $orderScooters->count();
                     
                     // 獲取合作商的機車型號單價（當日租或跨日租）
