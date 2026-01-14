@@ -1,5 +1,32 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-14 11:51:31 (+8) - 修正部署腳本：添加 Composer 依賴安裝步驟
+
+### 變更內容
+
+#### 部署腳本
+- **build.sh** (`build.sh`)
+  - 在 Git 更新後、資料庫遷移前添加 Composer 依賴安裝步驟
+  - 執行 `composer install --no-dev --optimize-autoloader` 來安裝所有依賴
+  - 更新所有後續步驟的編號（從 [3/9] 到 [10/10]）
+
+### 問題說明
+- 部署時出現錯誤：缺少 `sebastian/version` 套件（PHPUnit 的依賴）
+- 原因是部署腳本中沒有執行 `composer install`，導致新添加的套件（如 `maatwebsite/excel`）及其依賴沒有被安裝
+- 現在部署流程會自動安裝所有 Composer 依賴，確保所有套件都正確安裝
+
+### 部署流程更新
+1. 切換到專案目錄
+2. 更新程式碼 (git pull)
+3. **安裝 Composer 依賴**（新增）
+4. 資料庫遷移
+5. 清除並快取 Laravel 路由
+6. 清除並快取 Laravel 配置
+7. 清除後端 React 緩存
+8. 構建後端 (React)
+9. 清除前端 React 緩存
+10. 構建前端 (React)
+
 ## 2026-01-14 11:42:01 (+8) - 使用 Laravel Excel 套件在後端生成 Excel 檔案
 
 ### 變更內容
