@@ -352,8 +352,8 @@ export const ordersApi = {
   delete: (id: string | number) => api.delete(`/orders/${id}`),
   statistics: (month: string) => api.get('/orders/statistics', { month }),
   monthlyReport: (month: string) => api.get('/orders/monthly-report', { month }),
-  partnerDailyReport: (month: string, partnerId?: number) => 
-    api.get('/orders/partner-daily-report', { month, partner_id: partnerId }),
+  partnerDailyReport: (month: string, partnerId?: number, format?: 'excel' | 'json') => 
+    api.get('/orders/partner-daily-report', { month, partner_id: partnerId, format }),
   downloadPartnerMonthlyReport: (month: string, partnerId: number, filename?: string) =>
     api.downloadFile('/orders/partner-daily-report', { month, partner_id: partnerId }, filename),
   getYears: () => api.get<number[]>('/orders/years'),

@@ -1,5 +1,122 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-14 16:02:04 (+8) - 移除後端 Excel 生成功能，只保留數據生成
+
+### 變更內容
+
+#### 後端 API 簡化
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 移除 `partnerDailyReport()` 方法中所有 Excel 生成相關的代碼
+  - 移除 `format` 參數的驗證和處理邏輯
+  - 移除 `PartnerMonthlyReportExport` 類的使用
+  - 移除 `PhpOffice\PhpSpreadsheet\Writer\Xlsx` 的引用
+  - 簡化方法，只返回 JSON 數據
+
+### 問題說明
+- 由於前端已經改為直接產生 Excel 文件，後端不再需要處理 Excel 生成
+- 後端 `partnerDailyReport` API 現在只負責產生和返回 JSON 數據
+- 前端獲取 JSON 數據後，使用 `xlsx` 庫在前端產生 Excel 文件
+
+### 技術細節
+- 移除的內容：
+  - `format` 參數驗證
+  - Excel 文件生成邏輯
+  - 臨時文件處理
+  - 文件下載響應
+- 保留的內容：
+  - 數據查詢和處理邏輯
+  - JSON 數據返回
+
+## 2026-01-14 16:00:25 (+8) - 改為前端直接產生 Excel 文件
+
+### 變更內容
+
+#### 前端功能改進
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `handleExportPartnerReport` 函數，改為在前端直接產生 Excel 文件
+  - 從後端獲取 JSON 數據（使用 `format=json` 參數）
+  - 使用 `xlsx` 庫在前端產生 Excel 文件，格式與後端產生的格式一致
+  - 實現完整的 Excel 結構：標題、多層表頭、數據行、總計行
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 更新 `partnerDailyReport` API 方法，支持 `format` 參數
+
+### 問題說明
+- 之前是後端產生 Excel 文件，前端直接下載
+- 現在改為前端獲取 JSON 數據，然後在前端使用 `xlsx` 庫產生 Excel
+- 優點：
+  - 減少後端負擔
+  - 前端可以即時產生，無需等待後端處理
+  - 可以更好地處理錯誤和用戶反饋
+
+### 技術細節
+- 使用 `xlsx` 庫（SheetJS）產生 Excel 文件
+- Excel 格式包括：
+  - 標題行（合併單元格）
+  - 多層表頭（當日租/跨日租、機車型號、台數/天數/金額）
+  - 數據行（按日期和機車型號）
+  - 總計行（月結總計、小計、總金額）
+- 合併單元格使用 `ws['!merges']` 屬性
+- 列寬設置使用 `ws['!cols']` 屬性
+
+## 2026-01-14 15:57:00 (+8) - 添加 format 參數支持前端選擇返回格式（Excel 或 JSON）
+
+### 變更內容
+
+#### API 功能增強
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在 `partnerDailyReport()` 方法中添加 `format` 參數支持
+  - 支持 `format=excel`：返回 Excel 文件（需要 partner_id）
+  - 支持 `format=json`：返回 JSON 數據（即使有 partner_id）
+  - 未指定 format 時保持向後兼容：有 partner_id 返回 Excel，沒有返回 JSON
+  - 移除剩餘的 `dd()` 調試語句
+
+### 問題說明
+- 如果 React 前端需要直接處理 Excel 取得資料，有兩種方式：
+  1. **下載 Excel 文件**：使用 `format=excel` 或直接提供 `partner_id`，後端返回 Excel 文件
+  2. **獲取 JSON 數據**：使用 `format=json` 或不提供 `partner_id`，後端返回結構化的 JSON 數據
+- 前端可以根據需求選擇：
+  - 需要下載文件給用戶：使用 Excel 格式
+  - 需要在前端讀取和處理數據：使用 JSON 格式（不需要在前端安裝 Excel 處理庫）
+
+### 技術細節
+- API 使用方式：
+  ```
+  GET /api/orders/partner-daily-report?month=2026-01&partner_id=1&format=excel  // 返回 Excel 文件
+  GET /api/orders/partner-daily-report?month=2026-01&partner_id=1&format=json  // 返回 JSON 數據
+  GET /api/orders/partner-daily-report?month=2026-01&partner_id=1              // 默認返回 Excel（向後兼容）
+  GET /api/orders/partner-daily-report?month=2026-01                            // 默認返回 JSON（向後兼容）
+  ```
+- 驗證規則：`format` 參數必須是 `excel` 或 `json`
+- 如果指定 `format=excel` 但沒有提供 `partner_id`，會返回 422 錯誤
+
+## 2026-01-14 15:54:15 (+8) - 修正 Excel 下載變成 HTML 的問題
+
+### 變更內容
+
+#### Excel 匯出功能
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 移除 Excel 生成路徑上的 `dd()` 調試語句，避免返回 HTML 調試輸出而不是 Excel 文件
+  - 添加文件驗證，檢查文件是否存在且大小大於 0
+  - 改進錯誤日誌記錄，記錄文件生成失敗的詳細信息
+
+### 問題說明
+- 當 Excel 文件下載時變成 HTML 格式，通常是因為：
+  1. `dd()` 語句被執行，返回調試輸出（HTML 格式）而不是文件
+  2. 文件沒有正確生成，返回錯誤頁面（HTML 格式）
+- 解決方案：移除所有會阻止文件下載的 `dd()` 語句，並添加文件驗證確保文件正確生成
+
+### 技術細節
+- 移除的 `dd()` 語句：
+  - `dd('Step 12: Excel 檔案生成完成', ...)` - 在文件生成後
+  - `dd('Step 13: 準備下載 Excel', ...)` - 在下載前
+- 添加的文件驗證：
+  ```php
+  if (!file_exists($tempFile) || filesize($tempFile) === 0) {
+      // 記錄錯誤並返回錯誤響應
+  }
+  ```
+
 ## 2026-01-14 15:25:05 (+8) - 修正 PhpSpreadsheet Xlsx Writer 使用方式
 
 ### 變更內容

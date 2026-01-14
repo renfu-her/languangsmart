@@ -46,11 +46,215 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       const selectedMonthString = stats.month;
       const [year, month] = selectedMonthString.split('-');
       
+      // 1. 從後端獲取 JSON 數據
+      const response = await ordersApi.partnerDailyReport(selectedMonthString, partnerId, 'json');
+      const reportData = response.data;
+      
+      // 找到對應的合作商數據
+      const partnerData = reportData.partners?.find((p: any) => p.partner_id === partnerId);
+      if (!partnerData) {
+        alert('找不到合作商數據');
+        return;
+      }
+
+      const dates = partnerData.dates || [];
+      const allModels = reportData.models || [];
+
+      // 2. 在前端產生 Excel
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.aoa_to_sheet([]);
+
+      // 計算總列數：日期(1) + 星期(1) + 當日租200/台(1) + 跨日租300/台(1) + 每個型號(4列)
+      const totalCols = 2 + 2 + allModels.length * 4;
+      
+      // 星期對應表
+      const weekdayMap: Record<string, string> = {
+        'Monday': '星期一',
+        'Tuesday': '星期二',
+        'Wednesday': '星期三',
+        'Thursday': '星期四',
+        'Friday': '星期五',
+        'Saturday': '星期六',
+        'Sunday': '星期日',
+      };
+
+      let row = 1;
+
+      // 第一行：標題（合併所有列）
+      const titleRow: any[][] = [[`${partnerName}機車出租月報表`]];
+      XLSX.utils.sheet_add_aoa(ws, titleRow, { origin: `A${row}` });
+      // 合併單元格（從 A1 到最後一列）
+      if (!ws['!merges']) ws['!merges'] = [];
+      const lastColLetter = XLSX.utils.encode_col(totalCols - 1);
+      ws['!merges'].push({ s: { r: row - 1, c: 0 }, e: { r: row - 1, c: totalCols - 1 } });
+      row++;
+
+      // 第二行：當日租 200/台、跨日租 300/台，然後是機車型號
+      const headerRow2: any[] = ['當日租 200/台', '跨日租 300/台'];
+      allModels.forEach((model: string) => {
+        headerRow2.push(model, '', '', ''); // 每個型號佔 4 列
+      });
+      XLSX.utils.sheet_add_aoa(ws, [headerRow2], { origin: `A${row}` });
+      // 合併每個型號的標題
+      let col = 2; // 從第 3 列開始（索引 2）
+      allModels.forEach(() => {
+        if (!ws['!merges']) ws['!merges'] = [];
+        ws['!merges'].push({ s: { r: row - 1, c: col }, e: { r: row - 1, c: col + 3 } });
+        col += 4;
+      });
+      row++;
+
+      // 第三行：日期、星期，然後每個型號下分為當日租(1列)和跨日租(3列)
+      const headerRow3: any[] = ['日期', '星期', '', ''];
+      allModels.forEach(() => {
+        headerRow3.push('當日租', '跨日租', '', ''); // 當日租(1列)，跨日租(3列合併)
+      });
+      XLSX.utils.sheet_add_aoa(ws, [headerRow3], { origin: `A${row}` });
+      // 合併跨日租的標題
+      col = 4; // 從第 5 列開始（索引 4，跳過日期、星期、兩個空白列）
+      allModels.forEach(() => {
+        col += 1; // 跳過當日租
+        if (!ws['!merges']) ws['!merges'] = [];
+        ws['!merges'].push({ s: { r: row - 1, c: col }, e: { r: row - 1, c: col + 2 } });
+        col += 3;
+      });
+      row++;
+
+      // 第四行：空白、空白、空白、空白，然後每個型號下：當日租只有台數(1列)，跨日租有台數、天數、金額(3列)
+      const headerRow4: any[] = ['', '', '', ''];
+      allModels.forEach(() => {
+        headerRow4.push('台數', '台數', '天數', '金額');
+      });
+      XLSX.utils.sheet_add_aoa(ws, [headerRow4], { origin: `A${row}` });
+      row++;
+
+      // 數據行
+      dates.forEach((dateItem: any) => {
+        const dateStr = dateItem.date;
+        const dateObj = new Date(dateStr + 'T00:00:00');
+        const formattedDate = `${dateObj.getFullYear()}年${String(dateObj.getMonth() + 1).padStart(2, '0')}月${String(dateObj.getDate()).padStart(2, '0')}日`;
+        const weekday = weekdayMap[dateItem.weekday] || dateItem.weekday;
+
+        const dataRow: any[] = [formattedDate, weekday, '', ''];
+
+        allModels.forEach((model: string) => {
+          const modelData = dateItem.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
+            same_day_count: 0,
+            same_day_days: 0,
+            same_day_amount: 0,
+            overnight_count: 0,
+            overnight_days: 0,
+            overnight_amount: 0,
+          };
+
+          const hasSameDayFee = modelData.same_day_amount > 0;
+          const hasOvernightFee = modelData.overnight_amount > 0;
+
+          dataRow.push(
+            hasSameDayFee ? modelData.same_day_count : '',
+            hasOvernightFee ? modelData.overnight_count : '',
+            hasOvernightFee ? modelData.overnight_days : '',
+            hasOvernightFee ? modelData.overnight_amount : ''
+          );
+        });
+
+        XLSX.utils.sheet_add_aoa(ws, [dataRow], { origin: `A${row}` });
+        row++;
+      });
+
+      // 月結總計 - 總台數/天數行
+      const totalRow1: any[] = ['月結總計', '總台數/天數', '', ''];
+      let grandTotalAmount = 0;
+
+      allModels.forEach((model: string) => {
+        let modelSameDayTotalCount = 0;
+        let modelSameDayTotalDays = 0;
+        let modelSameDayTotalAmount = 0;
+        let modelOvernightTotalCount = 0;
+        let modelOvernightTotalDays = 0;
+        let modelOvernightTotalAmount = 0;
+
+        dates.forEach((dateItem: any) => {
+          const modelData = dateItem.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
+            same_day_count: 0,
+            same_day_days: 0,
+            same_day_amount: 0,
+            overnight_count: 0,
+            overnight_days: 0,
+            overnight_amount: 0,
+          };
+          modelSameDayTotalCount += modelData.same_day_count || 0;
+          modelSameDayTotalDays += modelData.same_day_days || 0;
+          modelSameDayTotalAmount += modelData.same_day_amount || 0;
+          modelOvernightTotalCount += modelData.overnight_count || 0;
+          modelOvernightTotalDays += modelData.overnight_days || 0;
+          modelOvernightTotalAmount += modelData.overnight_amount || 0;
+        });
+
+        grandTotalAmount += modelSameDayTotalAmount + modelOvernightTotalAmount;
+
+        totalRow1.push(
+          modelSameDayTotalCount > 0 ? modelSameDayTotalCount : '',
+          modelOvernightTotalCount > 0 ? modelOvernightTotalCount : '',
+          modelOvernightTotalDays > 0 ? modelOvernightTotalDays : '',
+          modelOvernightTotalAmount > 0 ? modelOvernightTotalAmount : ''
+        );
+      });
+
+      XLSX.utils.sheet_add_aoa(ws, [totalRow1], { origin: `A${row}` });
+      row++;
+
+      // 小計行
+      const subtotalRow: any[] = ['', '小計', '', ''];
+      allModels.forEach((model: string) => {
+        let modelTotalAmount = 0;
+        dates.forEach((dateItem: any) => {
+          const modelData = dateItem.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
+            same_day_amount: 0,
+            overnight_amount: 0,
+          };
+          modelTotalAmount += (modelData.same_day_amount || 0) + (modelData.overnight_amount || 0);
+        });
+        subtotalRow.push('', '', '', modelTotalAmount > 0 ? modelTotalAmount : '');
+      });
+      XLSX.utils.sheet_add_aoa(ws, [subtotalRow], { origin: `A${row}` });
+      row++;
+
+      // 總金額行
+      const totalAmountRow: any[] = ['', '總金額', '', ''];
+      // 第一個型號的跨日租金額欄位位置
+      const firstModelOvernightAmountCol = 4 + 3; // 日期(1) + 星期(1) + 空白(2) + 當日租(1) + 跨日租台數(1) + 跨日租天數(1) = 7，索引是 6
+      // 最後一個型號的跨日租金額欄位位置
+      const lastModelOvernightAmountCol = firstModelOvernightAmountCol + (allModels.length - 1) * 4;
+
+      allModels.forEach((model: string, index: number) => {
+        if (index === 0) {
+          totalAmountRow.push('', '', '', grandTotalAmount > 0 ? grandTotalAmount : '');
+        } else {
+          totalAmountRow.push('', '', '', '');
+        }
+      });
+      XLSX.utils.sheet_add_aoa(ws, [totalAmountRow], { origin: `A${row}` });
+      // 合併總金額欄位（如果有多個型號）
+      if (allModels.length > 1) {
+        if (!ws['!merges']) ws['!merges'] = [];
+        ws['!merges'].push({ 
+          s: { r: row - 1, c: firstModelOvernightAmountCol }, 
+          e: { r: row - 1, c: lastModelOvernightAmountCol } 
+        });
+      }
+
+      // 設置列寬
+      ws['!cols'] = Array(totalCols).fill(null).map(() => ({ wch: 12 }));
+
+      // 添加工作表
+      XLSX.utils.book_append_sheet(wb, ws, '月報表');
+
       // 生成文件名
       const fileName = `${partnerName}-${year}${String(parseInt(month)).padStart(2, '0')}.xlsx`;
-      
-      // 直接下載後端生成的 Excel 檔案
-      await ordersApi.downloadPartnerMonthlyReport(selectedMonthString, partnerId, fileName);
+
+      // 下載文件
+      XLSX.writeFile(wb, fileName);
 
     } catch (error) {
       console.error('匯出合作商月報表時發生錯誤:', error);

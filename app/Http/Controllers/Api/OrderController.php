@@ -8,13 +8,11 @@ use App\Models\Order;
 use App\Models\Scooter;
 use App\Models\PartnerScooterModelTransferFee;
 use App\Models\ScooterModel;
-use App\Exports\PartnerMonthlyReportExport;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use App\Models\Partner;
 
 class OrderController extends Controller
@@ -804,96 +802,7 @@ class OrderController extends Controller
             ];
         })->values();
 
-        // dd('Step 8: 所有合作商數據處理完成', [
-        //     'reportData_count' => $reportData->count(),
-        //     'reportData' => $reportData,
-        // ]);
-
-        // Step 9: 如果提供了 partner_id，生成 Excel
-        if ($partnerId) {
-            $partnerData = $reportData->firstWhere('partner_id', $partnerId);
-
-            // dd('Step 9: 查找指定合作商數據', [
-            //     'partnerId' => $partnerId,
-            //     'partnerData' => $partnerData,
-            //     'reportData_partner_ids' => $reportData->pluck('partner_id'),
-            // ]);
-
-            if (!$partnerData) {
-                return response()->json([
-                    'message' => 'Partner not found or no data for this month',
-                ], 404);
-            }
-
-            $partnerName = $partnerData['partner_name'] ?? '無合作商';
-            [$year, $monthNum] = explode('-', $month);
-
-            // dd('Step 10: 準備生成 Excel', [
-            //     'partnerName' => $partnerName,
-            //     'year' => $year,
-            //     'monthNum' => $monthNum,
-            //     'dates_count' => count($partnerData['dates']),
-            //     'allModels_count' => count($allModels),
-            // ]);
-
-            // 生成 Excel
-            $export = new PartnerMonthlyReportExport($partnerName, $year, $monthNum, $partnerData['dates'], $allModels);
-
-            // 建立臨時檔案，確保有 .xlsx 擴展名
-            $tempFile = tempnam(sys_get_temp_dir(), 'excel_');
-            if ($tempFile === false) {
-                return response()->json(['message' => 'Failed to create temporary file'], 500);
-            }
-            $tempFile = $tempFile . '.xlsx';
-
-            try {
-                // 1. 建立 Spreadsheet 實例（透過 export 的 generate 方法）
-                $spreadsheet = $export->generate();
-
-                // 2. 建立 Xlsx 寫入器
-                $writer = new Xlsx($spreadsheet);
-
-                // 3. 輸出檔案到臨時檔案
-                $writer->save($tempFile);
-            } catch (\Exception $e) {
-                \Log::error('Failed to generate Excel file', [
-                    'error' => $e->getMessage(),
-                    'trace' => $e->getTraceAsString(),
-                ]);
-                return response()->json([
-                    'message' => 'Failed to generate Excel file',
-                    'error' => $e->getMessage(),
-                ], 500);
-            }
-
-            dd('Step 12: Excel 檔案生成完成', [
-                'tempFile' => $tempFile,
-                'file_exists' => file_exists($tempFile),
-                'file_size' => file_exists($tempFile) ? filesize($tempFile) : 0,
-            ]);
-
-            if (!file_exists($tempFile)) {
-                return response()->json(['message' => 'Failed to generate Excel file'], 500);
-            }
-
-            $fileName = "{$partnerName}-{$year}" . str_pad($monthNum, 2, '0', STR_PAD_LEFT) . '.xlsx';
-
-            dd('Step 13: 準備下載 Excel', [
-                'fileName' => $fileName,
-            ]);
-
-            return response()->download($tempFile, $fileName, [
-                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            ])->deleteFileAfterSend(true);
-        }
-
         // Step 9: 返回 JSON 數據
-        dd('Step 9: 準備返回 JSON 數據', [
-            'reportData' => $reportData,
-            'allModels' => $allModels,
-            'month' => $month,
-        ]);
-
         return response()->json([
             'data' => [
                 'partners' => $reportData,
