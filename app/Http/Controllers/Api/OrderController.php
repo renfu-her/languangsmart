@@ -686,11 +686,11 @@ class OrderController extends Controller
             $currentDate->addDay();
         }
 
-        dd('Step 5: 日期列表生成完成', [
-            'allDates_count' => $allDates->count(),
-            'first_date' => $allDates->first(),
-            'last_date' => $allDates->last(),
-        ]);
+        // dd('Step 5: 日期列表生成完成', [
+        //     'allDates_count' => $allDates->count(),
+        //     'first_date' => $allDates->first(),
+        //     'last_date' => $allDates->last(),
+        // ]);
 
         // Step 6: 按合作商分組訂單
         $ordersByPartner = $orders->groupBy(function ($order) {
