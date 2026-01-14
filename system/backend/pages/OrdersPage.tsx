@@ -64,8 +64,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       const wb = XLSX.utils.book_new();
       const ws = XLSX.utils.aoa_to_sheet([]);
 
-      // 計算總列數：日期(1) + 星期(1) + 每個型號(4列：當日租台數、跨日租台數、跨日租天數、跨日租金額)
-      const totalCols = 2 + allModels.length * 4;
+      // 計算總列數：日期(1) + 星期(1) + 空白(1) + 每個型號(4列：當日租台數、跨日租台數、跨日租天數、跨日租金額)
+      const totalCols = 2 + 1 + allModels.length * 4;
       
       // 星期對應表
       const weekdayMap: Record<string, string> = {
@@ -89,14 +89,14 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       ws['!merges'].push({ s: { r: row - 1, c: 0 }, e: { r: row - 1, c: totalCols - 1 } });
       row++;
 
-      // 第二行：A2 當日租，然後是機車型號標題
-      const headerRow2: any[] = ['當日租'];
+      // 第二行：A2 當日租，B2 空白，然後是機車型號標題
+      const headerRow2: any[] = ['當日租', '']; // 左邊多一個空白列
       allModels.forEach((model: string) => {
         headerRow2.push(model, '', '', ''); // 每個型號佔 4 列
       });
       XLSX.utils.sheet_add_aoa(ws, [headerRow2], { origin: `A${row}` });
       // 合併每個型號的標題
-      let col = 1; // 從第 2 列開始（索引 1，跳過 A2 當日租）
+      let col = 2; // 從第 3 列開始（索引 2，跳過 A2 當日租和 B2 空白）
       allModels.forEach(() => {
         if (!ws['!merges']) ws['!merges'] = [];
         ws['!merges'].push({ s: { r: row - 1, c: col }, e: { r: row - 1, c: col + 3 } });
@@ -104,14 +104,14 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       row++;
 
-      // 第三行：A3 跨日租，然後每個型號下分為當日租和跨日租
-      const headerRow3: any[] = ['跨日租'];
+      // 第三行：A3 跨日租，B3 空白，然後每個型號下分為當日租和跨日租
+      const headerRow3: any[] = ['跨日租', '']; // 左邊多一個空白列
       allModels.forEach(() => {
         headerRow3.push('當日租', '跨日租', '', ''); // 當日租(1列)，跨日租(3列合併)
       });
       XLSX.utils.sheet_add_aoa(ws, [headerRow3], { origin: `A${row}` });
       // 合併跨日租的標題（跨日租包含台數、天數、金額，共3列）
-      col = 1; // 從第 2 列開始（索引 1，跳過 A3 跨日租）
+      col = 2; // 從第 3 列開始（索引 2，跳過 A3 跨日租和 B3 空白）
       allModels.forEach(() => {
         if (!ws['!merges']) ws['!merges'] = [];
         // 跨日租合併 3 列（台數、天數、金額）
@@ -120,8 +120,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       row++;
 
-      // 第四行：A4 日期，B4 星期，然後每個型號下：當日租台數、跨日租台數、跨日租天數、跨日租金額
-      const headerRow4: any[] = ['日期', '星期'];
+      // 第四行：A4 日期，B4 星期，C4 空白，然後每個型號下：當日租台數、跨日租台數、跨日租天數、跨日租金額
+      const headerRow4: any[] = ['日期', '星期', '']; // 左邊多一個空白列
       allModels.forEach(() => {
         headerRow4.push('台數', '台數', '天數', '金額');
       });
@@ -137,7 +137,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         // 日期和星期合併在一個單元格
         const dateWithWeekday = `${formattedDate} ${weekday}`;
 
-        const dataRow: any[] = [dateWithWeekday, ''];
+        const dataRow: any[] = [dateWithWeekday, '', '']; // 左邊多一個空白列
 
         allModels.forEach((model: string) => {
           const modelData = dateItem.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
@@ -149,15 +149,15 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
             overnight_amount: 0,
           };
 
-          const hasSameDayFee = modelData.same_day_amount > 0;
-          const hasOvernightFee = modelData.overnight_amount > 0;
+          const hasSameDay = (modelData.same_day_count || 0) > 0;
+          const hasOvernight = (modelData.overnight_count || 0) > 0;
 
           // 每個型號：當日租台數、跨日租台數、跨日租天數、跨日租金額
           dataRow.push(
-            hasSameDayFee ? modelData.same_day_count : '',
-            hasOvernightFee ? modelData.overnight_count : '',
-            hasOvernightFee ? modelData.overnight_days : '',
-            hasOvernightFee ? modelData.overnight_amount : ''
+            hasSameDay ? modelData.same_day_count : '',
+            hasOvernight ? modelData.overnight_count : '',
+            hasOvernight ? modelData.overnight_days : '',
+            hasOvernight ? modelData.overnight_amount : ''
           );
         });
 
@@ -166,7 +166,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
 
       // 月結總計 - 總台數/天數行
-      const totalRow1: any[] = ['月結總計', '總台數/天數'];
+      const totalRow1: any[] = ['月結總計', '總台數/天數', '']; // 左邊多一個空白列
       let grandTotalAmount = 0;
 
       allModels.forEach((model: string) => {
@@ -210,7 +210,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       row++;
 
       // 小計行
-      const subtotalRow: any[] = ['', '小計'];
+      const subtotalRow: any[] = ['', '小計', '']; // 左邊多一個空白列
       allModels.forEach((model: string) => {
         let modelTotalAmount = 0;
         dates.forEach((dateItem: any) => {
@@ -227,9 +227,9 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       row++;
 
       // 總金額行
-      const totalAmountRow: any[] = ['', '總金額'];
-      // 第一個型號的金額欄位位置（索引從 0 開始：日期=0, 星期=1, 第一個型號的金額=1+4*0+3=4）
-      const firstModelAmountCol = 2 + 3; // 日期(1) + 星期(1) + 當日租台數(1) + 跨日租台數(1) + 跨日租天數(1) = 5，索引是 4
+      const totalAmountRow: any[] = ['', '總金額', '']; // 左邊多一個空白列
+      // 第一個型號的金額欄位位置（索引從 0 開始：日期=0, 星期=1, 空白=2, 第一個型號的金額=2+4*0+3=5）
+      const firstModelAmountCol = 3 + 3; // 日期(1) + 星期(1) + 空白(1) + 當日租台數(1) + 跨日租台數(1) + 跨日租天數(1) = 6，索引是 5
       // 最後一個型號的金額欄位位置
       const lastModelAmountCol = firstModelAmountCol + (allModels.length - 1) * 4;
 
