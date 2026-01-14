@@ -1,5 +1,33 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-14 22:04:15 (+8) - 修正 partnerDailyReport 數量計算錯誤，參考 partnerMonthlyStatistics 的累加邏輯
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修正 `processPartnerOrders()` 方法中的數量計算錯誤
+  - 問題：如果同一個訂單內同一個型號有多筆 `order_scooter` 記錄，會覆蓋而不是累加
+  - 修正：參考 `partnerMonthlyStatistics` 的邏輯，當同一個訂單內同一個型號有多筆記錄時，累加數量、天數和金額
+  - 修正數據轉換邏輯：`$dateOrders` 已經按 `order_number` 分組，不需要再次 `groupBy`
+
+### 問題說明
+- 用戶報告數量計算錯誤
+- `partnerDailyReport` 的計算方式應該與 `partnerMonthlyStatistics` 一致
+- 同一個訂單內，如果同一個型號有多筆記錄，應該累加而不是覆蓋
+
+### 技術細節
+- 累加邏輯：
+  ```php
+  if ($orderModels->has($modelString)) {
+      $existing = $orderModels->get($modelString);
+      // 累加數量、天數、金額
+      'same_day_count' => ($existing['same_day_count'] ?? 0) + ($isSameDay ? $scooterCount : 0),
+      // ...
+  }
+  ```
+- 數據結構：`$datesData` 是 `Collection<date, Collection<order_number, Collection<model_string, modelData>>>`
+
 ## 2026-01-14 21:53:18 (+8) - 修改合作商月報表 Excel 格式：當日租1欄，跨日租3欄，按 order_number 分開顯示
 
 ### 變更內容

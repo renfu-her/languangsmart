@@ -719,10 +719,8 @@ class OrderController extends Controller
                 // 如果該日期有數據，按 order_number 分組
                 $ordersArray = [];
                 if ($dateOrders->isNotEmpty()) {
-                    // 將數據轉換為按 order_number 分組的陣列
-                    $ordersByNumber = $dateOrders->groupBy('order_number');
-                    
-                    foreach ($ordersByNumber as $orderNumber => $orderModels) {
+                    // $dateOrders 的 key 就是 order_number，value 是 Collection<model_string, modelData>
+                    foreach ($dateOrders as $orderNumber => $orderModels) {
                         // 將該訂單的 models 轉換為陣列
                         $models = $orderModels->map(function ($modelData) {
                             return [
@@ -1010,18 +1008,35 @@ class OrderController extends Controller
                 $modelParts = explode(' ', $modelString, 2);
 
                 // 按 order_number 分開存儲，即使型號相同也要分開
-                $orderModels->put($modelString, [
-                    'model_string' => $modelString,
-                    'model' => $modelParts[0] ?? '',
-                    'type' => $modelParts[1] ?? '',
-                    'order_number' => $orderNumber,
-                    'same_day_count' => $isSameDay ? $scooterCount : 0,
-                    'same_day_days' => $isSameDay ? $days : 0,
-                    'same_day_amount' => $isSameDay ? $amount : 0,
-                    'overnight_count' => !$isSameDay ? $scooterCount : 0,
-                    'overnight_days' => !$isSameDay ? $days : 0,
-                    'overnight_amount' => !$isSameDay ? $amount : 0,
-                ]);
+                // 但如果同一個訂單內同一個型號有多筆記錄，需要累加（參考 partnerMonthlyStatistics）
+                if ($orderModels->has($modelString)) {
+                    $existing = $orderModels->get($modelString);
+                    $orderModels->put($modelString, [
+                        'model_string' => $modelString,
+                        'model' => $modelParts[0] ?? '',
+                        'type' => $modelParts[1] ?? '',
+                        'order_number' => $orderNumber,
+                        'same_day_count' => ($existing['same_day_count'] ?? 0) + ($isSameDay ? $scooterCount : 0),
+                        'same_day_days' => ($existing['same_day_days'] ?? 0) + ($isSameDay ? $days : 0),
+                        'same_day_amount' => ($existing['same_day_amount'] ?? 0) + ($isSameDay ? $amount : 0),
+                        'overnight_count' => ($existing['overnight_count'] ?? 0) + (!$isSameDay ? $scooterCount : 0),
+                        'overnight_days' => ($existing['overnight_days'] ?? 0) + (!$isSameDay ? $days : 0),
+                        'overnight_amount' => ($existing['overnight_amount'] ?? 0) + (!$isSameDay ? $amount : 0),
+                    ]);
+                } else {
+                    $orderModels->put($modelString, [
+                        'model_string' => $modelString,
+                        'model' => $modelParts[0] ?? '',
+                        'type' => $modelParts[1] ?? '',
+                        'order_number' => $orderNumber,
+                        'same_day_count' => $isSameDay ? $scooterCount : 0,
+                        'same_day_days' => $isSameDay ? $days : 0,
+                        'same_day_amount' => $isSameDay ? $amount : 0,
+                        'overnight_count' => !$isSameDay ? $scooterCount : 0,
+                        'overnight_days' => !$isSameDay ? $days : 0,
+                        'overnight_amount' => !$isSameDay ? $amount : 0,
+                    ]);
+                }
             });
         }
         
