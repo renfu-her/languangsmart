@@ -640,6 +640,8 @@ class OrderController extends Controller
         $reportData = [];
         // 注意：$allModels 已經在上面定義為所有機車型號（從資料庫獲取），不需要重新初始化
 
+        dd($orders);
+
         foreach ($orders as $order) {
             $partnerName = $order->partner ? $order->partner->name : '無合作商';
             $partnerId = $order->partner_id;
