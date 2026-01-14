@@ -667,13 +667,13 @@ class OrderController extends Controller
             ->when($partnerId, fn($q) => $q->where('partner_id', $partnerId))
             ->get();
 
-        dd('Step 4: 訂單查詢完成', [
-            'orders_count' => $orders->count(),
-            'first_order' => $orders->first(),
-            'first_order_partner' => $orders->first()?->partner,
-            'first_order_scooters_count' => $orders->first()?->scooters->count(),
-            'first_order_scooter_model' => $orders->first()?->scooters->first()?->scooterModel,
-        ]);
+        // dd('Step 4: 訂單查詢完成', [
+        //     'orders_count' => $orders->count(),
+        //     'first_order' => $orders->first(),
+        //     'first_order_partner' => $orders->first()?->partner,
+        //     'first_order_scooters_count' => $orders->first()?->scooters->count(),
+        //     'first_order_scooter_model' => $orders->first()?->scooters->first()?->scooterModel,
+        // ]);
 
         // Step 5: 生成完整月份日期列表
         $allDates = collect();
