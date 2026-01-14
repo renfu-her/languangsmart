@@ -31,6 +31,7 @@ interface ScooterModel {
   name: string;
   type: string;
   label?: string;
+  sort_order?: number;
 }
 
 const PartnersPage: React.FC = () => {
@@ -507,7 +508,7 @@ const PartnersPage: React.FC = () => {
                     調車費用設定（按機車型號）
                   </label>
                   <div className="space-y-4">
-                    {scooterModels.map((model) => {
+                    {[...scooterModels].sort((a, b) => (b.sort_order ?? 0) - (a.sort_order ?? 0)).map((model) => {
                       const feeIndex = formData.transfer_fees.findIndex(
                         f => f.scooter_model_id === model.id
                       );

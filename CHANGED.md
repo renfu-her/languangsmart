@@ -1,5 +1,19 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-14 09:11:54 (+8) - 合作商新增/編輯時機車型號按順序排列
+
+### 變更內容
+
+#### 前端
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 更新 `ScooterModel` interface，新增 `sort_order` 欄位
+  - 在顯示機車型號時，按照 `sort_order` 降序排列（數字越大越靠前）
+  - 確保合作商新增或編輯時，機車型號按照設定的順序顯示
+
+### 功能說明
+- 合作商新增或編輯時，調車費用設定區塊中的機車型號會按照後端設定的 `sort_order` 順序排列顯示
+- 排序方式：`sort_order` 數字越大越靠前（降序排列），與後端 API 排序邏輯一致
+
 ## 2026-01-13 17:38:17 (+8) - 線上預約新增調車費用總金額計算 (total_amount for bookings)
 
 ### 變更內容
