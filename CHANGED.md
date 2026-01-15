@@ -1,5 +1,38 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-15 11:03:14 (+8) - 將後端訂單新增/編輯的日期選擇器改為原生 HTML5 輸入框
+
+### 變更內容
+
+#### 前端修正
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - **移除 Flatpickr 依賴**：移除所有 `react-flatpickr`、`flatpickr` 相關的導入和配置
+  - **移除 Flatpickr 配置函數**：刪除 `getDateOptions()` 和 `getDatetimeOptions()` 函數
+  - **添加日期格式化函數**：
+    - `formatDateForInput()`：將日期格式化為 `YYYY-MM-DD`（用於 `type="date"` 輸入框）
+    - `formatDateTimeForInput()`：將日期時間格式化為 `YYYY-MM-DDTHH:mm`（用於 `type="datetime-local"` 輸入框）
+  - **替換日期輸入框**：
+    - **預約日期**：從 `Flatpickr` 改為 `type="date"` 原生輸入框
+    - **開始時間**：從 `Flatpickr` 改為 `type="date"` 原生輸入框，添加 `min` 屬性（不能早於預約日期）
+    - **結束時間**：從 `Flatpickr` 改為 `type="date"` 原生輸入框，添加 `min` 屬性（不能早於開始時間或預約日期）
+    - **預計還車時間**：從 `Flatpickr` 改為 `type="datetime-local"` 原生輸入框，添加 `min` 屬性（不能早於結束時間）
+    - **船班時間（來）**：從 `Flatpickr` 改為 `type="datetime-local"` 原生輸入框
+    - **船班時間（回）**：從 `Flatpickr` 改為 `type="datetime-local"` 原生輸入框，添加 `min` 屬性（不能早於船班時間（來））
+  - **添加輸入限制**：所有日期/日期時間輸入框都添加了 `onKeyDown` 和 `onPaste` 事件處理，防止鍵盤輸入和貼上（與前端線上預約系統一致）
+  - **更新編輯模式數據加載**：使用新的格式化函數處理編輯模式下的日期和日期時間數據
+
+### 功能說明
+- 所有日期選擇器現在使用原生 HTML5 輸入框，與前端線上預約系統保持一致
+- 移除了 Flatpickr 相關的所有代碼和依賴
+- 日期輸入框使用 `type="date"`，日期時間輸入框使用 `type="datetime-local"`
+- 添加了適當的 `min` 屬性來限制日期選擇範圍
+- 防止用戶通過鍵盤輸入或貼上無效的日期格式
+
+### 技術細節
+- 日期格式：`YYYY-MM-DD`（用於 `type="date"`）
+- 日期時間格式：`YYYY-MM-DDTHH:mm`（用於 `type="datetime-local"`）
+- 與前端線上預約系統（`system/frontend/pages/Booking.tsx`）使用相同的實現方式
+
 ## 2026-01-15 10:25:26 (+8) - 實作訂單管理自動計算費用功能
 
 ### 變更內容

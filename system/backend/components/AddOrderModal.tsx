@@ -1,10 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Search, Calendar, Clock, Phone, FileText, Loader2, ChevronDown } from 'lucide-react';
 import { ordersApi, scootersApi, partnersApi } from '../lib/api';
-import Flatpickr from 'react-flatpickr';
-import 'flatpickr/dist/flatpickr.min.css';
-import flatpickr from 'flatpickr';
-import { MandarinTraditional } from 'flatpickr/dist/l10n/zh-tw.js';
 import { inputClasses as sharedInputClasses, selectClasses as sharedSelectClasses, labelClasses, chevronDownClasses } from '../styles';
 
 interface Order {
@@ -86,83 +82,39 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
   const inputClasses = sharedInputClasses;
   const selectClasses = sharedSelectClasses;
 
-  // Flatpickr 設定（繁體中文）
-  // 為每個日期欄位創建獨立的配置對象，確保每個日曆都是獨立的
-  const getDateOptions = React.useCallback((fieldName: string) => ({
-    locale: MandarinTraditional,
-    dateFormat: 'Y-m-d',
-    allowInput: true,
-    clickOpens: true, // 允許點擊打開日曆
-    static: true, // 使用靜態定位，日曆會附加在輸入框附近
-    onReady: (selectedDates: Date[], dateStr: string, instance: any) => {
-      // 日曆準備好時，為日曆容器添加點擊事件阻止冒泡（不使用 capture phase）
-      if (instance.calendarContainer) {
-        const stopPropagation = (e: MouseEvent) => {
-          e.stopPropagation();
-        };
-        // 只在 bubble phase 阻止冒泡，不影響日曆內部的正常交互
-        instance.calendarContainer.addEventListener('click', stopPropagation);
-        instance.calendarContainer.addEventListener('mousedown', stopPropagation);
-      }
-    },
-    onOpen: (selectedDates: Date[], dateStr: string, instance: any) => {
-      // 確保打開時 focus 在自己的元件上
-      if (instance.input) {
-        instance.input.focus();
-      }
-      // 確保日曆容器的點擊事件不會冒泡到模態框背景（不使用 capture phase）
-      if (instance.calendarContainer) {
-        const stopPropagation = (e: MouseEvent) => {
-          e.stopPropagation();
-        };
-        // 只在 bubble phase 阻止冒泡，不影響日曆內部的正常交互
-        instance.calendarContainer.addEventListener('click', stopPropagation);
-        instance.calendarContainer.addEventListener('mousedown', stopPropagation);
-      }
-    },
-    onClose: (selectedDates: Date[], dateStr: string, instance: any) => {
-      // 關閉時的處理
-    },
-  }), []);
+  // 格式化日期為 YYYY-MM-DD（用於 type="date" 輸入框）
+  const formatDateForInput = (dateStr: string | null): string => {
+    if (!dateStr) return '';
+    // 如果已經是 YYYY-MM-DD 格式，直接返回
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      return dateStr;
+    }
+    // 如果是日期時間格式，提取日期部分
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
 
-  const getDatetimeOptions = React.useCallback((fieldName: string) => ({
-    locale: MandarinTraditional,
-    dateFormat: 'Y-m-d H:i',
-    enableTime: true,
-    time_24hr: true,
-    allowInput: true,
-    clickOpens: true, // 允許點擊打開日曆
-    static: true, // 使用靜態定位，日曆會附加在輸入框附近
-    onReady: (selectedDates: Date[], dateStr: string, instance: any) => {
-      // 日曆準備好時，為日曆容器添加點擊事件阻止冒泡（不使用 capture phase）
-      if (instance.calendarContainer) {
-        const stopPropagation = (e: MouseEvent) => {
-          e.stopPropagation();
-        };
-        // 只在 bubble phase 阻止冒泡，不影響日曆內部的正常交互
-        instance.calendarContainer.addEventListener('click', stopPropagation);
-        instance.calendarContainer.addEventListener('mousedown', stopPropagation);
-      }
-    },
-    onOpen: (selectedDates: Date[], dateStr: string, instance: any) => {
-      // 確保打開時 focus 在自己的元件上
-      if (instance.input) {
-        instance.input.focus();
-      }
-      // 確保日曆容器的點擊事件不會冒泡到模態框背景（不使用 capture phase）
-      if (instance.calendarContainer) {
-        const stopPropagation = (e: MouseEvent) => {
-          e.stopPropagation();
-        };
-        // 只在 bubble phase 阻止冒泡，不影響日曆內部的正常交互
-        instance.calendarContainer.addEventListener('click', stopPropagation);
-        instance.calendarContainer.addEventListener('mousedown', stopPropagation);
-      }
-    },
-    onClose: (selectedDates: Date[], dateStr: string, instance: any) => {
-      // 關閉時的處理
-    },
-  }), []);
+  // 格式化日期時間為 YYYY-MM-DDTHH:mm（用於 type="datetime-local" 輸入框）
+  const formatDateTimeForInput = (dateTimeStr: string | null): string => {
+    if (!dateTimeStr) return '';
+    // 如果已經是 YYYY-MM-DDTHH:mm 格式，直接返回
+    if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dateTimeStr)) {
+      return dateTimeStr;
+    }
+    // 如果是其他格式，嘗試解析
+    const date = new Date(dateTimeStr);
+    if (isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -175,33 +127,17 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
         
         if (editingOrder) {
           // 編輯模式：預填表單數據並獲取訂單詳情以獲取機車 ID
-          const formatDateTime = (dateTime: string | null) => {
-            if (!dateTime) return '';
-            const date = new Date(dateTime);
-            return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-          };
-          
-          const formatDateOnly = (dateTime: string | null) => {
-            if (!dateTime) return '';
-            // 如果包含時間，只提取日期部分（處理可能帶時間的舊數據）
-            return dateTime.split('T')[0].split(' ')[0];
-          };
-          
-          const formatDate = (date: string) => {
-            return date;
-          };
-          
           setFormData({
             partner_id: editingOrder.partner?.id.toString() || '',
             tenant: editingOrder.tenant,
-            appointment_date: formatDate(editingOrder.appointment_date),
-            start_time: formatDateOnly(editingOrder.start_time),
-            end_time: formatDateOnly(editingOrder.end_time),
-            expected_return_time: formatDateTime(editingOrder.expected_return_time),
+            appointment_date: formatDateForInput(editingOrder.appointment_date),
+            start_time: formatDateForInput(editingOrder.start_time),
+            end_time: formatDateForInput(editingOrder.end_time),
+            expected_return_time: formatDateTimeForInput(editingOrder.expected_return_time),
             phone: editingOrder.phone || '',
             shipping_company: editingOrder.shipping_company || '',
-            ship_arrival_time: formatDateTime(editingOrder.ship_arrival_time),
-            ship_return_time: formatDateTime(editingOrder.ship_return_time),
+            ship_arrival_time: formatDateTimeForInput(editingOrder.ship_arrival_time),
+            ship_return_time: formatDateTimeForInput(editingOrder.ship_return_time),
             payment_method: editingOrder.payment_method || '',
             payment_amount: editingOrder.payment_amount.toString(),
             status: editingOrder.status,
@@ -563,30 +499,25 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                 <label className={`${labelClasses} flex items-center`}>
                   <Calendar size={14} className="mr-1.5" /> 預約日期 <span className="text-red-500 ml-1">*</span>
                 </label>
-                <Flatpickr
-                  key={`appointment_date-${editingOrder?.id || 'new'}`}
+                <input 
+                  type="date" 
+                  required
                   className={inputClasses}
                   value={formData.appointment_date}
-                  onChange={(dates) => {
-                    if (dates && dates.length > 0) {
-                      const date = dates[0];
-                      // 使用本地時間避免時區轉換導致的日期偏移
-                      const year = date.getFullYear();
-                      const month = String(date.getMonth() + 1).padStart(2, '0');
-                      const day = String(date.getDate()).padStart(2, '0');
-                      const dateStr = `${year}-${month}-${day}`;
-                      setFormData(prev => ({ 
-                        ...prev, 
-                        appointment_date: dateStr
-                      }));
-                      // 通知父組件年份改變
-                      if (onYearChange && year) {
-                        onYearChange(year);
-                      }
+                  onChange={(e) => {
+                    const dateStr = e.target.value;
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      appointment_date: dateStr
+                    }));
+                    // 通知父組件年份改變
+                    if (onYearChange && dateStr) {
+                      const year = new Date(dateStr).getFullYear();
+                      onYearChange(year);
                     }
                   }}
-                  options={getDateOptions('appointment_date')}
-                  placeholder="選擇日期"
+                  onKeyDown={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
                 />
               </div>
 
@@ -595,40 +526,32 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                   <label className={`${labelClasses} flex items-center`}>
                     <Clock size={14} className="mr-1.5" /> 開始時間
                   </label>
-                  <Flatpickr
-                    key={`start_time-${editingOrder?.id || 'new'}`}
+                  <input 
+                    type="date" 
                     className={inputClasses}
                     value={formData.start_time}
-                    onChange={(dates) => {
-                      if (dates && dates.length > 0) {
-                        const date = dates[0];
-                        // 只保存日期格式，不帶時間
-                        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                        setFormData(prev => ({ ...prev, start_time: dateStr }));
-                      }
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, start_time: e.target.value }));
                     }}
-                    options={getDateOptions('start_time')}
-                    placeholder="選擇日期"
+                    onKeyDown={(e) => e.preventDefault()}
+                    onPaste={(e) => e.preventDefault()}
+                    min={formData.appointment_date || undefined}
                   />
                 </div>
                 <div>
                   <label className={`${labelClasses} flex items-center`}>
                     <Clock size={14} className="mr-1.5" /> 結束時間
                   </label>
-                  <Flatpickr
-                    key={`end_time-${editingOrder?.id || 'new'}`}
+                  <input 
+                    type="date" 
                     className={inputClasses}
                     value={formData.end_time}
-                    onChange={(dates) => {
-                      if (dates && dates.length > 0) {
-                        const date = dates[0];
-                        // 只保存日期格式，不帶時間
-                        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-                        setFormData(prev => ({ ...prev, end_time: dateStr }));
-                      }
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, end_time: e.target.value }));
                     }}
-                    options={getDateOptions('end_time')}
-                    placeholder="選擇日期"
+                    onKeyDown={(e) => e.preventDefault()}
+                    onPaste={(e) => e.preventDefault()}
+                    min={formData.start_time || formData.appointment_date || undefined}
                   />
                 </div>
               </div>
@@ -637,21 +560,16 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                 <label className={`${labelClasses} flex items-center`}>
                   <Clock size={14} className="mr-1.5" /> 預計還車時間
                 </label>
-                <Flatpickr
-                  key={`expected_return_time-${editingOrder?.id || 'new'}`}
+                <input 
+                  type="datetime-local" 
                   className={inputClasses}
                   value={formData.expected_return_time}
-                  onChange={(dates) => {
-                    if (dates && dates.length > 0) {
-                      const date = dates[0];
-                      const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-                      setFormData(prev => ({ ...prev, expected_return_time: dateStr }));
-                    } else {
-                      setFormData(prev => ({ ...prev, expected_return_time: '' }));
-                    }
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, expected_return_time: e.target.value }));
                   }}
-                  options={getDatetimeOptions('expected_return_time')}
-                  placeholder="選擇日期時間"
+                  onKeyDown={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  min={formData.end_time ? `${formData.end_time}T00:00` : undefined}
                 />
               </div>
 
@@ -690,40 +608,29 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className={labelClasses}>船班時間（來）</label>
-                  <Flatpickr
-                    key={`ship_arrival_time-${editingOrder?.id || 'new'}`}
+                  <input 
+                    type="datetime-local" 
                     className={inputClasses}
                     value={formData.ship_arrival_time}
-                    onChange={(dates) => {
-                      if (dates && dates.length > 0) {
-                        const date = dates[0];
-                        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-                        setFormData(prev => ({ ...prev, ship_arrival_time: dateStr }));
-                      } else {
-                        setFormData(prev => ({ ...prev, ship_arrival_time: '' }));
-                      }
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, ship_arrival_time: e.target.value }));
                     }}
-                    options={getDatetimeOptions('ship_arrival_time')}
-                    placeholder="選擇日期時間"
+                    onKeyDown={(e) => e.preventDefault()}
+                    onPaste={(e) => e.preventDefault()}
                   />
                 </div>
                 <div>
                   <label className={labelClasses}>船班時間（回）</label>
-                  <Flatpickr
-                    key={`ship_return_time-${editingOrder?.id || 'new'}`}
+                  <input 
+                    type="datetime-local" 
                     className={inputClasses}
                     value={formData.ship_return_time}
-                    onChange={(dates) => {
-                      if (dates && dates.length > 0) {
-                        const date = dates[0];
-                        const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}T${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-                        setFormData(prev => ({ ...prev, ship_return_time: dateStr }));
-                      } else {
-                        setFormData(prev => ({ ...prev, ship_return_time: '' }));
-                      }
+                    onChange={(e) => {
+                      setFormData(prev => ({ ...prev, ship_return_time: e.target.value }));
                     }}
-                    options={getDatetimeOptions('ship_return_time')}
-                    placeholder="選擇日期時間"
+                    onKeyDown={(e) => e.preventDefault()}
+                    onPaste={(e) => e.preventDefault()}
+                    min={formData.ship_arrival_time || undefined}
                   />
                 </div>
               </div>
