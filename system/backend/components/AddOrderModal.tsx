@@ -77,15 +77,24 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
 
   // Flatpickr 設定（繁體中文）
   // 為每個日期欄位創建獨立的配置對象，確保每個日曆都是獨立的
-  const getDateOptions = React.useCallback(() => ({
+  const getDateOptions = React.useCallback((fieldName: string) => ({
     locale: MandarinTraditional,
     dateFormat: 'Y-m-d',
     allowInput: true,
     static: true, // 每個實例使用靜態定位，避免共享日曆
     clickOpens: true, // 允許點擊打開日曆
+    onOpen: (selectedDates: Date[], dateStr: string, instance: any) => {
+      // 確保打開時 focus 在自己的元件上
+      if (instance.input) {
+        instance.input.focus();
+      }
+    },
+    onClose: (selectedDates: Date[], dateStr: string, instance: any) => {
+      // 關閉時的處理
+    },
   }), []);
 
-  const getDatetimeOptions = React.useCallback(() => ({
+  const getDatetimeOptions = React.useCallback((fieldName: string) => ({
     locale: MandarinTraditional,
     dateFormat: 'Y-m-d H:i',
     enableTime: true,
@@ -93,6 +102,15 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     allowInput: true,
     static: true, // 每個實例使用靜態定位，避免共享日曆
     clickOpens: true, // 允許點擊打開日曆
+    onOpen: (selectedDates: Date[], dateStr: string, instance: any) => {
+      // 確保打開時 focus 在自己的元件上
+      if (instance.input) {
+        instance.input.focus();
+      }
+    },
+    onClose: (selectedDates: Date[], dateStr: string, instance: any) => {
+      // 關閉時的處理
+    },
   }), []);
 
   useEffect(() => {
@@ -429,7 +447,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                       }
                     }
                   }}
-                  options={getDateOptions()}
+                  options={getDateOptions('appointment_date')}
                   placeholder="選擇日期"
                 />
               </div>
@@ -451,7 +469,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                         setFormData(prev => ({ ...prev, start_time: dateStr }));
                       }
                     }}
-                    options={getDateOptions()}
+                    options={getDateOptions('start_time')}
                     placeholder="選擇日期"
                   />
                 </div>
@@ -471,7 +489,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                         setFormData(prev => ({ ...prev, end_time: dateStr }));
                       }
                     }}
-                    options={getDateOptions()}
+                    options={getDateOptions('end_time')}
                     placeholder="選擇日期"
                   />
                 </div>
@@ -494,15 +512,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                       setFormData(prev => ({ ...prev, expected_return_time: '' }));
                     }
                   }}
-                  options={{
-                    ...getDatetimeOptions(),
-                    onOpen: () => {
-                      // 確保打開時有獨立的 focus
-                    },
-                    onClose: () => {
-                      // 關閉時處理
-                    },
-                  }}
+                  options={getDatetimeOptions('expected_return_time')}
                   placeholder="選擇日期時間"
                 />
               </div>
@@ -555,7 +565,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                         setFormData(prev => ({ ...prev, ship_arrival_time: '' }));
                       }
                     }}
-                    options={getDatetimeOptions()}
+                    options={getDatetimeOptions('ship_arrival_time')}
                     placeholder="選擇日期時間"
                   />
                 </div>
@@ -574,7 +584,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                         setFormData(prev => ({ ...prev, ship_return_time: '' }));
                       }
                     }}
-                    options={getDatetimeOptions()}
+                    options={getDatetimeOptions('ship_return_time')}
                     placeholder="選擇日期時間"
                   />
                 </div>
