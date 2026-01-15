@@ -234,17 +234,6 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     }
   }, [isOpen, editingOrder]);
 
-  // 當合作商、機車選擇或時間變更時，自動計算費用
-  useEffect(() => {
-    // 只在沒有手動修改過金額時才自動計算
-    if (!isAmountManuallyEdited && formData.partner_id && selectedScooterIds.length > 0 && formData.start_time && formData.end_time) {
-      const calculatedAmount = calculateAmount();
-      if (calculatedAmount > 0) {
-        setFormData(prev => ({ ...prev, payment_amount: calculatedAmount.toString() }));
-      }
-    }
-  }, [formData.partner_id, formData.start_time, formData.end_time, selectedScooterIds, calculateAmount, isAmountManuallyEdited]);
-
   const fetchAvailableScooters = async () => {
     try {
       const response = await scootersApi.available();
@@ -297,6 +286,25 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     }
   };
 
+  // 計算選中機車相關的統計資料
+  const selectedScooters = availableScooters.filter(s => selectedScooterIds.includes(s.id));
+  
+  // 計算選中機車按型號分組的統計（model + type）
+  const modelStats = React.useMemo(() => {
+    const stats: Record<string, { count: number; scooters: Scooter[]; model: string; type: string }> = {};
+    selectedScooters.forEach(scooter => {
+      const modelString = `${scooter.model || ''} ${scooter.type || ''}`.trim();
+      if (!modelString) return;
+      
+      if (!stats[modelString]) {
+        stats[modelString] = { count: 0, scooters: [], model: scooter.model || '', type: scooter.type || '' };
+      }
+      stats[modelString].count++;
+      stats[modelString].scooters.push(scooter);
+    });
+    return stats;
+  }, [selectedScooters]);
+
   // 計算費用函數
   const calculateAmount = React.useCallback(() => {
     // 如果沒有合作商、機車或時間，返回 0
@@ -344,6 +352,17 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
 
     return totalAmount;
   }, [formData.partner_id, formData.start_time, formData.end_time, selectedScooterIds, partners, modelStats]);
+
+  // 當合作商、機車選擇或時間變更時，自動計算費用
+  useEffect(() => {
+    // 只在沒有手動修改過金額時才自動計算
+    if (!isAmountManuallyEdited && formData.partner_id && selectedScooterIds.length > 0 && formData.start_time && formData.end_time) {
+      const calculatedAmount = calculateAmount();
+      if (calculatedAmount > 0) {
+        setFormData(prev => ({ ...prev, payment_amount: calculatedAmount.toString() }));
+      }
+    }
+  }, [formData.partner_id, formData.start_time, formData.end_time, selectedScooterIds, calculateAmount, isAmountManuallyEdited]);
 
   const handleSubmit = async () => {
     if (!formData.appointment_date) {
@@ -437,26 +456,9 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     }
   };
 
-  const selectedScooters = availableScooters.filter(s => selectedScooterIds.includes(s.id));
   const filteredScooters = availableScooters.filter(s => 
     s.plate_number.toLowerCase().includes(searchPlate.toLowerCase())
   );
-
-  // 計算選中機車按型號分組的統計（model + type）
-  const modelStats = React.useMemo(() => {
-    const stats: Record<string, { count: number; scooters: Scooter[]; model: string; type: string }> = {};
-    selectedScooters.forEach(scooter => {
-      const modelString = `${scooter.model || ''} ${scooter.type || ''}`.trim();
-      if (!modelString) return;
-      
-      if (!stats[modelString]) {
-        stats[modelString] = { count: 0, scooters: [], model: scooter.model || '', type: scooter.type || '' };
-      }
-      stats[modelString].count++;
-      stats[modelString].scooters.push(scooter);
-    });
-    return stats;
-  }, [selectedScooters]);
 
   // 按車牌號排序選中的機車
   const sortedSelectedScooters = React.useMemo(() => {
