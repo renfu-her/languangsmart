@@ -495,32 +495,50 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       subtotalLabelCell.fill = totalRowStyle.fill;
       subtotalLabelCell.alignment = totalRowStyle.alignment;
       subtotalLabelCell.border = totalRowStyle.border;
-      colIdx = 3;
       
       // 計算所有小計的總和（用於總金額行）
       let allSubtotalsSum = 0;
       
-      allModels.forEach((model: string) => {
+      // 每個車款有 4 個欄位（當日租台數、跨日租台數、跨日租天數、金額）
+      // 第一個車款從第 3 列開始（日期=1, 星期=2）
+      allModels.forEach((model: string, modelIndex: number) => {
         const totals = modelTotals[model];
         const modelSubtotalAmount = totals.sameDayAmount + totals.overnightAmount;
         allSubtotalsSum += modelSubtotalAmount; // 累加所有小計
-        subtotalRow.getCell(colIdx++).value = '';
-        subtotalRow.getCell(colIdx++).value = '';
-        subtotalRow.getCell(colIdx++).value = '';
-        // 金額欄位：設置黑色字體（只有總金額行的總金額數值才是紅色）
-        const amountCell = subtotalRow.getCell(colIdx++);
-        amountCell.value = modelSubtotalAmount > 0 ? modelSubtotalAmount : '';
-        // 所有數值都設置為黑色字體
+        
+        // 計算每個車款的起始列和結束列
+        const modelStartCol = 3 + modelIndex * 4; // 第 3 列開始，每個車款佔 4 列
+        const modelEndCol = modelStartCol + 3; // 結束列（包含 4 個欄位）
+        
+        // 將該車款的 4 個欄位合併成一個單元格
+        if (modelStartCol < modelEndCol) {
+          try {
+            worksheet.mergeCells(rowNumber, modelStartCol, rowNumber, modelEndCol);
+          } catch (mergeError) {
+            console.warn(`合併車款 ${model} 小計欄位時發生錯誤:`, mergeError);
+          }
+        }
+        
+        // 在合併後的單元格中設置小計金額（黑色字體）
+        const subtotalCell = subtotalRow.getCell(modelStartCol);
+        subtotalCell.value = modelSubtotalAmount > 0 ? modelSubtotalAmount : '';
+        subtotalCell.font = totalRowStyle.font; // 黑色字體
+        subtotalCell.fill = totalRowStyle.fill;
+        subtotalCell.alignment = totalRowStyle.alignment;
+        subtotalCell.border = totalRowStyle.border;
       });
       
-      // 設置整行的總計行樣式（「小計」文字已在上面設置為黑色）- 所有數值都為黑色
+      // 設置整行的其他單元格樣式（「小計」文字已在上面設置，合併的單元格也已在上面設置）
+      // 這裡只需要確保沒有遺漏的單元格（實際上應該都已經設置了）
       for (let c = 3; c <= totalCols; c++) {
         const cell = subtotalRow.getCell(c);
-        cell.fill = totalRowStyle.fill;
-        cell.alignment = totalRowStyle.alignment;
-        cell.border = totalRowStyle.border;
-        // 所有數值都設置為黑色字體
-        cell.font = totalRowStyle.font;
+        // 只設置還沒有設置過的單元格（理論上應該都已經設置了）
+        if (!cell.value && cell.value !== 0) {
+          cell.fill = totalRowStyle.fill;
+          cell.font = totalRowStyle.font;
+          cell.alignment = totalRowStyle.alignment;
+          cell.border = totalRowStyle.border;
+        }
       }
       rowNumber++;
 
