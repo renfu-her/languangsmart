@@ -98,6 +98,9 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         if (i === 1) {
           // 日期欄位使用自動寬度或較大寬度
           worksheet.getColumn(i).width = 18; // 日期欄位較寬
+        } else if (i === 2) {
+          // 星期欄位加寬
+          worksheet.getColumn(i).width = 15; // 星期欄位較寬
         } else {
           worksheet.getColumn(i).width = 12;
         }
