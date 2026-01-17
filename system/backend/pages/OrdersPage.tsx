@@ -95,7 +95,12 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
 
       // 設置列寬
       for (let i = 1; i <= totalCols; i++) {
-        worksheet.getColumn(i).width = 12;
+        if (i === 1) {
+          // 日期欄位使用自動寬度或較大寬度
+          worksheet.getColumn(i).width = 18; // 日期欄位較寬
+        } else {
+          worksheet.getColumn(i).width = 12;
+        }
       }
 
       // 定義邊框樣式（通用）- 必須在使用前定義
@@ -295,6 +300,10 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       rowNumber++;
 
+      // 凍結表頭行（第 1-4 行，包含所有文字的表頭）
+      // ySplit: 4 表示凍結前 4 行（0-3 行），從第 5 行開始可以滾動
+      worksheet.views = [{ state: 'frozen', ySplit: 4 }];
+
       // 第五行開始：日期、星期、數據
 
       // 數據行（按 order_number 分開顯示）
@@ -331,6 +340,9 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
             dataRow.getCell(cellIndex++).value = orderIndex === 0 ? formattedDate : '';
             dataRow.getCell(cellIndex++).value = orderIndex === 0 ? weekday : '';
 
+            const isAlternate = (rowNumber - 5) % 2 === 1; // 第 5 行開始是數據行
+            const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
+            
             allModels.forEach((model: string) => {
               const modelData = order.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
                 same_day_count: '',
@@ -358,17 +370,36 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
               dataRow.getCell(cellIndex++).value = hasSameDay ? sameDayCount : '';
               dataRow.getCell(cellIndex++).value = hasOvernight ? overnightCount : '';
               dataRow.getCell(cellIndex++).value = hasOvernight ? overnightDays : '';
-              dataRow.getCell(cellIndex++).value = amount;
+              // 金額欄位：設置紅色字體
+              const amountCell = dataRow.getCell(cellIndex++);
+              amountCell.value = amount;
+              amountCell.fill = rowStyle.fill;
+              amountCell.border = rowStyle.border;
+              if (amount && amount !== '') {
+                amountCell.font = { ...rowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+              } else {
+                amountCell.font = rowStyle.font;
+              }
             });
 
-            // 設置數據行樣式
-            const isAlternate = (rowNumber - 5) % 2 === 1; // 第 5 行開始是數據行
-            const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
+            // 設置數據行樣式（跳過已設置的金額欄位）
             for (let c = 1; c <= totalCols; c++) {
               const cell = dataRow.getCell(c);
-              cell.fill = rowStyle.fill;
-              cell.font = rowStyle.font;
-              cell.border = rowStyle.border;
+              // 檢查是否是金額欄位（每 4 列中的第 4 列，從第 3 列開始計算）
+              const isAmountColumn = (c - 2) > 0 && (c - 2) % 4 === 0;
+              if (!isAmountColumn) {
+                // 非金額欄位，正常設置樣式
+                cell.fill = rowStyle.fill;
+                cell.font = rowStyle.font;
+                cell.border = rowStyle.border;
+              } else {
+                // 金額欄位，只設置填充和邊框（字體已在上面設置）
+                if (!cell.font || !cell.font.color) {
+                  cell.font = rowStyle.font;
+                }
+                cell.fill = rowStyle.fill;
+                cell.border = rowStyle.border;
+              }
             }
             
             rowNumber++;
@@ -435,22 +466,39 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         totalRow1.getCell(colIdx++).value = totals.sameDayCount > 0 ? totals.sameDayCount : '';
         totalRow1.getCell(colIdx++).value = totals.overnightCount > 0 ? totals.overnightCount : '';
         totalRow1.getCell(colIdx++).value = totals.overnightDays > 0 ? totals.overnightDays : '';
-        totalRow1.getCell(colIdx++).value = totals.totalAmount > 0 ? totals.totalAmount : '';
+        // 金額欄位：設置紅色字體
+        const amountCell = totalRow1.getCell(colIdx++);
+        amountCell.value = totals.totalAmount > 0 ? totals.totalAmount : '';
+        if (totals.totalAmount > 0) {
+          amountCell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+        }
       });
       
       // 設置整行的總計行樣式（包括前兩列）
       for (let c = 1; c <= totalCols; c++) {
         const cell = totalRow1.getCell(c);
         cell.fill = totalRowStyle.fill;
-        cell.font = totalRowStyle.font;
         cell.border = totalRowStyle.border;
+        // 檢查是否是金額欄位（每 4 列中的第 4 列，從第 3 列開始計算）
+        const isAmountColumn = (c - 2) > 0 && (c - 2) % 4 === 0;
+        if (isAmountColumn && cell.value && cell.value !== '') {
+          // 金額欄位：設置紅色字體
+          cell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } };
+        } else {
+          cell.font = totalRowStyle.font;
+        }
       }
       rowNumber++;
 
       // 小計行：每個型號顯示該型號的總金額（當日租 + 跨日租）
       const subtotalRow = worksheet.getRow(rowNumber);
       subtotalRow.getCell(1).value = '';
-      subtotalRow.getCell(2).value = '小計';
+      // 「小計」文字保持黑色
+      const subtotalLabelCell = subtotalRow.getCell(2);
+      subtotalLabelCell.value = '小計';
+      subtotalLabelCell.font = totalRowStyle.font; // 黑色字體
+      subtotalLabelCell.fill = totalRowStyle.fill;
+      subtotalLabelCell.border = totalRowStyle.border;
       colIdx = 3;
       
       // 計算所有小計的總和（用於總金額行）
@@ -463,15 +511,28 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         subtotalRow.getCell(colIdx++).value = '';
         subtotalRow.getCell(colIdx++).value = '';
         subtotalRow.getCell(colIdx++).value = '';
-        subtotalRow.getCell(colIdx++).value = modelSubtotalAmount > 0 ? modelSubtotalAmount : '';
+        // 金額欄位：設置紅色字體
+        const amountCell = subtotalRow.getCell(colIdx++);
+        amountCell.value = modelSubtotalAmount > 0 ? modelSubtotalAmount : '';
+        if (modelSubtotalAmount > 0) {
+          amountCell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+        }
       });
       
-      // 設置整行的總計行樣式（包括前兩列）
-      for (let c = 1; c <= totalCols; c++) {
+      // 設置整行的總計行樣式（「小計」文字已在上面設置為黑色）
+      for (let c = 3; c <= totalCols; c++) {
         const cell = subtotalRow.getCell(c);
         cell.fill = totalRowStyle.fill;
-        cell.font = totalRowStyle.font;
         cell.border = totalRowStyle.border;
+        // 檢查是否是金額欄位（每 4 列中的第 4 列，從第 3 列開始計算）
+        const isAmountColumn = (c - 2) > 0 && (c - 2) % 4 === 0;
+        if (isAmountColumn && cell.value && cell.value !== '') {
+          // 金額欄位：設置紅色字體
+          cell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } };
+        } else if (!cell.font || !cell.font.color || cell.font.color.argb !== 'FFFF0000') {
+          // 非金額欄位：設置黑色字體
+          cell.font = totalRowStyle.font;
+        }
       }
       rowNumber++;
 
@@ -481,8 +542,19 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       const lastModelAmountCol = firstModelAmountCol + (allModels.length - 1) * 4; // 最後一個型號的金額欄位
       
       const totalAmountRow = worksheet.getRow(rowNumber);
-      totalAmountRow.getCell(1).value = ''; // 第一欄：空白（與「月結總計」合併）
-      totalAmountRow.getCell(2).value = '總金額'; // 第二欄：總金額標籤
+      // 第一欄：空白（與「月結總計」合併），設置黑色字體
+      const blankCell1 = totalAmountRow.getCell(1);
+      blankCell1.value = '';
+      blankCell1.font = totalRowStyle.font; // 黑色字體
+      blankCell1.fill = totalRowStyle.fill;
+      blankCell1.border = totalRowStyle.border;
+      
+      // 第二欄：「總金額」標籤，設置紅色字體
+      const totalLabelCell = totalAmountRow.getCell(2);
+      totalLabelCell.value = '總金額';
+      totalLabelCell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+      totalLabelCell.fill = totalRowStyle.fill;
+      totalLabelCell.border = totalRowStyle.border;
       
       // 在「總金額」之後，將所有型號的欄位（當日租台數、跨日租台數、跨日租天數、金額）合併成一個大單元格
       // 起始列：第 3 列（「總金額」之後的第一列）
@@ -490,8 +562,9 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       const totalAmountStartCol = 3;
       const totalAmountEndCol = totalCols;
       
-      // 設置第一個單元格的值為總金額
-      totalAmountRow.getCell(totalAmountStartCol).value = allSubtotalsSum > 0 ? allSubtotalsSum : '';
+      // 設置第一個單元格的值為總金額（紅色字體）
+      const totalAmountCell = totalAmountRow.getCell(totalAmountStartCol);
+      totalAmountCell.value = allSubtotalsSum > 0 ? allSubtotalsSum : '';
       
       // 合併「總金額」之後的所有欄位（從第 3 列到最後一列）
       if (totalAmountStartCol < totalAmountEndCol) {
@@ -511,12 +584,17 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         }
       }
       
-      // 設置總金額行樣式
-      for (let c = 1; c <= totalCols; c++) {
+      // 設置總金額行樣式：總金額數值為紅色，其他為黑色
+      for (let c = 3; c <= totalCols; c++) {
         const cell = totalAmountRow.getCell(c);
         cell.fill = totalRowStyle.fill;
-        cell.font = totalRowStyle.font;
         cell.border = totalRowStyle.border;
+        // 如果是總金額數值單元格，設置紅色字體
+        if (c === totalAmountStartCol && allSubtotalsSum > 0) {
+          cell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+        } else {
+          cell.font = totalRowStyle.font; // 黑色字體
+        }
       }
 
       // 生成文件名
