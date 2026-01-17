@@ -1,5 +1,35 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-17 09:15:00 (+8) - 使用 ExcelJS 為導出的 Excel 文件添加表格顏色樣式
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **更新 Excel 庫**：保留 `xlsx` 用於其他導出功能，為 `handleExportPartnerReport` 添加 `exceljs` 導入
+  - **完全重寫 `handleExportPartnerReport` 函數**：使用 ExcelJS 替代 XLSX，支持單元格樣式和顏色
+  - **添加表格顏色樣式**：
+    - **標題行**（第 1 行）：淺藍色背景（`#B4C6E7`），粗體，14 號字體，置中對齊
+    - **表頭行**（第 2-4 行）：淺灰色背景（`#D9E1F2`），粗體，置中對齊
+    - **數據行**（第 5 行開始）：交替行顏色（白色 `#FFFFFF` 和淺灰色 `#F2F2F2`），提高可讀性
+    - **總計行**（月結總計，最後 3 行）：黃色背景（`#FFD966`），粗體，突出顯示
+  - 使用 ExcelJS 的 API：
+    - `workbook.addWorksheet()` 創建工作表
+    - `worksheet.getRow()` 和 `worksheet.getCell()` 設置單元格值
+    - `worksheet.mergeCells()` 合併單元格
+    - `cell.fill`、`cell.font`、`cell.alignment` 設置樣式
+    - `workbook.xlsx.writeBuffer()` 生成文件並下載
+
+### 功能說明
+- 導出的 Excel 文件現在包含完整的顏色樣式，使表格更易於閱讀和區分不同類型的行
+- 標題行使用淺藍色背景，表頭使用淺灰色背景，數據行使用交替顏色，總計行使用黃色背景
+- 樣式應用於「合作商單月詳細統計」中的 Export 功能
+
+### 技術細節
+- 使用 `exceljs` 庫（已安裝，版本 ^4.4.0）
+- 顏色格式：ARGB hex（8 位字符，例如 `FFB4C6E7`，前兩位 FF 是 alpha）
+- 文件下載：使用 `Blob` 和 `URL.createObjectURL()` 在瀏覽器中下載文件
+
 ## 2026-01-17 09:11:14 (+8) - 為導出的 Excel 文件添加表格顏色樣式
 
 ### 變更內容
