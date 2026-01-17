@@ -374,17 +374,14 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
               dataRow.getCell(cellIndex++).value = hasSameDay ? sameDayCount : '';
               dataRow.getCell(cellIndex++).value = hasOvernight ? overnightCount : '';
               dataRow.getCell(cellIndex++).value = hasOvernight ? overnightDays : '';
-              // 金額欄位：設置紅色字體
+              // 金額欄位：設置黑色字體（只有總金額行的總金額數值才是紅色）
               const amountCell = dataRow.getCell(cellIndex++);
               amountCell.value = amount;
               amountCell.fill = rowStyle.fill;
               amountCell.alignment = rowStyle.alignment;
               amountCell.border = rowStyle.border;
-              if (amount && amount !== '') {
-                amountCell.font = { ...rowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
-              } else {
-                amountCell.font = rowStyle.font;
-              }
+              // 所有數據行的金額都設置為黑色字體
+              amountCell.font = rowStyle.font;
             });
 
             // 設置數據行樣式（跳過已設置的金額欄位）
@@ -399,11 +396,9 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
                 cell.alignment = rowStyle.alignment;
                 cell.border = rowStyle.border;
               } else {
-                // 金額欄位，只設置填充和邊框（字體已在上面設置）
-                if (!cell.font || !cell.font.color) {
-                  cell.font = rowStyle.font;
-                }
+                // 金額欄位，設置樣式（字體已在上面設置為黑色）
                 cell.fill = rowStyle.fill;
+                cell.font = rowStyle.font; // 確保為黑色字體
                 cell.alignment = rowStyle.alignment;
                 cell.border = rowStyle.border;
               }
@@ -560,6 +555,13 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       // 設置第一個單元格的值為總金額（紅色字體）
       const totalAmountCell = totalAmountRow.getCell(totalAmountStartCol);
       totalAmountCell.value = allSubtotalsSum > 0 ? allSubtotalsSum : '';
+      // 直接設置紅色字體，確保總金額數值為紅色
+      if (allSubtotalsSum > 0) {
+        totalAmountCell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+      }
+      totalAmountCell.fill = totalRowStyle.fill;
+      totalAmountCell.alignment = totalRowStyle.alignment;
+      totalAmountCell.border = totalRowStyle.border;
       
       // 合併「總金額」之後的所有欄位（從第 3 列到最後一列）
       if (totalAmountStartCol < totalAmountEndCol) {
@@ -580,14 +582,19 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       }
       
       // 設置總金額行樣式：總金額數值為紅色，其他為黑色
+      // 注意：合併後的單元格使用第一個單元格的樣式，所以只需要確保第一個單元格是紅色即可
       for (let c = 3; c <= totalCols; c++) {
         const cell = totalAmountRow.getCell(c);
         cell.fill = totalRowStyle.fill;
         cell.alignment = totalRowStyle.alignment;
         cell.border = totalRowStyle.border;
-        // 如果是總金額數值單元格，設置紅色字體
+        // 如果是總金額數值單元格（合併區域的第一個單元格），設置紅色字體
+        // 其他單元格（如果沒有被合併）設置黑色字體
         if (c === totalAmountStartCol && allSubtotalsSum > 0) {
           cell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+        } else if (c > totalAmountStartCol && c <= totalAmountEndCol) {
+          // 合併區域內的其他單元格（不會顯示，但為保險起見設置樣式）
+          cell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體（與合併單元格一致）
         } else {
           cell.font = totalRowStyle.font; // 黑色字體
         }
