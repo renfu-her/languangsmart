@@ -358,15 +358,19 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       }
       rowNumber++;
 
-      // 小計行
+      // 小計行：每個型號顯示該型號的總金額（當日租 + 跨日租）
       const subtotalRow = worksheet.getRow(rowNumber);
       subtotalRow.getCell(1).value = '';
       subtotalRow.getCell(2).value = '小計';
       colIdx = 3;
       
+      // 計算所有小計的總和（用於總金額行）
+      let allSubtotalsSum = 0;
+      
       allModels.forEach((model: string) => {
         const totals = modelTotals[model];
         const modelSubtotalAmount = totals.sameDayAmount + totals.overnightAmount;
+        allSubtotalsSum += modelSubtotalAmount; // 累加所有小計
         subtotalRow.getCell(colIdx++).value = '';
         subtotalRow.getCell(colIdx++).value = '';
         subtotalRow.getCell(colIdx++).value = '';
@@ -380,7 +384,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       }
       rowNumber++;
 
-      // 總金額行
+      // 總金額行：顯示所有小計加起來的總金額
       // 第一個型號的金額欄位：日期(1) + 星期(1) + 當日租台數(1) + 跨日租台數(1) + 跨日租天數(1) = 6
       const firstModelAmountCol = 6; // 第一個型號的金額欄位（第 6 列）
       const lastModelAmountCol = firstModelAmountCol + (allModels.length - 1) * 4; // 最後一個型號的金額欄位
@@ -395,9 +399,9 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         totalAmountRow.getCell(colIdx++).value = ''; // 當日租台數
         totalAmountRow.getCell(colIdx++).value = ''; // 跨日租台數
         totalAmountRow.getCell(colIdx++).value = ''; // 跨日租天數
-        // 金額欄位：如果是第一個型號，填入總金額；其他為空（之後會合併）
+        // 金額欄位：如果是第一個型號，填入所有小計的總和；其他為空（之後會合併）
         if (index === 0) {
-          totalAmountRow.getCell(colIdx++).value = grandTotalAmount > 0 ? grandTotalAmount : '';
+          totalAmountRow.getCell(colIdx++).value = allSubtotalsSum > 0 ? allSubtotalsSum : '';
         } else {
           totalAmountRow.getCell(colIdx++).value = '';
         }
