@@ -481,27 +481,22 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       const lastModelAmountCol = firstModelAmountCol + (allModels.length - 1) * 4; // 最後一個型號的金額欄位
       
       const totalAmountRow = worksheet.getRow(rowNumber);
-      totalAmountRow.getCell(1).value = '';
-      totalAmountRow.getCell(2).value = '總金額';
-      colIdx = 3;
+      totalAmountRow.getCell(1).value = ''; // 第一欄：空白（與「月結總計」合併）
+      totalAmountRow.getCell(2).value = '總金額'; // 第二欄：總金額標籤
       
-      // 設置所有型號的欄位（前三個欄位為空，金額欄位填入總金額）
-      allModels.forEach((model: string, index: number) => {
-        totalAmountRow.getCell(colIdx++).value = ''; // 當日租台數
-        totalAmountRow.getCell(colIdx++).value = ''; // 跨日租台數
-        totalAmountRow.getCell(colIdx++).value = ''; // 跨日租天數
-        // 金額欄位：如果是第一個型號，填入所有小計的總和；其他為空（之後會合併）
-        if (index === 0) {
-          totalAmountRow.getCell(colIdx++).value = allSubtotalsSum > 0 ? allSubtotalsSum : '';
-        } else {
-          totalAmountRow.getCell(colIdx++).value = '';
-        }
-      });
+      // 在「總金額」之後，將所有型號的欄位（當日租台數、跨日租台數、跨日租天數、金額）合併成一個大單元格
+      // 起始列：第 3 列（「總金額」之後的第一列）
+      // 結束列：最後一列（totalCols）
+      const totalAmountStartCol = 3;
+      const totalAmountEndCol = totalCols;
       
-      // 合併總金額欄位（如果有多個型號，合併所有型號的金額欄位）
-      if (allModels.length > 1 && firstModelAmountCol <= totalCols && lastModelAmountCol <= totalCols) {
+      // 設置第一個單元格的值為總金額
+      totalAmountRow.getCell(totalAmountStartCol).value = allSubtotalsSum > 0 ? allSubtotalsSum : '';
+      
+      // 合併「總金額」之後的所有欄位（從第 3 列到最後一列）
+      if (totalAmountStartCol < totalAmountEndCol) {
         try {
-          worksheet.mergeCells(rowNumber, firstModelAmountCol, rowNumber, lastModelAmountCol);
+          worksheet.mergeCells(rowNumber, totalAmountStartCol, rowNumber, totalAmountEndCol);
         } catch (mergeError) {
           console.warn('合併總金額欄位時發生錯誤:', mergeError);
         }
