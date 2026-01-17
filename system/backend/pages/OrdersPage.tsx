@@ -90,14 +90,24 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       const titleCell = worksheet.getCell(rowNumber, 1);
       titleCell.value = `${partnerName}出租月報表`;
       worksheet.mergeCells(rowNumber, 1, rowNumber, totalCols);
-      titleCell.font = { bold: true, size: 14, color: { argb: 'FF000000' } };
-      titleCell.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: 'FFB4C6E7' } // 淺藍色背景
-      };
-      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      titleCell.font = titleStyle.font;
+      titleCell.fill = titleStyle.fill;
+      titleCell.alignment = titleStyle.alignment;
+      titleCell.border = titleStyle.border;
+      // 為標題行的所有單元格設置邊框
+      for (let c = 1; c <= totalCols; c++) {
+        const cell = worksheet.getCell(rowNumber, c);
+        cell.border = borderStyle;
+      }
       rowNumber++;
+
+      // 定義邊框樣式（通用）
+      const borderStyle = {
+        top: { style: 'thin' as const, color: { argb: 'FF000000' } },
+        bottom: { style: 'thin' as const, color: { argb: 'FF000000' } },
+        left: { style: 'thin' as const, color: { argb: 'FF000000' } },
+        right: { style: 'thin' as const, color: { argb: 'FF000000' } }
+      };
 
       // 定義樣式
       const headerStyle = {
@@ -107,7 +117,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
           fgColor: { argb: 'FFD9E1F2' } // 淺灰色背景
         },
         font: { bold: true, color: { argb: 'FF000000' } },
-        alignment: { horizontal: 'center' as const, vertical: 'middle' as const }
+        alignment: { horizontal: 'center' as const, vertical: 'middle' as const },
+        border: borderStyle
       };
 
       const dataRowStyle = {
@@ -116,7 +127,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
           pattern: 'solid' as const,
           fgColor: { argb: 'FFFFFFFF' } // 白色背景
         },
-        font: { color: { argb: 'FF000000' } }
+        font: { color: { argb: 'FF000000' } },
+        border: borderStyle
       };
 
       const dataRowAlternateStyle = {
@@ -125,7 +137,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
           pattern: 'solid' as const,
           fgColor: { argb: 'FFF2F2F2' } // 淺灰色背景（交替行）
         },
-        font: { color: { argb: 'FF000000' } }
+        font: { color: { argb: 'FF000000' } },
+        border: borderStyle
       };
 
       const totalRowStyle = {
@@ -134,14 +147,37 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
           pattern: 'solid' as const,
           fgColor: { argb: 'FFFFD966' } // 黃色背景
         },
-        font: { bold: true, color: { argb: 'FF000000' } }
+        font: { bold: true, color: { argb: 'FF000000' } },
+        border: borderStyle
+      };
+
+      const titleStyle = {
+        fill: {
+          type: 'pattern' as const,
+          pattern: 'solid' as const,
+          fgColor: { argb: 'FFB4C6E7' } // 淺藍色背景
+        },
+        font: { bold: true, size: 14, color: { argb: 'FF000000' } },
+        alignment: { horizontal: 'center' as const, vertical: 'middle' as const },
+        border: borderStyle
       };
 
       // 第二行：前面兩欄空白，然後機車型號標題（每個型號佔 4 欄）
       const headerRow2 = worksheet.getRow(rowNumber);
       let colIndex = 1;
-      headerRow2.getCell(colIndex++).value = ''; // 第一欄空白
-      headerRow2.getCell(colIndex++).value = ''; // 第二欄空白
+      // 為前兩欄設置樣式和邊框
+      const blankCell1 = headerRow2.getCell(colIndex++);
+      blankCell1.value = ''; // 第一欄空白
+      blankCell1.font = headerStyle.font;
+      blankCell1.fill = headerStyle.fill;
+      blankCell1.alignment = headerStyle.alignment;
+      blankCell1.border = headerStyle.border;
+      const blankCell2 = headerRow2.getCell(colIndex++);
+      blankCell2.value = ''; // 第二欄空白
+      blankCell2.font = headerStyle.font;
+      blankCell2.fill = headerStyle.fill;
+      blankCell2.alignment = headerStyle.alignment;
+      blankCell2.border = headerStyle.border;
       
       allModels.forEach((model: string, modelIndex: number) => {
         const modelStartCol = colIndex;
@@ -154,9 +190,11 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         
         // 為合併的單元格設置樣式
         for (let c = modelStartCol; c <= modelStartCol + 3; c++) {
-          headerRow2.getCell(c).font = headerStyle.font;
-          headerRow2.getCell(c).fill = headerStyle.fill;
-          headerRow2.getCell(c).alignment = headerStyle.alignment;
+          const cell = headerRow2.getCell(c);
+          cell.font = headerStyle.font;
+          cell.fill = headerStyle.fill;
+          cell.alignment = headerStyle.alignment;
+          cell.border = headerStyle.border;
         }
         
         colIndex += 4;
@@ -166,11 +204,27 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       // 第三行：當日租（1 欄）、跨日租（3 欄）
       const headerRow3 = worksheet.getRow(rowNumber);
       colIndex = 1;
-      headerRow3.getCell(colIndex++).value = ''; // 第一欄空白
-      headerRow3.getCell(colIndex++).value = ''; // 第二欄空白
+      // 為前兩欄設置樣式和邊框
+      const blankCell3_1 = headerRow3.getCell(colIndex++);
+      blankCell3_1.value = ''; // 第一欄空白
+      blankCell3_1.font = headerStyle.font;
+      blankCell3_1.fill = headerStyle.fill;
+      blankCell3_1.alignment = headerStyle.alignment;
+      blankCell3_1.border = headerStyle.border;
+      const blankCell3_2 = headerRow3.getCell(colIndex++);
+      blankCell3_2.value = ''; // 第二欄空白
+      blankCell3_2.font = headerStyle.font;
+      blankCell3_2.fill = headerStyle.fill;
+      blankCell3_2.alignment = headerStyle.alignment;
+      blankCell3_2.border = headerStyle.border;
       
       allModels.forEach(() => {
-        headerRow3.getCell(colIndex++).value = '當日租';
+        const sameDayCell = headerRow3.getCell(colIndex++);
+        sameDayCell.value = '當日租';
+        sameDayCell.font = headerStyle.font;
+        sameDayCell.fill = headerStyle.fill;
+        sameDayCell.alignment = headerStyle.alignment;
+        sameDayCell.border = headerStyle.border;
         
         // 跨日租合併 3 列（台數、天數、金額）
         const overnightStartCol = colIndex;
@@ -182,20 +236,33 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         
         // 為合併的單元格設置樣式
         for (let c = overnightStartCol; c <= overnightStartCol + 2; c++) {
-          headerRow3.getCell(c).font = headerStyle.font;
-          headerRow3.getCell(c).fill = headerStyle.fill;
-          headerRow3.getCell(c).alignment = headerStyle.alignment;
+          const cell = headerRow3.getCell(c);
+          cell.font = headerStyle.font;
+          cell.fill = headerStyle.fill;
+          cell.alignment = headerStyle.alignment;
+          cell.border = headerStyle.border;
         }
         
         colIndex += 3;
       });
       rowNumber++;
 
-      // 第四行：台數（當日租下）、台數、天數、金額（跨日租下，金額共用）
+      // 第四行：日期、星期（前兩欄），然後是台數（當日租下）、台數、天數、金額（跨日租下，金額共用）
       const headerRow4 = worksheet.getRow(rowNumber);
       colIndex = 1;
-      headerRow4.getCell(colIndex++).value = ''; // 第一欄空白
-      headerRow4.getCell(colIndex++).value = ''; // 第二欄空白
+      // 為前兩欄設置樣式和邊框（日期和星期）
+      const dateCell = headerRow4.getCell(colIndex++);
+      dateCell.value = '日期'; // 第一欄：日期
+      dateCell.font = headerStyle.font;
+      dateCell.fill = headerStyle.fill;
+      dateCell.alignment = headerStyle.alignment;
+      dateCell.border = headerStyle.border;
+      const weekdayCell = headerRow4.getCell(colIndex++);
+      weekdayCell.value = '星期'; // 第二欄：星期
+      weekdayCell.font = headerStyle.font;
+      weekdayCell.fill = headerStyle.fill;
+      weekdayCell.alignment = headerStyle.alignment;
+      weekdayCell.border = headerStyle.border;
       
       allModels.forEach(() => {
         headerRow4.getCell(colIndex++).value = '台數'; // 當日租：台數
@@ -205,9 +272,11 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         
         // 為表頭行設置樣式
         for (let c = colIndex - 4; c < colIndex; c++) {
-          headerRow4.getCell(c).font = headerStyle.font;
-          headerRow4.getCell(c).fill = headerStyle.fill;
-          headerRow4.getCell(c).alignment = headerStyle.alignment;
+          const cell = headerRow4.getCell(c);
+          cell.font = headerStyle.font;
+          cell.fill = headerStyle.fill;
+          cell.alignment = headerStyle.alignment;
+          cell.border = headerStyle.border;
         }
       });
       rowNumber++;
@@ -233,8 +302,10 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
           const isAlternate = (rowNumber - 5) % 2 === 1; // 第 5 行開始是數據行（索引 5，rowNumber 從 1 開始）
           const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
           for (let c = 1; c <= totalCols; c++) {
-            emptyRow.getCell(c).fill = rowStyle.fill;
-            emptyRow.getCell(c).font = rowStyle.font;
+            const cell = emptyRow.getCell(c);
+            cell.fill = rowStyle.fill;
+            cell.font = rowStyle.font;
+            cell.border = rowStyle.border;
           }
           rowNumber++;
         } else {
@@ -280,8 +351,10 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
             const isAlternate = (rowNumber - 5) % 2 === 1; // 第 5 行開始是數據行
             const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
             for (let c = 1; c <= totalCols; c++) {
-              dataRow.getCell(c).fill = rowStyle.fill;
-              dataRow.getCell(c).font = rowStyle.font;
+              const cell = dataRow.getCell(c);
+              cell.fill = rowStyle.fill;
+              cell.font = rowStyle.font;
+              cell.border = rowStyle.border;
             }
             
             rowNumber++;
@@ -353,8 +426,10 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       
       // 設置整行的總計行樣式（包括前兩列）
       for (let c = 1; c <= totalCols; c++) {
-        totalRow1.getCell(c).fill = totalRowStyle.fill;
-        totalRow1.getCell(c).font = totalRowStyle.font;
+        const cell = totalRow1.getCell(c);
+        cell.fill = totalRowStyle.fill;
+        cell.font = totalRowStyle.font;
+        cell.border = totalRowStyle.border;
       }
       rowNumber++;
 
@@ -379,8 +454,10 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       
       // 設置整行的總計行樣式（包括前兩列）
       for (let c = 1; c <= totalCols; c++) {
-        subtotalRow.getCell(c).fill = totalRowStyle.fill;
-        subtotalRow.getCell(c).font = totalRowStyle.font;
+        const cell = subtotalRow.getCell(c);
+        cell.fill = totalRowStyle.fill;
+        cell.font = totalRowStyle.font;
+        cell.border = totalRowStyle.border;
       }
       rowNumber++;
 
@@ -417,8 +494,10 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       
       // 設置總金額行樣式
       for (let c = 1; c <= totalCols; c++) {
-        totalAmountRow.getCell(c).fill = totalRowStyle.fill;
-        totalAmountRow.getCell(c).font = totalRowStyle.font;
+        const cell = totalAmountRow.getCell(c);
+        cell.fill = totalRowStyle.fill;
+        cell.font = totalRowStyle.font;
+        cell.border = totalRowStyle.border;
       }
 
       // 生成文件名
