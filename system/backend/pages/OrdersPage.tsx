@@ -61,12 +61,24 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       const dates = partnerData.dates || [];
       const allModels = reportData.models || [];
 
+      // 驗證數據
+      if (!Array.isArray(allModels) || allModels.length === 0) {
+        alert('機車型號列表為空，無法匯出');
+        return;
+      }
+
       // 2. 使用 ExcelJS 產生帶樣式的 Excel（支持顏色）
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('月報表');
 
       // 計算總列數：日期(1) + 星期(1) + 每個型號(4列：當日租台數(1) + 跨日租台數(1) + 跨日租天數(1) + 金額(1，共用))
       const totalCols = 2 + allModels.length * 4;
+      
+      // 驗證總列數（Excel 最大列數為 16384）
+      if (totalCols < 1 || totalCols > 16384) {
+        alert(`總列數超出有效範圍: ${totalCols}`);
+        return;
+      }
       
       // 星期對應表
       const weekdayMap: Record<string, string> = {
@@ -487,12 +499,22 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       
       // 合併總金額欄位（如果有多個型號，合併所有型號的金額欄位）
-      if (allModels.length > 1) {
-        worksheet.mergeCells(rowNumber, firstModelAmountCol, rowNumber, lastModelAmountCol);
+      if (allModels.length > 1 && firstModelAmountCol <= totalCols && lastModelAmountCol <= totalCols) {
+        try {
+          worksheet.mergeCells(rowNumber, firstModelAmountCol, rowNumber, lastModelAmountCol);
+        } catch (mergeError) {
+          console.warn('合併總金額欄位時發生錯誤:', mergeError);
+        }
       }
       
       // 合併「月結總計」垂直方向（合併總台數/天數、小計、總金額三行）
-      worksheet.mergeCells(rowNumber - 2, 1, rowNumber, 1);
+      if (rowNumber >= 3) {
+        try {
+          worksheet.mergeCells(rowNumber - 2, 1, rowNumber, 1);
+        } catch (mergeError) {
+          console.warn('合併月結總計欄位時發生錯誤:', mergeError);
+        }
+      }
       
       // 設置總金額行樣式
       for (let c = 1; c <= totalCols; c++) {
