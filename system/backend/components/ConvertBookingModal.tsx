@@ -136,7 +136,7 @@ const ConvertBookingModal: React.FC<ConvertBookingModalProps> = ({ isOpen, onClo
       await bookingsApi.convertToOrder(booking.id, {
         partner_id: selectedPartnerId,
         payment_method: paymentMethod,
-        payment_amount: totalAmount,
+        // 不傳入 payment_amount，讓後端根據合作商的機車型號費用自動計算調車費用
         // 不傳送 scooter_ids，讓後端自動選擇
       });
       onSuccess();

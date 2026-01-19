@@ -16,6 +16,8 @@ export const NAV_ITEMS = [
     icon: <Bike size={20} />, 
     children: [
       { name: '機車清單', path: '/scooters' },
+      { name: '機車型號管理', path: '/scooter-models' },
+      { name: '機車類型管理', path: '/scooter-types' },
       { name: '機車配件', path: '/accessories' }
     ]
   },
@@ -39,6 +41,7 @@ export const NAV_ITEMS = [
       { name: '專車接送圖片', path: '/shuttle-images' },
       { name: '租車方案', path: '/rental-plans' },
       { name: '租車須知', path: '/guidelines' },
+      { name: '聯絡我們', path: '/contact-infos' },
       { name: '門市據點', path: '/locations' },
       { name: '民宿推薦', path: '/guesthouses' },
       { name: '預約管理', path: '/bookings' }

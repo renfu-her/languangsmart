@@ -1,4 +1,26 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
+// 根據當前域名自動判斷 API 基礎 URL
+const getApiBaseUrl = () => {
+  // 如果設置了環境變數，優先使用
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL;
+  }
+  
+  // 根據當前域名自動判斷
+  const hostname = window.location.hostname;
+  
+  if (hostname === 'languangsmart.com' || hostname === 'www.languangsmart.com') {
+    return 'https://languangsmart.com/api';
+  }
+  
+  if (hostname === 'scooter-rental.ai-tracks.com' || hostname === 'www.scooter-rental.ai-tracks.com') {
+    return 'https://scooter-rental.ai-tracks.com/api';
+  }
+  
+  // 開發環境默認值
+  return 'http://localhost:8000/api';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 interface ApiResponse<T> {
   data: T;
@@ -86,6 +108,36 @@ class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    // 如果是 FormData，直接傳遞，不要 stringify
+    if (data instanceof FormData) {
+      const url = `${this.baseUrl}${endpoint}`;
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(url, {
+        method: 'POST',
+        body: data,
+        headers: {
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+          // 不要設置 Content-Type，讓瀏覽器自動設置（包含 boundary）
+        },
+      });
+      const responseData = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('auth_token');
+          if (window.location.hash !== '#/login') {
+            window.location.hash = '/login';
+          }
+        }
+        const error: any = new Error(responseData.message || 'API request failed');
+        error.response = {
+          status: response.status,
+          statusText: response.statusText,
+          data: responseData,
+        };
+        throw error;
+      }
+      return responseData;
+    }
     return this.request<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
@@ -93,6 +145,36 @@ class ApiClient {
   }
 
   async put<T>(endpoint: string, data?: any): Promise<ApiResponse<T>> {
+    // 如果是 FormData，直接傳遞，不要 stringify
+    if (data instanceof FormData) {
+      const url = `${this.baseUrl}${endpoint}`;
+      const token = localStorage.getItem('auth_token');
+      const response = await fetch(url, {
+        method: 'PUT',
+        body: data,
+        headers: {
+          ...(token && { 'Authorization': `Bearer ${token}` }),
+          // 不要設置 Content-Type，讓瀏覽器自動設置（包含 boundary）
+        },
+      });
+      const responseData = await response.json();
+      if (!response.ok) {
+        if (response.status === 401) {
+          localStorage.removeItem('auth_token');
+          if (window.location.hash !== '#/login') {
+            window.location.hash = '/login';
+          }
+        }
+        const error: any = new Error(responseData.message || 'API request failed');
+        error.response = {
+          status: response.status,
+          statusText: response.statusText,
+          data: responseData,
+        };
+        throw error;
+      }
+      return responseData;
+    }
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -108,6 +190,84 @@ class ApiClient {
 
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
+  async downloadFile(
+    endpoint: string,
+    params?: Record<string, any>,
+    filename?: string
+  ): Promise<void> {
+    const url = `${this.baseUrl}${endpoint}`;
+    const token = localStorage.getItem('auth_token');
+    
+    // 構建查詢字符串
+    let queryString = '';
+    if (params) {
+      const filteredParams: Record<string, string> = {};
+      Object.keys(params).forEach(key => {
+        const value = params[key];
+        if (value !== undefined && value !== null && value !== '') {
+          filteredParams[key] = String(value);
+        }
+      });
+      if (Object.keys(filteredParams).length > 0) {
+        queryString = '?' + new URLSearchParams(filteredParams).toString();
+      }
+    }
+    
+    const response = await fetch(url + queryString, {
+      method: 'GET',
+      headers: {
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+      },
+    });
+    
+    if (!response.ok) {
+      if (response.status === 401) {
+        localStorage.removeItem('auth_token');
+        if (window.location.hash !== '#/login') {
+          window.location.hash = '/login';
+        }
+      }
+      // 嘗試解析 JSON 錯誤訊息，但如果失敗（可能是二進制檔案），使用預設錯誤訊息
+      let errorData: any = {};
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        try {
+          errorData = await response.json();
+        } catch (e) {
+          // 如果不是 JSON，忽略
+        }
+      }
+      const error: any = new Error(errorData.message || `Download failed: ${response.status} ${response.statusText}`);
+      error.response = {
+        status: response.status,
+        statusText: response.statusText,
+        data: errorData,
+      };
+      throw error;
+    }
+    
+    // 獲取文件名（從 Content-Disposition header 或使用提供的文件名）
+    let downloadFilename = filename;
+    const contentDisposition = response.headers.get('Content-Disposition');
+    if (contentDisposition) {
+      const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+      if (filenameMatch && filenameMatch[1]) {
+        downloadFilename = filenameMatch[1].replace(/['"]/g, '');
+      }
+    }
+    
+    // 下載文件
+    const blob = await response.blob();
+    const downloadUrl = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = downloadFilename || 'download.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(downloadUrl);
   }
 
   async uploadFile<T>(
@@ -191,6 +351,13 @@ export const ordersApi = {
   updateStatus: (id: string | number, status: string) => api.patch(`/orders/${id}/status`, { status }),
   delete: (id: string | number) => api.delete(`/orders/${id}`),
   statistics: (month: string) => api.get('/orders/statistics', { month }),
+  monthlyReport: (month: string) => api.get('/orders/monthly-report', { month }),
+  partnerDailyReport: (month: string, partnerId?: number, format?: 'excel' | 'json') => 
+    api.get('/orders/partner-daily-report', { month, partner_id: partnerId, format }),
+  partnerMonthlyStatistics: (month: string) =>
+    api.get('/orders/partner-monthly-statistics', { month }),
+  downloadPartnerMonthlyReport: (month: string, partnerId: number, filename?: string) =>
+    api.downloadFile('/orders/partner-daily-report', { month, partner_id: partnerId }, filename),
   getYears: () => api.get<number[]>('/orders/years'),
   getMonthsByYear: (year: number) => api.get<number[]>('/orders/months', { year }),
 };
@@ -225,6 +392,24 @@ export const scootersApi = {
   delete: (id: string | number) => api.delete(`/scooters/${id}`),
   uploadPhoto: (id: string | number, file: File) =>
     api.uploadFile(`/scooters/${id}/upload-photo`, file),
+};
+
+export const scooterTypesApi = {
+  list: (params?: { search?: string }) => api.get('/scooter-types', params),
+  get: (id: string | number) => api.get(`/scooter-types/${id}`),
+  create: (data: any) => api.post('/scooter-types', data),
+  update: (id: string | number, data: any) => api.put(`/scooter-types/${id}`, data),
+  delete: (id: string | number) => api.delete(`/scooter-types/${id}`),
+};
+
+export const scooterModelsApi = {
+  list: (params?: { search?: string; type?: string }) => api.get('/scooter-models', params),
+  get: (id: string | number) => api.get(`/scooter-models/${id}`),
+  create: (data: any) => api.post('/scooter-models', data),
+  update: (id: string | number, data: any) => api.put(`/scooter-models/${id}`, data),
+  delete: (id: string | number) => api.delete(`/scooter-models/${id}`),
+  uploadImage: (id: string | number, file: File) =>
+    api.uploadFile(`/scooter-models/${id}/upload-image`, file, 'image'),
 };
 
 export const scooterModelColorsApi = {
@@ -306,6 +491,15 @@ export const guidelinesApi = {
   create: (data: any) => api.post('/guidelines', data),
   update: (id: string | number, data: any) => api.put(`/guidelines/${id}`, data),
   delete: (id: string | number) => api.delete(`/guidelines/${id}`),
+};
+
+export const contactInfosApi = {
+  list: (params?: { active_only?: boolean; search?: string }) =>
+    api.get('/contact-infos', params),
+  get: (id: string | number) => api.get(`/contact-infos/${id}`),
+  create: (data: any) => api.post('/contact-infos', data),
+  update: (id: string | number, data: any) => api.put(`/contact-infos/${id}`, data),
+  delete: (id: string | number) => api.delete(`/contact-infos/${id}`),
 };
 
 export const locationsApi = {

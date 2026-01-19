@@ -86,8 +86,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <div className="fixed inset-0 bg-[#f0f4ff] z-[55] flex flex-col p-8 md:hidden pt-24">
-            <nav className="flex flex-col space-y-6 text-center">
+          <div className="fixed inset-0 bg-[#f0f4ff] z-[65] flex flex-col md:hidden">
+            {/* Mobile Menu Header with Logo and Close Button */}
+            <div className="flex items-center justify-between p-4 border-b">
+              <Link to="/" onClick={toggleMobileMenu}>
+                <Logo />
+              </Link>
+              <button onClick={toggleMobileMenu} className="p-2">
+                <X size={24} />
+              </button>
+            </div>
+            
+            {/* Navigation Links */}
+            <nav className="flex flex-col space-y-6 text-center p-8 flex-1">
               {NAV_ITEMS.map((item) => (
                 <Link
                   key={item.path}
@@ -99,7 +110,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </Link>
               ))}
             </nav>
-            <div className="mt-auto space-y-4">
+            
+            {/* Action Buttons */}
+            <div className="p-8 space-y-4">
               <Link to="/booking" onClick={toggleMobileMenu} className="block w-full text-center bg-black text-white py-4 rounded-full font-bold">線上預約</Link>
               <Link to="/location" onClick={toggleMobileMenu} className="block w-full text-center border border-black py-4 rounded-full font-bold">聯絡我們</Link>
             </div>
@@ -113,15 +126,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           </div>
 
           {/* Footer Content */}
-          <footer className="bg-[#f0f4ff] py-12 px-6 md:px-12 border-t border-gray-100">
+          <footer className="bg-white md:bg-[#f0f4ff] py-12 px-6 md:px-12 border-t border-gray-100 rounded-t-[80px] md:rounded-t-none">
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
                 <div className="flex flex-col items-center md:items-start">
                   <Logo />
-                  <div className="mt-4 text-sm text-gray-500 text-center md:text-left">
-                    <p>地址：<a href="https://www.google.com.tw/maps/search/%E5%B1%8F%E6%9D%B1%E7%B8%A3%E7%90%89%E7%90%83%E9%84%89%E7%9B%B8%E5%9F%94%E8%B7%AF86%E4%B9%8B5" target="_blank" rel="noopener noreferrer" className="hover:text-teal-600 transition-colors">屏東縣琉球鄉相埔路86之5</a></p>
-                    <p className="mt-2">LINE ID：<a href="https://line.me/R/ti/p/@623czmsm?oat_content=url&ts=01042332" target="_blank" rel="noopener noreferrer" className="hover:text-teal-600 transition-colors">@623czmsm</a></p>
-                    <p className="mt-2">電話：<a href="tel:0911306011" className="hover:text-teal-600 transition-colors">0911306011</a></p>
-                  </div>
                 </div>
 
                 <div className="flex justify-center md:justify-end items-center gap-3">

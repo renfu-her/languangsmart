@@ -85,13 +85,13 @@ const Home: React.FC = () => {
       <BannerCarousel />
 
       {/* Hero Section */}
-      <section className="relative min-h-[60vh] sm:min-h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden py-12 sm:py-16 md:py-0">
+      <section className="relative min-h-[60vh] sm:min-h-[50vh] md:h-[60vh] flex items-center justify-center overflow-hidden w-full">
         {/* Decorative background blobs */}
         <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[80%] bg-[#f0f9f6] blob-shape -z-10 opacity-60 transform rotate-12"></div>
         <div className="absolute bottom-[-10%] left-[-5%] w-[40%] h-[60%] bg-[#fff4f9] blob-shape -z-10 opacity-60"></div>
 
-        <div className="container mx-auto px-4 sm:px-6 md:px-12 flex flex-col md:flex-row items-center gap-8 sm:gap-12">
-          <div className="md:w-1/2 text-center md:text-left w-full">
+        <div className="w-full px-0 flex flex-col md:flex-row items-center gap-0">
+          <div className="md:w-1/2 text-center md:text-left w-full px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 md:py-0">
             <h2 className="text-gray-400 font-medium tracking-[0.2em] mb-3 sm:mb-4 uppercase text-xs sm:text-sm">Not just a car rental experience</h2>
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold leading-tight mb-4 sm:mb-6 serif">
               讓<span className="text-sky-500">純淨動力</span>，帶你遇見更美好的島嶼風光
@@ -111,11 +111,12 @@ const Home: React.FC = () => {
           </div>
 
           <div className="md:w-1/2 relative w-full">
-            <div className="w-full aspect-square md:aspect-video rounded-[40px] sm:rounded-[60px] md:rounded-[80px] overflow-hidden shadow-2xl blob-shape">
+            <div className="w-full aspect-square md:aspect-video overflow-hidden bg-gray-100" style={{ borderRadius: '80px' }}>
               <img 
                 src={getImageSrc('hero_image')} 
                 alt={getImageAlt('hero_image', 'Scooter riding at sunset')} 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
+                style={{ borderRadius: '80px' }}
               />
             </div>
           </div>

@@ -10,12 +10,15 @@ const OrdersPage = React.lazy(() => import('./pages/OrdersPage'));
 const PartnersPage = React.lazy(() => import('./pages/PartnersPage'));
 const StoresPage = React.lazy(() => import('./pages/StoresPage'));
 const ScootersPage = React.lazy(() => import('./pages/ScootersPage'));
+const ScooterModelsPage = React.lazy(() => import('./pages/ScooterModelsPage'));
+const ScooterTypesPage = React.lazy(() => import('./pages/ScooterTypesPage'));
 const FinesPage = React.lazy(() => import('./pages/FinesPage'));
 const AccessoriesPage = React.lazy(() => import('./pages/AccessoriesPage'));
 const AdminsPage = React.lazy(() => import('./pages/AdminsPage'));
 const BannersPage = React.lazy(() => import('./pages/BannersPage'));
 const RentalPlansPage = React.lazy(() => import('./pages/RentalPlansPage'));
 const GuidelinesPage = React.lazy(() => import('./pages/GuidelinesPage'));
+const ContactInfosPage = React.lazy(() => import('./pages/ContactInfosPage'));
 const LocationsPage = React.lazy(() => import('./pages/LocationsPage'));
 const GuesthousesPage = React.lazy(() => import('./pages/GuesthousesPage'));
 const BookingsPage = React.lazy(() => import('./pages/BookingsPage'));
@@ -85,6 +88,16 @@ const App: React.FC = () => {
                 <ScootersPage />
               </Suspense>
             } />
+            <Route path="scooter-models" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ScooterModelsPage />
+              </Suspense>
+            } />
+            <Route path="scooter-types" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ScooterTypesPage />
+              </Suspense>
+            } />
             <Route path="fines" element={
               <Suspense fallback={<LoadingFallback />}>
                 <FinesPage />
@@ -113,6 +126,11 @@ const App: React.FC = () => {
             <Route path="guidelines" element={
               <Suspense fallback={<LoadingFallback />}>
                 <GuidelinesPage />
+              </Suspense>
+            } />
+            <Route path="contact-infos" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ContactInfosPage />
               </Suspense>
             } />
             <Route path="locations" element={

@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown, ChevronUp, Download, Bell, XCircle } from 'lucide-react';
 import AddOrderModal from '../components/AddOrderModal';
 import ConvertBookingModal from '../components/ConvertBookingModal';
-import { ordersApi, partnersApi, bookingsApi, rentalPlansApi } from '../lib/api';
+import { ordersApi, partnersApi, bookingsApi, rentalPlansApi, scooterModelsApi } from '../lib/api';
 import * as XLSX from 'xlsx';
+import ExcelJS from 'exceljs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
 interface Order {
@@ -36,6 +37,618 @@ interface Statistics {
 }
 
 const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statistics | null }> = ({ isOpen, onClose, stats }) => {
+  const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportPartnerReport = async (partnerName: string, partnerId?: number) => {
+    if (!stats || !partnerId) return;
+    
+    setIsExporting(true);
+    try {
+      const selectedMonthString = stats.month;
+      const [year, month] = selectedMonthString.split('-');
+      
+      // 1. 從後端獲取 JSON 數據
+      const response = await ordersApi.partnerDailyReport(selectedMonthString, partnerId, 'json');
+      const reportData = response.data;
+      
+      // 找到對應的合作商數據
+      const partnerData = reportData.partners?.find((p: any) => p.partner_id === partnerId);
+      if (!partnerData) {
+        alert('找不到合作商數據');
+        return;
+      }
+
+      const dates = partnerData.dates || [];
+      const allModels = reportData.models || [];
+
+      // 驗證數據
+      if (!Array.isArray(allModels) || allModels.length === 0) {
+        alert('機車型號列表為空，無法匯出');
+        return;
+      }
+
+      // 2. 使用 ExcelJS 產生帶樣式的 Excel（支持顏色）
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('月報表');
+
+      // 計算總列數：日期(1) + 星期(1) + 每個型號(4列：當日租台數(1) + 跨日租台數(1) + 跨日租天數(1) + 金額(1，共用))
+      const totalCols = 2 + allModels.length * 4;
+      
+      // 驗證總列數（Excel 最大列數為 16384）
+      if (totalCols < 1 || totalCols > 16384) {
+        alert(`總列數超出有效範圍: ${totalCols}`);
+        return;
+      }
+      
+      // 星期對應表
+      const weekdayMap: Record<string, string> = {
+        'Monday': '星期一',
+        'Tuesday': '星期二',
+        'Wednesday': '星期三',
+        'Thursday': '星期四',
+        'Friday': '星期五',
+        'Saturday': '星期六',
+        'Sunday': '星期日',
+      };
+
+      let rowNumber = 1;
+
+      // 設置列寬
+      for (let i = 1; i <= totalCols; i++) {
+        if (i === 1) {
+          // 日期欄位使用自動寬度或較大寬度
+          worksheet.getColumn(i).width = 18; // 日期欄位較寬
+        } else if (i === 2) {
+          // 星期欄位加寬
+          worksheet.getColumn(i).width = 15; // 星期欄位較寬
+        } else {
+          worksheet.getColumn(i).width = 12;
+        }
+      }
+
+      // 定義邊框樣式（通用）- 必須在使用前定義
+      const borderStyle = {
+        top: { style: 'thin' as const, color: { argb: 'FF000000' } },
+        bottom: { style: 'thin' as const, color: { argb: 'FF000000' } },
+        left: { style: 'thin' as const, color: { argb: 'FF000000' } },
+        right: { style: 'thin' as const, color: { argb: 'FF000000' } }
+      };
+
+      // 定義樣式 - 必須在使用前定義
+      const titleStyle = {
+        fill: {
+          type: 'pattern' as const,
+          pattern: 'solid' as const,
+          fgColor: { argb: 'FFB4C6E7' } // 淺藍色背景
+        },
+        font: { bold: true, size: 14, color: { argb: 'FF000000' } },
+        alignment: { horizontal: 'center' as const, vertical: 'middle' as const },
+        border: borderStyle
+      };
+
+      const headerStyle = {
+        fill: {
+          type: 'pattern' as const,
+          pattern: 'solid' as const,
+          fgColor: { argb: 'FFD9E1F2' } // 淺灰色背景
+        },
+        font: { bold: true, color: { argb: 'FF000000' } },
+        alignment: { horizontal: 'center' as const, vertical: 'middle' as const },
+        border: borderStyle
+      };
+
+      const dataRowStyle = {
+        fill: {
+          type: 'pattern' as const,
+          pattern: 'solid' as const,
+          fgColor: { argb: 'FFFFFFFF' } // 白色背景
+        },
+        font: { color: { argb: 'FF000000' } },
+        alignment: { horizontal: 'center' as const, vertical: 'middle' as const },
+        border: borderStyle
+      };
+
+      const dataRowAlternateStyle = {
+        fill: {
+          type: 'pattern' as const,
+          pattern: 'solid' as const,
+          fgColor: { argb: 'FFF2F2F2' } // 淺灰色背景（交替行）
+        },
+        font: { color: { argb: 'FF000000' } },
+        alignment: { horizontal: 'center' as const, vertical: 'middle' as const },
+        border: borderStyle
+      };
+
+      const totalRowStyle = {
+        fill: {
+          type: 'pattern' as const,
+          pattern: 'solid' as const,
+          fgColor: { argb: 'FFFFD966' } // 黃色背景
+        },
+        font: { bold: true, color: { argb: 'FF000000' } },
+        alignment: { horizontal: 'center' as const, vertical: 'middle' as const },
+        border: borderStyle
+      };
+
+      // 第一行：標題「合作商出租月報表」（合併所有列）
+      const titleCell = worksheet.getCell(rowNumber, 1);
+      titleCell.value = `${partnerName}出租月報表`;
+      worksheet.mergeCells(rowNumber, 1, rowNumber, totalCols);
+      titleCell.font = titleStyle.font;
+      titleCell.fill = titleStyle.fill;
+      titleCell.alignment = titleStyle.alignment;
+      titleCell.border = titleStyle.border;
+      // 為標題行的所有單元格設置邊框
+      for (let c = 1; c <= totalCols; c++) {
+        const cell = worksheet.getCell(rowNumber, c);
+        cell.border = borderStyle;
+      }
+      rowNumber++;
+
+      // 第二行：前面兩欄空白，然後機車型號標題（每個型號佔 4 欄）
+      const headerRow2 = worksheet.getRow(rowNumber);
+      let colIndex = 1;
+      // 為前兩欄設置樣式和邊框
+      const blankCell1 = headerRow2.getCell(colIndex++);
+      blankCell1.value = ''; // 第一欄空白
+      blankCell1.font = headerStyle.font;
+      blankCell1.fill = headerStyle.fill;
+      blankCell1.alignment = headerStyle.alignment;
+      blankCell1.border = headerStyle.border;
+      const blankCell2 = headerRow2.getCell(colIndex++);
+      blankCell2.value = ''; // 第二欄空白
+      blankCell2.font = headerStyle.font;
+      blankCell2.fill = headerStyle.fill;
+      blankCell2.alignment = headerStyle.alignment;
+      blankCell2.border = headerStyle.border;
+      
+      allModels.forEach((model: string, modelIndex: number) => {
+        const modelStartCol = colIndex;
+        headerRow2.getCell(modelStartCol).value = model;
+        // 合併每個型號的標題（4 列）
+        worksheet.mergeCells(rowNumber, modelStartCol, rowNumber, modelStartCol + 3);
+        headerRow2.getCell(modelStartCol).font = headerStyle.font;
+        headerRow2.getCell(modelStartCol).fill = headerStyle.fill;
+        headerRow2.getCell(modelStartCol).alignment = headerStyle.alignment;
+        
+        // 為合併的單元格設置樣式
+        for (let c = modelStartCol; c <= modelStartCol + 3; c++) {
+          const cell = headerRow2.getCell(c);
+          cell.font = headerStyle.font;
+          cell.fill = headerStyle.fill;
+          cell.alignment = headerStyle.alignment;
+          cell.border = headerStyle.border;
+        }
+        
+        colIndex += 4;
+      });
+      rowNumber++;
+
+      // 第三行：當日租（1 欄）、跨日租（3 欄）
+      const headerRow3 = worksheet.getRow(rowNumber);
+      colIndex = 1;
+      // 為前兩欄設置樣式和邊框
+      const blankCell3_1 = headerRow3.getCell(colIndex++);
+      blankCell3_1.value = ''; // 第一欄空白
+      blankCell3_1.font = headerStyle.font;
+      blankCell3_1.fill = headerStyle.fill;
+      blankCell3_1.alignment = headerStyle.alignment;
+      blankCell3_1.border = headerStyle.border;
+      const blankCell3_2 = headerRow3.getCell(colIndex++);
+      blankCell3_2.value = ''; // 第二欄空白
+      blankCell3_2.font = headerStyle.font;
+      blankCell3_2.fill = headerStyle.fill;
+      blankCell3_2.alignment = headerStyle.alignment;
+      blankCell3_2.border = headerStyle.border;
+      
+      allModels.forEach(() => {
+        const sameDayCell = headerRow3.getCell(colIndex++);
+        sameDayCell.value = '當日租';
+        sameDayCell.font = headerStyle.font;
+        sameDayCell.fill = headerStyle.fill;
+        sameDayCell.alignment = headerStyle.alignment;
+        sameDayCell.border = headerStyle.border;
+        
+        // 跨日租合併 3 列（台數、天數、金額）
+        const overnightStartCol = colIndex;
+        headerRow3.getCell(overnightStartCol).value = '跨日租';
+        worksheet.mergeCells(rowNumber, overnightStartCol, rowNumber, overnightStartCol + 2);
+        const overnightCell = headerRow3.getCell(overnightStartCol);
+        overnightCell.font = headerStyle.font;
+        overnightCell.fill = headerStyle.fill;
+        overnightCell.alignment = headerStyle.alignment;
+        overnightCell.border = headerStyle.border;
+        
+        // 為合併的單元格設置樣式
+        for (let c = overnightStartCol; c <= overnightStartCol + 2; c++) {
+          const cell = headerRow3.getCell(c);
+          cell.font = headerStyle.font;
+          cell.fill = headerStyle.fill;
+          cell.alignment = headerStyle.alignment;
+          cell.border = headerStyle.border;
+        }
+        
+        colIndex += 3;
+      });
+      rowNumber++;
+
+      // 第四行：日期、星期（前兩欄），然後是台數（當日租下）、台數、天數、金額（跨日租下，金額共用）
+      const headerRow4 = worksheet.getRow(rowNumber);
+      colIndex = 1;
+      // 為前兩欄設置樣式和邊框（日期和星期）
+      const dateCell = headerRow4.getCell(colIndex++);
+      dateCell.value = '日期'; // 第一欄：日期
+      dateCell.font = headerStyle.font;
+      dateCell.fill = headerStyle.fill;
+      dateCell.alignment = headerStyle.alignment;
+      dateCell.border = headerStyle.border;
+      const weekdayCell = headerRow4.getCell(colIndex++);
+      weekdayCell.value = '星期'; // 第二欄：星期
+      weekdayCell.font = headerStyle.font;
+      weekdayCell.fill = headerStyle.fill;
+      weekdayCell.alignment = headerStyle.alignment;
+      weekdayCell.border = headerStyle.border;
+      
+      allModels.forEach(() => {
+        headerRow4.getCell(colIndex++).value = '台數'; // 當日租：台數
+        headerRow4.getCell(colIndex++).value = '台數'; // 跨日租：台數
+        headerRow4.getCell(colIndex++).value = '天數'; // 跨日租：天數
+        headerRow4.getCell(colIndex++).value = '金額'; // 金額（共用）
+        
+        // 為表頭行設置樣式
+        for (let c = colIndex - 4; c < colIndex; c++) {
+          const cell = headerRow4.getCell(c);
+          cell.font = headerStyle.font;
+          cell.fill = headerStyle.fill;
+          cell.alignment = headerStyle.alignment;
+          cell.border = headerStyle.border;
+        }
+      });
+      rowNumber++;
+
+      // 凍結表頭行（第 1-4 行，包含所有文字的表頭）
+      // ySplit: 4 表示凍結前 4 行（0-3 行），從第 5 行開始可以滾動
+      worksheet.views = [{ state: 'frozen', ySplit: 4 }];
+
+      // 第五行開始：日期、星期、數據
+
+      // 數據行（按 order_number 分開顯示）
+      dates.forEach((dateItem: any) => {
+        const dateStr = dateItem.date;
+        const dateObj = new Date(dateStr + 'T00:00:00');
+        const formattedDate = `${dateObj.getFullYear()}年${String(dateObj.getMonth() + 1).padStart(2, '0')}月${String(dateObj.getDate()).padStart(2, '0')}日`;
+        const weekday = weekdayMap[dateItem.weekday] || dateItem.weekday;
+
+        // 如果該日期有多個訂單，每個訂單顯示一行
+        const orders = dateItem.orders || [];
+        
+        if (orders.length === 0) {
+          // 沒有訂單的日期，顯示空行
+          const emptyRow = worksheet.getRow(rowNumber);
+          emptyRow.getCell(1).value = formattedDate;
+          emptyRow.getCell(2).value = weekday;
+          // 其他欄位為空
+          const isAlternate = (rowNumber - 5) % 2 === 1; // 第 5 行開始是數據行（索引 5，rowNumber 從 1 開始）
+          const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
+          for (let c = 1; c <= totalCols; c++) {
+            const cell = emptyRow.getCell(c);
+            cell.fill = rowStyle.fill;
+            cell.font = rowStyle.font;
+            cell.alignment = rowStyle.alignment;
+            cell.border = rowStyle.border;
+          }
+          rowNumber++;
+        } else {
+          // 每個訂單顯示一行
+          orders.forEach((order: any, orderIndex: number) => {
+            const dataRow = worksheet.getRow(rowNumber);
+            let cellIndex = 1;
+            
+            dataRow.getCell(cellIndex++).value = orderIndex === 0 ? formattedDate : '';
+            dataRow.getCell(cellIndex++).value = orderIndex === 0 ? weekday : '';
+
+            const isAlternate = (rowNumber - 5) % 2 === 1; // 第 5 行開始是數據行
+            const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
+            
+            allModels.forEach((model: string) => {
+              const modelData = order.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
+                same_day_count: '',
+                same_day_days: '',
+                same_day_amount: '',
+                overnight_count: '',
+                overnight_days: '',
+                overnight_amount: '',
+              };
+
+              // 將空字符串轉換為數字 0 進行比較
+              const sameDayCount = modelData.same_day_count === '' ? 0 : Number(modelData.same_day_count) || 0;
+              const sameDayAmount = modelData.same_day_amount === '' ? 0 : Number(modelData.same_day_amount) || 0;
+              const overnightCount = modelData.overnight_count === '' ? 0 : Number(modelData.overnight_count) || 0;
+              const overnightDays = modelData.overnight_days === '' ? 0 : Number(modelData.overnight_days) || 0;
+              const overnightAmount = modelData.overnight_amount === '' ? 0 : Number(modelData.overnight_amount) || 0;
+
+              const hasSameDay = sameDayCount > 0;
+              const hasOvernight = overnightCount > 0;
+
+              // 每個型號：當日租台數(1欄)、跨日租台數(1欄)、跨日租天數(1欄)、金額(1欄，共用)
+              // 金額全部寫在第 4 欄（當日租和跨日租共用）
+              const amount = hasSameDay ? sameDayAmount : (hasOvernight ? overnightAmount : '');
+              
+              dataRow.getCell(cellIndex++).value = hasSameDay ? sameDayCount : '';
+              dataRow.getCell(cellIndex++).value = hasOvernight ? overnightCount : '';
+              dataRow.getCell(cellIndex++).value = hasOvernight ? overnightDays : '';
+              // 金額欄位：設置黑色字體（只有總金額行的總金額數值才是紅色）
+              const amountCell = dataRow.getCell(cellIndex++);
+              amountCell.value = amount;
+              amountCell.fill = rowStyle.fill;
+              amountCell.alignment = rowStyle.alignment;
+              amountCell.border = rowStyle.border;
+              // 所有數據行的金額都設置為黑色字體
+              amountCell.font = rowStyle.font;
+            });
+
+            // 設置數據行樣式（跳過已設置的金額欄位）
+            for (let c = 1; c <= totalCols; c++) {
+              const cell = dataRow.getCell(c);
+              // 檢查是否是金額欄位（每 4 列中的第 4 列，從第 3 列開始計算）
+              const isAmountColumn = (c - 2) > 0 && (c - 2) % 4 === 0;
+              if (!isAmountColumn) {
+                // 非金額欄位，正常設置樣式
+                cell.fill = rowStyle.fill;
+                cell.font = rowStyle.font;
+                cell.alignment = rowStyle.alignment;
+                cell.border = rowStyle.border;
+              } else {
+                // 金額欄位，設置樣式（字體已在上面設置為黑色）
+                cell.fill = rowStyle.fill;
+                cell.font = rowStyle.font; // 確保為黑色字體
+                cell.alignment = rowStyle.alignment;
+                cell.border = rowStyle.border;
+              }
+            }
+            
+            rowNumber++;
+          });
+        }
+      });
+
+      // 計算總計數據
+      let grandTotalAmount = 0;
+      const modelTotals: Record<string, {
+        sameDayCount: number;
+        sameDayDays: number;
+        sameDayAmount: number;
+        overnightCount: number;
+        overnightDays: number;
+        overnightAmount: number;
+        totalAmount: number;
+      }> = {};
+
+      allModels.forEach((model: string) => {
+        modelTotals[model] = {
+          sameDayCount: 0,
+          sameDayDays: 0,
+          sameDayAmount: 0,
+          overnightCount: 0,
+          overnightDays: 0,
+          overnightAmount: 0,
+          totalAmount: 0,
+        };
+
+        dates.forEach((dateItem: any) => {
+          const orders = dateItem.orders || [];
+          orders.forEach((order: any) => {
+            const modelData = order.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
+              same_day_count: '',
+              same_day_days: '',
+              same_day_amount: '',
+              overnight_count: '',
+              overnight_days: '',
+              overnight_amount: '',
+            };
+            
+            modelTotals[model].sameDayCount += modelData.same_day_count === '' ? 0 : Number(modelData.same_day_count) || 0;
+            modelTotals[model].sameDayDays += modelData.same_day_days === '' ? 0 : Number(modelData.same_day_days) || 0;
+            modelTotals[model].sameDayAmount += modelData.same_day_amount === '' ? 0 : Number(modelData.same_day_amount) || 0;
+            modelTotals[model].overnightCount += modelData.overnight_count === '' ? 0 : Number(modelData.overnight_count) || 0;
+            modelTotals[model].overnightDays += modelData.overnight_days === '' ? 0 : Number(modelData.overnight_days) || 0;
+            modelTotals[model].overnightAmount += modelData.overnight_amount === '' ? 0 : Number(modelData.overnight_amount) || 0;
+          });
+        });
+
+        modelTotals[model].totalAmount = modelTotals[model].sameDayAmount + modelTotals[model].overnightAmount;
+        grandTotalAmount += modelTotals[model].totalAmount;
+      });
+
+      // 月結總計 - 總台數/天數行
+      const totalRow1 = worksheet.getRow(rowNumber);
+      totalRow1.getCell(1).value = '月結總計';
+      totalRow1.getCell(2).value = '總台數/天數';
+      let colIdx = 3;
+      
+      allModels.forEach((model: string) => {
+        const totals = modelTotals[model];
+        totalRow1.getCell(colIdx++).value = totals.sameDayCount > 0 ? totals.sameDayCount : '';
+        totalRow1.getCell(colIdx++).value = totals.overnightCount > 0 ? totals.overnightCount : '';
+        totalRow1.getCell(colIdx++).value = totals.overnightDays > 0 ? totals.overnightDays : '';
+        // 金額欄位：設置黑色字體（只有總金額行的總金額數值才是紅色）
+        const amountCell = totalRow1.getCell(colIdx++);
+        amountCell.value = totals.totalAmount > 0 ? totals.totalAmount : '';
+        // 所有數值都設置為黑色字體
+      });
+      
+      // 設置整行的總計行樣式（包括前兩列）- 所有數值都為黑色
+      for (let c = 1; c <= totalCols; c++) {
+        const cell = totalRow1.getCell(c);
+        cell.fill = totalRowStyle.fill;
+        cell.alignment = totalRowStyle.alignment;
+        cell.border = totalRowStyle.border;
+        // 所有數值都設置為黑色字體
+        cell.font = totalRowStyle.font;
+      }
+      rowNumber++;
+
+      // 小計行：每個型號顯示該型號的總金額（當日租 + 跨日租）
+      const subtotalRow = worksheet.getRow(rowNumber);
+      subtotalRow.getCell(1).value = '';
+      // 「小計」文字保持黑色
+      const subtotalLabelCell = subtotalRow.getCell(2);
+      subtotalLabelCell.value = '小計';
+      subtotalLabelCell.font = totalRowStyle.font; // 黑色字體
+      subtotalLabelCell.fill = totalRowStyle.fill;
+      subtotalLabelCell.alignment = totalRowStyle.alignment;
+      subtotalLabelCell.border = totalRowStyle.border;
+      
+      // 計算所有小計的總和（用於總金額行）
+      let allSubtotalsSum = 0;
+      
+      // 每個車款有 4 個欄位（當日租台數、跨日租台數、跨日租天數、金額）
+      // 第一個車款從第 3 列開始（日期=1, 星期=2）
+      allModels.forEach((model: string, modelIndex: number) => {
+        const totals = modelTotals[model];
+        const modelSubtotalAmount = totals.sameDayAmount + totals.overnightAmount;
+        allSubtotalsSum += modelSubtotalAmount; // 累加所有小計
+        
+        // 計算每個車款的起始列和結束列
+        const modelStartCol = 3 + modelIndex * 4; // 第 3 列開始，每個車款佔 4 列
+        const modelEndCol = modelStartCol + 3; // 結束列（包含 4 個欄位）
+        
+        // 將該車款的 4 個欄位合併成一個單元格
+        if (modelStartCol < modelEndCol) {
+          try {
+            worksheet.mergeCells(rowNumber, modelStartCol, rowNumber, modelEndCol);
+          } catch (mergeError) {
+            console.warn(`合併車款 ${model} 小計欄位時發生錯誤:`, mergeError);
+          }
+        }
+        
+        // 在合併後的單元格中設置小計金額（黑色字體）
+        const subtotalCell = subtotalRow.getCell(modelStartCol);
+        subtotalCell.value = modelSubtotalAmount > 0 ? modelSubtotalAmount : '';
+        subtotalCell.font = totalRowStyle.font; // 黑色字體
+        subtotalCell.fill = totalRowStyle.fill;
+        subtotalCell.alignment = totalRowStyle.alignment;
+        subtotalCell.border = totalRowStyle.border;
+      });
+      
+      // 設置整行的其他單元格樣式（「小計」文字已在上面設置，合併的單元格也已在上面設置）
+      // 這裡只需要確保沒有遺漏的單元格（實際上應該都已經設置了）
+      for (let c = 3; c <= totalCols; c++) {
+        const cell = subtotalRow.getCell(c);
+        // 只設置還沒有設置過的單元格（理論上應該都已經設置了）
+        if (!cell.value && cell.value !== 0) {
+          cell.fill = totalRowStyle.fill;
+          cell.font = totalRowStyle.font;
+          cell.alignment = totalRowStyle.alignment;
+          cell.border = totalRowStyle.border;
+        }
+      }
+      rowNumber++;
+
+      // 總金額行：顯示所有小計加起來的總金額
+      // 第一個型號的金額欄位：日期(1) + 星期(1) + 當日租台數(1) + 跨日租台數(1) + 跨日租天數(1) = 6
+      const firstModelAmountCol = 6; // 第一個型號的金額欄位（第 6 列）
+      const lastModelAmountCol = firstModelAmountCol + (allModels.length - 1) * 4; // 最後一個型號的金額欄位
+      
+      const totalAmountRow = worksheet.getRow(rowNumber);
+      // 第一欄：空白（與「月結總計」合併），設置黑色字體
+      const totalBlankCell1 = totalAmountRow.getCell(1);
+      totalBlankCell1.value = '';
+      totalBlankCell1.font = totalRowStyle.font; // 黑色字體
+      totalBlankCell1.fill = totalRowStyle.fill;
+      totalBlankCell1.alignment = totalRowStyle.alignment;
+      totalBlankCell1.border = totalRowStyle.border;
+      
+      // 第二欄：「總金額」標籤，設置紅色字體
+      const totalLabelCell = totalAmountRow.getCell(2);
+      totalLabelCell.value = '總金額';
+      totalLabelCell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+      totalLabelCell.fill = totalRowStyle.fill;
+      totalLabelCell.alignment = totalRowStyle.alignment;
+      totalLabelCell.border = totalRowStyle.border;
+      
+      // 在「總金額」之後，將所有型號的欄位（當日租台數、跨日租台數、跨日租天數、金額）合併成一個大單元格
+      // 起始列：第 3 列（「總金額」之後的第一列）
+      // 結束列：最後一列（totalCols）
+      const totalAmountStartCol = 3;
+      const totalAmountEndCol = totalCols;
+      
+      // 設置第一個單元格的值為總金額（紅色字體）
+      const totalAmountCell = totalAmountRow.getCell(totalAmountStartCol);
+      totalAmountCell.value = allSubtotalsSum > 0 ? allSubtotalsSum : '';
+      // 直接設置紅色字體，確保總金額數值為紅色
+      if (allSubtotalsSum > 0) {
+        totalAmountCell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+      }
+      totalAmountCell.fill = totalRowStyle.fill;
+      totalAmountCell.alignment = totalRowStyle.alignment;
+      totalAmountCell.border = totalRowStyle.border;
+      
+      // 合併「總金額」之後的所有欄位（從第 3 列到最後一列）
+      if (totalAmountStartCol < totalAmountEndCol) {
+        try {
+          worksheet.mergeCells(rowNumber, totalAmountStartCol, rowNumber, totalAmountEndCol);
+        } catch (mergeError) {
+          console.warn('合併總金額欄位時發生錯誤:', mergeError);
+        }
+      }
+      
+      // 合併「月結總計」垂直方向（合併總台數/天數、小計、總金額三行）
+      if (rowNumber >= 3) {
+        try {
+          worksheet.mergeCells(rowNumber - 2, 1, rowNumber, 1);
+        } catch (mergeError) {
+          console.warn('合併月結總計欄位時發生錯誤:', mergeError);
+        }
+      }
+      
+      // 設置總金額行樣式：總金額數值為紅色，其他為黑色
+      // 注意：合併後的單元格使用第一個單元格的樣式，所以只需要確保第一個單元格是紅色即可
+      for (let c = 3; c <= totalCols; c++) {
+        const cell = totalAmountRow.getCell(c);
+        cell.fill = totalRowStyle.fill;
+        cell.alignment = totalRowStyle.alignment;
+        cell.border = totalRowStyle.border;
+        // 如果是總金額數值單元格（合併區域的第一個單元格），設置紅色字體
+        // 其他單元格（如果沒有被合併）設置黑色字體
+        if (c === totalAmountStartCol && allSubtotalsSum > 0) {
+          cell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+        } else if (c > totalAmountStartCol && c <= totalAmountEndCol) {
+          // 合併區域內的其他單元格（不會顯示，但為保險起見設置樣式）
+          cell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體（與合併單元格一致）
+        } else {
+          cell.font = totalRowStyle.font; // 黑色字體
+        }
+      }
+
+      // 生成文件名
+      const fileName = `${partnerName}-${year}${String(parseInt(month)).padStart(2, '0')}.xlsx`;
+
+      // 下載文件（使用 ExcelJS）
+      try {
+        const buffer = await workbook.xlsx.writeBuffer();
+        const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      } catch (writeError) {
+        console.error('ExcelJS writeBuffer 錯誤:', writeError);
+        throw writeError;
+      }
+
+    } catch (error) {
+      console.error('匯出合作商月報表時發生錯誤:', error);
+      alert('匯出合作商月報表時發生錯誤，請稍後再試');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   if (!isOpen || !stats) return null;
   
   const startDate = new Date(stats.month + '-01');
@@ -92,9 +705,32 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
                         </div>
                         <span className="text-sm font-medium text-gray-800 dark:text-gray-200">{partner}</span>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm font-bold text-gray-900 dark:text-gray-100">${(data as { count: number; amount: number }).amount.toLocaleString()}</p>
-                        <p className="text-xs text-gray-400 dark:text-gray-500">{(data as { count: number; amount: number }).count} 台租借</p>
+                      <div className="flex items-center space-x-3">
+                        <div className="text-right">
+                          <p className="text-sm font-bold text-gray-900 dark:text-gray-100">${(data as { count: number; amount: number }).amount.toLocaleString()}</p>
+                          <p className="text-xs text-gray-400 dark:text-gray-500">{(data as { count: number; amount: number }).count} 台租借</p>
+                        </div>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            const partnerId = (data as any).partner_id;
+                            handleExportPartnerReport(partner, partnerId);
+                          }}
+                          disabled={isExporting}
+                          className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-medium transition-colors flex items-center space-x-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isExporting ? (
+                            <>
+                              <Loader2 size={14} className="animate-spin" />
+                              <span>匯出中...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Download size={14} />
+                              <span>Export</span>
+                            </>
+                          )}
+                        </button>
                       </div>
                     </div>
                   );
@@ -106,6 +742,386 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
            <p className="text-xs text-gray-400 dark:text-gray-500 italic">
              統計週期：{startDate.getFullYear()}/{String(startDate.getMonth() + 1).padStart(2, '0')}/01 - {endDate.getFullYear()}/{String(endDate.getMonth() + 1).padStart(2, '0')}/{endDate.getDate()}
            </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 合作商分類 Modal
+interface PartnerMonthlyStatisticsData {
+  partners: Array<{
+    partner_id: number;
+    partner_name: string;
+    dates: Array<{
+      date: string;
+      weekday: string;
+      models: Array<{
+        model: string;
+        same_day_count: number;
+        same_day_days: number;
+        same_day_amount: number;
+        overnight_count: number;
+        overnight_days: number;
+        overnight_amount: number;
+        total_count: number;
+        total_days: number;
+        total_amount: number;
+      }>;
+    }>;
+  }>;
+  headers: string[];
+}
+
+const PartnerCategoryModal: React.FC<{ 
+  isOpen: boolean; 
+  onClose: () => void; 
+  month: string;
+}> = ({ isOpen, onClose, month }) => {
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState<PartnerMonthlyStatisticsData | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen && month) {
+      fetchData();
+    }
+  }, [isOpen, month]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await ordersApi.partnerMonthlyStatistics(month);
+      setData(response.data);
+    } catch (err: any) {
+      console.error('獲取合作商分類數據失敗:', err);
+      setError(err.response?.data?.message || '獲取數據失敗，請稍後再試');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  const weekdayMap: Record<string, string> = {
+    'Monday': '星期一',
+    'Tuesday': '星期二',
+    'Wednesday': '星期三',
+    'Thursday': '星期四',
+    'Friday': '星期五',
+    'Saturday': '星期六',
+    'Sunday': '星期日',
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-6xl relative animate-in fade-in zoom-in duration-200 overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+          <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
+            <TrendingUp size={20} className="mr-2 text-blue-600 dark:text-blue-400" />
+            合作商單月分類統計
+          </h2>
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 dark:text-gray-500">
+            <X size={20} />
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto flex-1">
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 size={32} className="animate-spin text-blue-600" />
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <XCircle size={48} className="text-red-500 mb-4" />
+              <p className="text-red-600 dark:text-red-400">{error}</p>
+            </div>
+          ) : data && data.partners.length > 0 ? (
+            <div className="space-y-6">
+              {data.partners.map((partner) => {
+                // 只顯示有 partner_id 的合作商
+                if (!partner.partner_id) return null;
+
+                // 計算總台數和總金額（包含當日租和跨日租）
+                const totalCount = partner.dates.reduce((sum, date) => 
+                  sum + date.models.reduce((s, m) => s + (m.total_count || 0), 0), 0
+                );
+                const totalAmount = partner.dates.reduce((sum, date) => 
+                  sum + date.models.reduce((s, m) => s + (m.total_amount || 0), 0), 0
+                );
+
+                return (
+                  <div key={partner.partner_id} className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                    <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 p-4 border-b border-gray-200 dark:border-gray-700">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">
+                          {partner.partner_name}
+                        </h3>
+                        <div className="flex items-center space-x-4 text-sm">
+                          <span className="text-gray-600 dark:text-gray-400">
+                            總台數: <span className="font-bold text-gray-800 dark:text-gray-100">{totalCount}</span>
+                          </span>
+                          <span className="text-gray-600 dark:text-gray-400">
+                            總金額: <span className="font-bold text-green-600 dark:text-green-400">${totalAmount.toLocaleString()}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead className="bg-gray-50 dark:bg-gray-700/50">
+                          <tr>
+                            <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-600">
+                              日期
+                            </th>
+                            <th rowSpan={2} className="px-4 py-3 text-left text-xs font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-600">
+                              星期
+                            </th>
+                            {data.headers.map((header) => (
+                              <th key={header} colSpan={2} className="px-4 py-3 text-center text-xs font-bold text-gray-700 dark:text-gray-300 border-r border-gray-200 dark:border-gray-600">
+                                {header}
+                              </th>
+                            ))}
+                            <th rowSpan={2} className="px-4 py-3 text-center text-xs font-bold text-green-700 dark:text-green-300 border-l-2 border-green-500 dark:border-green-400 bg-green-100 dark:bg-green-900/30">
+                              總金額
+                            </th>
+                          </tr>
+                          <tr>
+                            {data.headers.map((header) => (
+                              <React.Fragment key={header}>
+                                <th className="px-2 py-2 text-center text-xs font-semibold text-blue-600 dark:text-blue-400 border-r border-gray-200 dark:border-gray-600 bg-blue-50 dark:bg-blue-900/20">
+                                  當日租
+                                </th>
+                                <th className="px-2 py-2 text-center text-xs font-semibold text-orange-600 dark:text-orange-400 border-r border-gray-200 dark:border-gray-600 bg-orange-50 dark:bg-orange-900/20">
+                                  跨日租
+                                </th>
+                              </React.Fragment>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                          {partner.dates.map((dateItem) => {
+                            const dateObj = new Date(dateItem.date + 'T00:00:00');
+                            const formattedDate = `${dateObj.getFullYear()}/${String(dateObj.getMonth() + 1).padStart(2, '0')}/${String(dateObj.getDate()).padStart(2, '0')}`;
+                            const weekday = weekdayMap[dateItem.weekday] || dateItem.weekday;
+
+                            return (
+                              <tr key={dateItem.date} className="hover:bg-gray-50 dark:hover:bg-gray-700/30">
+                                <td className="px-4 py-3 text-gray-800 dark:text-gray-200 border-r border-gray-200 dark:border-gray-600 font-medium">
+                                  {formattedDate}
+                                </td>
+                                <td className="px-4 py-3 text-gray-600 dark:text-gray-400 border-r border-gray-200 dark:border-gray-600">
+                                  {weekday}
+                                </td>
+                                {data.headers.map((header) => {
+                                  const modelData = dateItem.models.find(m => m.model === header);
+                                  return (
+                                    <React.Fragment key={header}>
+                                      {/* 當日租 */}
+                                      <td className="px-2 py-3 text-center border-r border-gray-200 dark:border-gray-600 bg-blue-50/30 dark:bg-blue-900/10">
+                                        {modelData && (modelData.same_day_count > 0 || modelData.same_day_amount > 0) ? (
+                                          <div className="space-y-1">
+                                            <div className="text-gray-800 dark:text-gray-200 font-medium text-xs">
+                                              台數: {modelData.same_day_count}
+                                            </div>
+                                            <div className="text-gray-600 dark:text-gray-400 text-xs">
+                                              天數: {modelData.same_day_days}
+                                            </div>
+                                            <div className="text-blue-600 dark:text-blue-400 font-bold text-xs">
+                                              ${modelData.same_day_amount.toLocaleString()}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                                        )}
+                                      </td>
+                                      {/* 跨日租 */}
+                                      <td className="px-2 py-3 text-center border-r border-gray-200 dark:border-gray-600 bg-orange-50/30 dark:bg-orange-900/10">
+                                        {modelData && (modelData.overnight_count > 0 || modelData.overnight_amount > 0) ? (
+                                          <div className="space-y-1">
+                                            <div className="text-gray-800 dark:text-gray-200 font-medium text-xs">
+                                              台數: {modelData.overnight_count}
+                                            </div>
+                                            <div className="text-gray-600 dark:text-gray-400 text-xs">
+                                              天數: {modelData.overnight_days}
+                                            </div>
+                                            <div className="text-orange-600 dark:text-orange-400 font-bold text-xs">
+                                              ${modelData.overnight_amount.toLocaleString()}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                                        )}
+                                      </td>
+                                    </React.Fragment>
+                                  );
+                                })}
+                                {/* 該日期的總金額 */}
+                                <td className="px-4 py-3 text-center border-l-2 border-green-500 dark:border-green-400 bg-green-50/30 dark:bg-green-900/10">
+                                  {(() => {
+                                    const dateTotalAmount = dateItem.models.reduce((sum, m) => sum + (m.total_amount || 0), 0);
+                                    return dateTotalAmount > 0 ? (
+                                      <div className="text-green-700 dark:text-green-300 font-bold">
+                                        ${dateTotalAmount.toLocaleString()}
+                                      </div>
+                                    ) : (
+                                      <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                                    );
+                                  })()}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                        {/* 總計行 */}
+                        <tfoot className="bg-gray-100 dark:bg-gray-700/50">
+                          <tr className="font-bold">
+                            <td colSpan={2} className="px-4 py-3 text-gray-800 dark:text-gray-200 border-r border-gray-200 dark:border-gray-600">
+                              總計
+                            </td>
+                            {data.headers.map((header) => {
+                              // 計算該型號的總計
+                              const modelTotalCount = partner.dates.reduce((sum, date) => {
+                                const modelData = date.models.find(m => m.model === header);
+                                return sum + (modelData?.total_count || 0);
+                              }, 0);
+                              const modelTotalDays = partner.dates.reduce((sum, date) => {
+                                const modelData = date.models.find(m => m.model === header);
+                                return sum + (modelData?.total_days || 0);
+                              }, 0);
+                              const modelTotalAmount = partner.dates.reduce((sum, date) => {
+                                const modelData = date.models.find(m => m.model === header);
+                                return sum + (modelData?.total_amount || 0);
+                              }, 0);
+                              
+                              const modelSameDayTotal = partner.dates.reduce((sum, date) => {
+                                const modelData = date.models.find(m => m.model === header);
+                                return sum + (modelData?.same_day_amount || 0);
+                              }, 0);
+                              
+                              const modelOvernightTotal = partner.dates.reduce((sum, date) => {
+                                const modelData = date.models.find(m => m.model === header);
+                                return sum + (modelData?.overnight_amount || 0);
+                              }, 0);
+
+                              return (
+                                <React.Fragment key={header}>
+                                  {/* 當日租總計 */}
+                                  <td className="px-2 py-3 text-center border-r border-gray-200 dark:border-gray-600 bg-blue-50/50 dark:bg-blue-900/20">
+                                    {modelSameDayTotal > 0 ? (
+                                      <div className="space-y-1">
+                                        <div className="text-gray-800 dark:text-gray-200 font-medium text-xs">
+                                          台數: {partner.dates.reduce((sum, date) => {
+                                            const modelData = date.models.find(m => m.model === header);
+                                            return sum + (modelData?.same_day_count || 0);
+                                          }, 0)}
+                                        </div>
+                                        <div className="text-gray-600 dark:text-gray-400 text-xs">
+                                          天數: {partner.dates.reduce((sum, date) => {
+                                            const modelData = date.models.find(m => m.model === header);
+                                            return sum + (modelData?.same_day_days || 0);
+                                          }, 0)}
+                                        </div>
+                                        <div className="text-blue-600 dark:text-blue-400 font-bold text-xs">
+                                          ${modelSameDayTotal.toLocaleString()}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                                    )}
+                                  </td>
+                                  {/* 跨日租總計 */}
+                                  <td className="px-2 py-3 text-center border-r border-gray-200 dark:border-gray-600 bg-orange-50/50 dark:bg-orange-900/20">
+                                    {modelOvernightTotal > 0 ? (
+                                      <div className="space-y-1">
+                                        <div className="text-gray-800 dark:text-gray-200 font-medium text-xs">
+                                          台數: {partner.dates.reduce((sum, date) => {
+                                            const modelData = date.models.find(m => m.model === header);
+                                            return sum + (modelData?.overnight_count || 0);
+                                          }, 0)}
+                                        </div>
+                                        <div className="text-gray-600 dark:text-gray-400 text-xs">
+                                          天數: {partner.dates.reduce((sum, date) => {
+                                            const modelData = date.models.find(m => m.model === header);
+                                            return sum + (modelData?.overnight_days || 0);
+                                          }, 0)}
+                                        </div>
+                                        <div className="text-orange-600 dark:text-orange-400 font-bold text-xs">
+                                          ${modelOvernightTotal.toLocaleString()}
+                                        </div>
+                                      </div>
+                                    ) : (
+                                      <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                                    )}
+                                  </td>
+                                </React.Fragment>
+                              );
+                            })}
+                            {/* 總計行的總金額欄（所有型號的當日租+跨日租總計） */}
+                            <td className="px-4 py-3 text-center border-l-2 border-green-500 dark:border-green-400 bg-green-100 dark:bg-green-900/30">
+                              <div className="space-y-1">
+                                <div className="text-gray-800 dark:text-gray-200 font-medium text-xs">
+                                  總台數: {totalCount}
+                                </div>
+                                <div className="text-green-700 dark:text-green-300 font-bold">
+                                  ${totalAmount.toLocaleString()}
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                          {/* 總金額行 */}
+                          <tr className="bg-green-50 dark:bg-green-900/20 font-bold">
+                            <td colSpan={2} className="px-4 py-3 text-gray-800 dark:text-gray-200 border-r border-gray-200 dark:border-gray-600">
+                              總金額
+                            </td>
+                            {data.headers.map((header) => {
+                              const modelTotalAmount = partner.dates.reduce((sum, date) => {
+                                const modelData = date.models.find(m => m.model === header);
+                                return sum + (modelData?.total_amount || 0);
+                              }, 0);
+                              
+                              return (
+                                <React.Fragment key={header}>
+                                  <td colSpan={2} className="px-2 py-3 text-center border-r border-gray-200 dark:border-gray-600">
+                                    {modelTotalAmount > 0 ? (
+                                      <div className="text-green-600 dark:text-green-400 font-bold">
+                                        ${modelTotalAmount.toLocaleString()}
+                                      </div>
+                                    ) : (
+                                      <span className="text-gray-400 dark:text-gray-500 text-xs">-</span>
+                                    )}
+                                  </td>
+                                </React.Fragment>
+                              );
+                            })}
+                            {/* 總金額欄：所有機車型號的總金額加總 */}
+                            <td colSpan={2} className="px-4 py-3 text-center border-l-2 border-green-500 dark:border-green-400 bg-green-100 dark:bg-green-900/30">
+                              <div className="text-green-700 dark:text-green-300 font-bold text-lg">
+                                ${totalAmount.toLocaleString()}
+                              </div>
+                              <div className="text-xs text-green-600 dark:text-green-400 mt-1">
+                                全部總計
+                              </div>
+                            </td>
+                          </tr>
+                        </tfoot>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12">
+              <p className="text-gray-500 dark:text-gray-400">該月份沒有合作商數據</p>
+            </div>
+          )}
+        </div>
+        <div className="p-4 bg-gray-50 dark:bg-gray-800/50 text-center border-t border-gray-100 dark:border-gray-700">
+          <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+            統計月份：{month}
+          </p>
         </div>
       </div>
     </div>
@@ -190,6 +1206,7 @@ const OrdersPage: React.FC = () => {
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
   const [isConvertModalOpen, setIsConvertModalOpen] = useState(false);
+  const [isPartnerCategoryModalOpen, setIsPartnerCategoryModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
   const [selectedYear, setSelectedYear] = useState(() => {
@@ -512,6 +1529,7 @@ const OrdersPage: React.FC = () => {
     }
   };
 
+
   // 獲取可選的年份列表（從 API 獲取）
   const getAvailableYears = () => {
     // 確保當前選中的年份也在列表中（即使 API 沒有返回）
@@ -833,12 +1851,11 @@ const OrdersPage: React.FC = () => {
 
     try {
       const partnerId = bookingPartners[booking.id] || null;
-      const totalAmount = calculateTotalAmount(booking);
       
+      // 不傳入 payment_amount，讓後端根據合作商的機車型號費用自動計算調車費用
       await bookingsApi.convertToOrder(booking.id, {
         partner_id: partnerId,
         payment_method: '現金',
-        payment_amount: totalAmount,
       });
       
       await handleConvertSuccess(booking.id);
@@ -999,32 +2016,34 @@ const OrdersPage: React.FC = () => {
                   {isExpanded && (
                     <div className="px-4 pb-6 pt-0 border-t border-gray-200 dark:border-gray-700">
                       <div className="pt-4 space-y-3">
-                        {/* 拒絕、確認按鈕 */}
-                        <div className="flex items-center justify-end gap-3">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRejectBooking(booking.id);
-                            }}
-                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1 h-[42px]"
-                          >
-                            <XCircle size={16} />
-                            <span>拒絕</span>
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleConvertBookingClick(booking);
-                            }}
-                            className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors h-[42px]"
-                          >
-                            確認轉為訂單
-                          </button>
+                        {/* Email 與按鈕同一行 */}
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="text-sm text-gray-700 dark:text-gray-300">Email: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.email || '-'}</span></div>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleRejectBooking(booking.id);
+                              }}
+                              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center space-x-1 h-[42px]"
+                            >
+                              <XCircle size={16} />
+                              <span>拒絕</span>
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleConvertBookingClick(booking);
+                              }}
+                              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-colors h-[42px]"
+                            >
+                              確認轉為訂單
+                            </button>
+                          </div>
                         </div>
 
                         {/* 其他欄位以三列形式顯示 */}
                         <div className="grid grid-cols-3 gap-x-6 gap-y-2 text-sm text-gray-700 dark:text-gray-300">
-                          <div>Email: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.email || '-'}</span></div>
                           <div>承租人姓名: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.name}</span></div>
                           <div>LINE ID: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.line_id || '-'}</span></div>
                           <div>行動電話: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.phone || '-'}</span></div>
@@ -1138,12 +2157,22 @@ const OrdersPage: React.FC = () => {
         <div className="bg-white dark:bg-gray-800 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm flex items-center justify-between">
            <div>
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">合作商單月統計</p>
-              <button 
-                onClick={() => setIsStatsModalOpen(true)}
-                className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 transition-colors"
-              >
-                點擊彈出詳細視窗
-              </button>
+              <div className="flex items-center space-x-2">
+                <button 
+                  onClick={() => setIsStatsModalOpen(true)}
+                  className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 transition-colors"
+                >
+                  點擊彈出詳細視窗
+                </button>
+                {/* 合作商分類功能已隱藏 */}
+                {/* <span className="text-gray-400">|</span>
+                <button 
+                  onClick={() => setIsPartnerCategoryModalOpen(true)}
+                  className="text-sm font-bold text-green-600 dark:text-green-400 hover:text-green-700 dark:hover:text-green-500 transition-colors"
+                >
+                  合作商分類
+                </button> */}
+              </div>
            </div>
            <Filter size={24} className="text-blue-200 dark:text-blue-600" />
         </div>
@@ -1360,8 +2389,8 @@ const OrdersPage: React.FC = () => {
                     </td>
                     <td className="px-4 py-4 w-[120px] font-bold text-gray-900 dark:text-gray-100">{order.tenant}</td>
                     <td className="px-4 py-4 w-[110px] text-gray-500 dark:text-gray-400">{formatDate(order.appointment_date)}</td>
-                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400">{formatDateTime(order.start_time)}</td>
-                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400">{formatDateTime(order.end_time)}</td>
+                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400">{formatDate(order.start_time)}</td>
+                    <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400">{formatDate(order.end_time)}</td>
                     <td className="px-4 py-4 w-[140px] text-gray-500 dark:text-gray-400 font-bold">{formatDateTime(order.expected_return_time)}</td>
                     <td className="px-4 py-4 w-[130px]">
                       <div className="flex flex-col gap-1">
@@ -1589,8 +2618,15 @@ const OrdersPage: React.FC = () => {
       })()}
 
       <StatsModal isOpen={isStatsModalOpen} onClose={() => setIsStatsModalOpen(false)} stats={stats} />
-
+      
       <ChartModal isOpen={isChartModalOpen} onClose={() => setIsChartModalOpen(false)} stats={stats} />
+
+      {/* 合作商分類 Modal 已隱藏 */}
+      {/* <PartnerCategoryModal 
+        isOpen={isPartnerCategoryModalOpen} 
+        onClose={() => setIsPartnerCategoryModalOpen(false)} 
+        month={selectedMonthString}
+      /> */}
       
       {/* 狀態下拉選單使用 fixed 定位，避免被表格 overflow 裁剪 */}
       {openStatusDropdownId !== null && statusDropdownPosition && orders.find(o => o.id === openStatusDropdownId) && (

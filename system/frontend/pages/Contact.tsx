@@ -4,35 +4,34 @@ import { MapPin, Phone, MessageCircle } from 'lucide-react';
 import SEO from '../components/SEO';
 import { publicApi } from '../lib/api';
 
-interface LocationData {
+interface ContactInfoData {
   id: number;
-  name: string;
+  store_name: string;
   address: string | null;
   phone: string | null;
-  hours: string | null;
-  description: string | null;
-  image_path: string | null;
-  map_embed: string | null;
+  line_id: string | null;
+  sort_order: number;
+  is_active: boolean;
 }
 
 const Contact: React.FC = () => {
-  const [locations, setLocations] = useState<LocationData[]>([]);
+  const [contactInfos, setContactInfos] = useState<ContactInfoData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchLocations = async () => {
+    const fetchContactInfos = async () => {
       try {
-        const response = await publicApi.locations.list();
-        setLocations(response.data || []);
+        const response = await publicApi.contactInfos.list();
+        setContactInfos(response.data || []);
       } catch (error) {
-        console.error('Failed to fetch locations:', error);
-        setLocations([]);
+        console.error('Failed to fetch contact infos:', error);
+        setContactInfos([]);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchLocations();
+    fetchContactInfos();
   }, []);
 
   const structuredData = {
@@ -73,50 +72,82 @@ const Contact: React.FC = () => {
             <div className="text-gray-400">載入中...</div>
           </div>
         </section>
+      ) : contactInfos.length === 0 ? (
+        <section className="container mx-auto px-6 max-w-6xl py-12">
+          <div className="flex flex-col items-center justify-center py-20">
+            <div className="text-gray-400 text-center">
+              <p className="text-lg mb-2">目前沒有聯絡資訊</p>
+            </div>
+          </div>
+        </section>
       ) : (
         <section className="container mx-auto px-4 sm:px-6 max-w-4xl py-8 sm:py-12">
           <div className="space-y-8 sm:space-y-12">
-            {/* 聯絡資訊 */}
-            <div className="bg-white p-6 sm:p-8 md:p-10 lg:p-12 rounded-[30px] sm:rounded-[35px] md:rounded-[40px] shadow-sm border border-gray-100">
-              <h3 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 serif">聯絡資訊</h3>
-              <div className="space-y-4 sm:space-y-6">
-                  <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <MapPin size={24} className="text-teal-600" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-base font-bold text-gray-700 mb-1">地址</p>
-                    <p className="text-lg text-gray-600">
-                      <a href="https://www.google.com.tw/maps/search/%E5%B1%8F%E6%9D%B1%E7%B8%A3%E7%90%89%E7%90%83%E9%84%89%E7%9B%B8%E5%9F%94%E8%B7%AF86%E4%B9%8B5" target="_blank" rel="noopener noreferrer" className="hover:text-teal-600 transition-colors">屏東縣琉球鄉相埔路86之5</a>
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <Phone size={24} className="text-teal-600" />
-                </div>
-                  <div className="flex-1">
-                    <p className="text-base font-bold text-gray-700 mb-1">電話</p>
-                    <p className="text-lg text-gray-600">
-                      <a href="tel:0911306011" className="hover:text-teal-600 transition-colors">0911306011</a>
-                    </p>
-                </div>
-                </div>
-
-                <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <MessageCircle size={24} className="text-teal-600" />
+            {contactInfos.map((contactInfo) => (
+              <div key={contactInfo.id} className="bg-white p-6 sm:p-8 md:p-10 lg:p-12 rounded-[30px] sm:rounded-[35px] md:rounded-[40px] shadow-sm border border-gray-100">
+                <h3 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8 serif">聯絡資訊</h3>
+                <p className="text-xl sm:text-2xl font-bold text-gray-800 mb-6">{contactInfo.store_name}</p>
+                <div className="space-y-4 sm:space-y-6">
+                  {contactInfo.address && (
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 mt-1">
+                        <MapPin size={24} className="text-teal-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-base font-bold text-gray-700 mb-1">地址</p>
+                        <p className="text-lg text-gray-600">
+                          <a 
+                            href={`https://www.google.com.tw/maps/search/${encodeURIComponent(contactInfo.address)}`} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="hover:text-teal-600 transition-colors"
+                          >
+                            {contactInfo.address}
+                          </a>
+                        </p>
+                      </div>
                     </div>
-                  <div className="flex-1">
-                    <p className="text-base font-bold text-gray-700 mb-1">LINE ID</p>
-                    <p className="text-lg text-gray-600">
-                      <a href="https://line.me/R/ti/p/@623czmsm?oat_content=url&ts=01042332" target="_blank" rel="noopener noreferrer" className="hover:text-teal-600 transition-colors">@623czmsm</a>
-                    </p>
-                  </div>
+                  )}
+
+                  {contactInfo.phone && (
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 mt-1">
+                        <Phone size={24} className="text-teal-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-base font-bold text-gray-700 mb-1">電話</p>
+                        <p className="text-lg text-gray-600">
+                          <a href={`tel:${contactInfo.phone}`} className="hover:text-teal-600 transition-colors">
+                            {contactInfo.phone}
+                          </a>
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {contactInfo.line_id && (
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0 mt-1">
+                        <MessageCircle size={24} className="text-teal-600" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-base font-bold text-gray-700 mb-1">LINE ID</p>
+                        <p className="text-lg text-gray-600">
+                          <a 
+                            href={`https://line.me/R/ti/p/${contactInfo.line_id.replace('@', '')}?oat_content=url&ts=01042332`} 
+                            target="_blank" 
+                            rel="noopener noreferrer" 
+                            className="hover:text-teal-600 transition-colors"
+                          >
+                            {contactInfo.line_id}
+                          </a>
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
-            </div>
+            ))}
           </div>
         </section>
       )}

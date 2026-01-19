@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Plus, Search, Bike, Edit3, Trash2, X, Loader2, MoreHorizontal, ChevronDown } from 'lucide-react';
-import { scootersApi, storesApi, scooterModelColorsApi } from '../lib/api';
+import { Plus, Search, Bike, Edit3, Trash2, X, Loader2, MoreHorizontal, ChevronDown, Image as ImageIcon } from 'lucide-react';
+import { scootersApi, storesApi, scooterModelColorsApi, scooterModelsApi, scooterTypesApi } from '../lib/api';
 import { inputClasses, selectClasses, labelClasses, searchInputClasses, chevronDownClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
 
 interface Scooter {
@@ -20,27 +20,30 @@ interface Store {
   name: string;
 }
 
+interface ScooterModel {
+  id: number;
+  name: string;
+  type: string;
+  color: string | null;
+  label?: string;
+}
+
 const ScootersPage: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingScooter, setEditingScooter] = useState<Scooter | null>(null);
   const [scooters, setScooters] = useState<Scooter[]>([]);
   const [allScooters, setAllScooters] = useState<Scooter[]>([]); // 儲存所有機車用於計算計數
   const [stores, setStores] = useState<Store[]>([]);
+  const [scooterModels, setScooterModels] = useState<ScooterModel[]>([]);
+  const [scooterTypes, setScooterTypes] = useState<Array<{id: number; name: string; color: string | null}>>([]);
   const [modelColorMap, setModelColorMap] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
-
-  // 車款類型對應的顏色
-  const typeColorMap: Record<string, string> = {
-    '白牌': '#7DD3FC', // 天藍色 (sky-300)
-    '綠牌': '#86EFAC', // 綠色 (green-300)
-    '電輔車': '#FED7AA', // 橘色 (orange-200)
-    '三輪車': '#FDE047', // 黃色 (yellow-300)
-  };
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     store_id: '',
     plate_number: '',
+    scooter_model_id: '',
     model: '',
     type: '白牌',
     color: '',
@@ -48,6 +51,7 @@ const ScootersPage: React.FC = () => {
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [shouldDeletePhoto, setShouldDeletePhoto] = useState(false);
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
@@ -57,6 +61,8 @@ const ScootersPage: React.FC = () => {
   useEffect(() => {
     fetchScooters();
     fetchStores();
+    fetchScooterModels();
+    fetchScooterTypes();
   }, [statusFilter, searchTerm]);
 
   // 獲取機車型號顏色映射（從 ScooterModelColor 表獲取）
@@ -121,29 +127,59 @@ const ScootersPage: React.FC = () => {
     }
   };
 
+  const fetchScooterModels = async () => {
+    try {
+      const response = await scooterModelsApi.list();
+      setScooterModels(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch scooter models:', error);
+    }
+  };
+
+  const fetchScooterTypes = async () => {
+    try {
+      const response = await scooterTypesApi.list();
+      setScooterTypes(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch scooter types:', error);
+    }
+  };
+
+  // 根據類型名稱取得顏色
+  const getTypeColor = (typeName: string): string | null => {
+    const type = scooterTypes.find(t => t.name === typeName);
+    return type?.color || null;
+  };
+
   const handleOpenModal = (scooter?: Scooter) => {
     if (scooter) {
       setEditingScooter(scooter);
+      // 從 scooter 的 scooter_model_id 或 model 來查找對應的 scooter_model_id
+      const scooterModel = scooterModels.find(m => m.name === scooter.model && m.type === scooter.type);
       setFormData({
         store_id: String(scooter.store_id),
         plate_number: scooter.plate_number,
+        scooter_model_id: scooterModel ? String(scooterModel.id) : '',
         model: scooter.model,
         type: scooter.type,
         color: scooter.color || '',
         status: scooter.status,
       });
       setPhotoPreview(scooter.photo_path || null);
+      setShouldDeletePhoto(false);
     } else {
       setEditingScooter(null);
       setFormData({
         store_id: '',
         plate_number: '',
+        scooter_model_id: '',
         model: '',
         type: '白牌',
         color: '',
         status: '待出租',
       });
       setPhotoPreview(null);
+      setShouldDeletePhoto(false);
     }
     setPhotoFile(null);
     setIsModalOpen(true);
@@ -155,6 +191,7 @@ const ScootersPage: React.FC = () => {
     setFormData({
       store_id: '',
       plate_number: '',
+      scooter_model_id: '',
       model: '',
       type: '白牌',
       color: '',
@@ -162,25 +199,48 @@ const ScootersPage: React.FC = () => {
     });
     setPhotoFile(null);
     setPhotoPreview(null);
+    setShouldDeletePhoto(false);
+  };
+
+  // 當選擇機車型號時，自動帶出類型和顏色
+  const handleScooterModelChange = (scooterModelId: string) => {
+    const selectedModel = scooterModels.find(m => String(m.id) === scooterModelId);
+    if (selectedModel) {
+      const typeColor = selectedModel.color || getTypeColor(selectedModel.type) || '';
+      setFormData({
+        ...formData,
+        scooter_model_id: scooterModelId,
+        type: selectedModel.type,
+        color: typeColor,
+      });
+    }
   };
 
   const handleSubmit = async () => {
-    if (!formData.store_id || !formData.plate_number || !formData.model) {
+    if (!formData.store_id || !formData.plate_number || !formData.scooter_model_id) {
       alert('請填寫必填欄位');
       return;
     }
 
     try {
       const data = {
-        ...formData,
         store_id: parseInt(formData.store_id),
+        plate_number: formData.plate_number,
+        scooter_model_id: parseInt(formData.scooter_model_id),
+        type: formData.type,
         color: formData.color || null,
+        status: formData.status,
       };
 
       if (editingScooter) {
-        await scootersApi.update(editingScooter.id, data);
-        if (photoFile) {
-          await scootersApi.uploadPhoto(editingScooter.id, photoFile);
+        // 如果要刪除圖片，發送 photo_path: null
+        if (shouldDeletePhoto && !photoFile) {
+          await scootersApi.update(editingScooter.id, { ...data, photo_path: null });
+        } else {
+          await scootersApi.update(editingScooter.id, data);
+          if (photoFile) {
+            await scootersApi.uploadPhoto(editingScooter.id, photoFile);
+          }
         }
       } else {
         const response = await scootersApi.create(data);
@@ -286,11 +346,21 @@ const ScootersPage: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       setPhotoFile(file);
+      setShouldDeletePhoto(false); // 選擇新圖片時清除刪除標記
       const reader = new FileReader();
       reader.onloadend = () => {
         setPhotoPreview(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleDeleteImage = () => {
+    setPhotoFile(null);
+    setPhotoPreview(null);
+    // 如果是編輯模式且有現有圖片，標記為要刪除
+    if (editingScooter && editingScooter.photo_path) {
+      setShouldDeletePhoto(true);
     }
   };
 
@@ -557,13 +627,22 @@ const ScootersPage: React.FC = () => {
                   <label className={labelClasses}>
                     機車型號 <span className="text-red-500">*</span>
                   </label>
-                  <input 
-                    type="text" 
-                    className={inputClasses} 
-                    placeholder="例如: ES-2000"
-                    value={formData.model}
-                    onChange={(e) => setFormData({ ...formData, model: e.target.value })}
-                  />
+                  <div className="relative">
+                    <select
+                      className={selectClasses}
+                      value={formData.scooter_model_id}
+                      onChange={(e) => handleScooterModelChange(e.target.value)}
+                      required
+                    >
+                      <option value="">請選擇機車型號</option>
+                      {scooterModels.map((model) => (
+                        <option key={model.id} value={model.id}>
+                          {model.name} {model.type}
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown size={18} className={chevronDownClasses} />
+                  </div>
                 </div>
                 <div>
                   <label className={labelClasses}>
@@ -577,7 +656,7 @@ const ScootersPage: React.FC = () => {
                       value={formData.color}
                       onChange={(e) => setFormData({ ...formData, color: e.target.value })}
                     />
-                    {formData.color && typeColorMap[formData.type] && (
+                    {formData.color && (
                       <div className="flex items-center space-x-2">
                         <div 
                           className="w-8 h-8 rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-sm"
@@ -585,18 +664,18 @@ const ScootersPage: React.FC = () => {
                           title={formData.color}
                         />
                         <span className="text-xs font-mono text-gray-500 dark:text-gray-400">
-                          {formData.color}
+                          {formData.color}（來自機車類型）
                         </span>
                       </div>
                     )}
                   </div>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                    根據車款類型自動設定：{formData.type && typeColorMap[formData.type] ? `${formData.type} = ${typeColorMap[formData.type]}` : '請選擇車款類型'}
+                    選擇機車型號後會自動帶出，也可手動修改
                   </p>
                 </div>
                 <div>
                   <label className={labelClasses}>
-                    車款類型 <span className="text-red-500">*</span>
+                    車款類型 <span className="text-gray-400 dark:text-gray-500 font-normal">(自動帶出)</span>
                   </label>
                   <div className="relative">
                     <select 
@@ -604,9 +683,9 @@ const ScootersPage: React.FC = () => {
                       value={formData.type}
                       onChange={(e) => {
                         const selectedType = e.target.value;
-                        // 根據車款類型自動設定顏色
-                        const autoColor = typeColorMap[selectedType] || '';
-                        setFormData({ ...formData, type: selectedType, color: autoColor });
+                        // 根據車款類型自動設定顏色（從機車類型取得）
+                        const autoColor = getTypeColor(selectedType) || '';
+                        setFormData({ ...formData, type: selectedType, color: formData.color || autoColor });
                       }}
                     >
                       <option value="白牌" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">白牌 (Heavy)</option>
@@ -616,6 +695,9 @@ const ScootersPage: React.FC = () => {
                     </select>
                     <ChevronDown size={18} className={chevronDownClasses} />
                   </div>
+                  <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                    選擇機車型號後會自動帶出，也可手動修改
+                  </p>
                 </div>
                 <div>
                   <label className={labelClasses}>
@@ -636,31 +718,32 @@ const ScootersPage: React.FC = () => {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-3 uppercase tracking-wider">機車外觀照片</label>
-                <div className="border-2 border-dashed border-gray-200 dark:border-gray-600 rounded-2xl p-10 bg-gray-50/50 dark:bg-gray-700/30 flex flex-col items-center justify-center hover:border-orange-400 dark:hover:border-orange-500 hover:bg-orange-50/10 dark:hover:bg-gray-700/50 cursor-pointer transition-all group relative">
+                <label className={labelClasses}>機車外觀照片</label>
+                <div className={uploadAreaBaseClasses}>
+                  {photoPreview ? (
+                    <div className="relative">
+                      <img src={photoPreview} alt="Preview" className="max-h-48 mx-auto rounded" />
+                      <button
+                        type="button"
+                        onClick={handleDeleteImage}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10 hover:bg-red-600 transition-colors"
+                        title="刪除圖片"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-center">
+                      <ImageIcon className="mx-auto text-gray-400 mb-2" size={32} />
+                      <p className="text-sm text-gray-500">點擊或拖放圖片到此處</p>
+                    </div>
+                  )}
                   <input
                     type="file"
                     accept="image/*"
                     onChange={handlePhotoChange}
                     className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                   />
-                   <div className="p-4 bg-white dark:bg-gray-800 rounded-2xl shadow-sm mb-3 group-hover:scale-110 transition-transform">
-                     <Bike size={32} className="text-gray-400 dark:text-gray-500 group-hover:text-orange-500 transition-colors" />
-                   </div>
-                   <p className="text-sm font-bold text-gray-700 dark:text-gray-300">點擊或拖放照片至此</p>
-                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">建議解析度 1280x720 以上的清晰照片</p>
-                   {photoPreview && (
-                     <img 
-                       src={photoPreview} 
-                       alt="Preview" 
-                       className="mt-4 max-w-full max-h-48 rounded-lg cursor-pointer hover:opacity-90 transition-opacity" 
-                       onClick={(e) => {
-                         e.stopPropagation();
-                         setImageViewerUrl(photoPreview);
-                         setImageViewerOpen(true);
-                       }}
-                     />
-                   )}
                 </div>
               </div>
             </div>

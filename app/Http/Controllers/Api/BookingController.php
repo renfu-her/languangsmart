@@ -9,7 +9,9 @@ use App\Mail\BookingConfirmedMail;
 use App\Models\Booking;
 use App\Models\Order;
 use App\Models\Partner;
+use App\Models\PartnerScooterModelTransferFee;
 use App\Models\Scooter;
+use App\Models\ScooterModel;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Mail;
@@ -67,6 +69,69 @@ class BookingController extends Controller
             
             // 獲取預設線上預約合作商
             $defaultPartner = Partner::where('is_default_for_booking', true)->first();
+
+            // 計算租期天數與調車費用總金額（只算調車費用）
+            $bookingDateCarbon = Carbon::parse($data['appointmentDate'])->startOfDay();
+            $endDateCarbon = Carbon::parse($data['endDate'])->startOfDay();
+
+            // 計算天數差（夜數）
+            $diffDays = $bookingDateCarbon->diffInDays($endDateCarbon);
+            
+            // 判斷租期類型和計算天數：
+            // 1 天（同日租）：天數 = 1，使用當日調車費用
+            // 2 天（1 夜）：天數 = 1，使用跨日調車費用
+            // 3 天（2 夜）：天數 = 2，使用跨日調車費用
+            // 以此類推：天數 = diffDays（夜數）
+            if ($diffDays == 0) {
+                // 同日租：1 天，天數 = 1
+                $days = 1;
+                $isSameDayRental = true;
+            } else {
+                // 跨日租：天數 = diffDays（夜數）
+                $days = $diffDays;
+                $isSameDayRental = false;
+            }
+
+            $totalTransferFee = 0;
+
+            // 針對每個車型計算：合作商的機車型號單價 × 天數 × 台數
+            foreach ($data['scooters'] as $scooterItem) {
+                $model = $scooterItem['model'] ?? null; // 機車型號名稱，如 "ES-1000"
+                $type = $scooterItem['type'] ?? null; // 白牌 / 綠牌 / 電輔車 / 三輪車
+                $count = $scooterItem['count'] ?? 0;
+
+                if ($count <= 0) {
+                    continue;
+                }
+
+                // 獲取合作商的機車型號單價（當日租或跨日租）
+                $transferFeePerUnit = 0;
+
+                if ($defaultPartner && $model && $type) {
+                    // 從 model + type 查找對應的 ScooterModel
+                    $scooterModel = ScooterModel::where('name', $model)
+                        ->where('type', $type)
+                        ->first();
+
+                    if ($scooterModel) {
+                        // 從 partner_scooter_model_transfer_fees 表查找調車費用
+                        $transferFeeRecord = PartnerScooterModelTransferFee::where('partner_id', $defaultPartner->id)
+                            ->where('scooter_model_id', $scooterModel->id)
+                            ->first();
+
+                        if ($transferFeeRecord) {
+                            if ($isSameDayRental) {
+                                $transferFeePerUnit = $transferFeeRecord->same_day_transfer_fee ?? 0;
+                            } else {
+                                $transferFeePerUnit = $transferFeeRecord->overnight_transfer_fee ?? 0;
+                            }
+                        }
+                    }
+                }
+
+                // 計算調車費用：合作商的機車型號單價 × 天數 × 台數
+                $totalTransferFee += (int) $transferFeePerUnit * (int) $days * (int) $count;
+            }
             
             // 如果沒有提供船運公司，使用預設合作商的預設船運公司
             $shippingCompany = $data['shippingCompany'] ?? null;
@@ -90,6 +155,7 @@ class BookingController extends Controller
                 'note' => $data['note'] ?? null,
                 'status' => '預約中', // 預設狀態為「預約中」
                 'partner_id' => $defaultPartner ? $defaultPartner->id : null,
+                'total_amount' => $totalTransferFee,
             ]);
             
             // 發送郵件給管理員（因為沒有 email，無法發送給用戶）
@@ -294,7 +360,7 @@ class BookingController extends Controller
         $validator = Validator::make($request->all(), [
             'partner_id' => 'nullable|exists:partners,id',
             'payment_method' => 'sometimes|required|in:現金,月結,日結,匯款,刷卡,行動支付',
-            'payment_amount' => 'required|numeric|min:0',
+            'payment_amount' => 'nullable|numeric|min:0',
             'scooter_ids' => 'sometimes|required|array|min:1',
             'scooter_ids.*' => 'required_with:scooter_ids|exists:scooters,id',
         ]);
@@ -308,10 +374,98 @@ class BookingController extends Controller
 
         // 如果沒有提供參數，使用預設值
         $paymentMethod = $request->get('payment_method') ?: '現金';
-        $paymentAmount = (float) $request->get('payment_amount');
+        // payment_amount 將在計算調車費用後決定（如果沒有提供則使用調車費用）
+        $requestedPaymentAmount = $request->has('payment_amount') ? (float) $request->get('payment_amount') : null;
         $scooterIds = $request->get('scooter_ids');
+        
+        // 獲取合作商（如果提供了 partner_id）
+        $partnerId = $request->get('partner_id');
+        $partner = $partnerId ? Partner::find($partnerId) : ($booking->partner_id ? Partner::find($booking->partner_id) : null);
+        
+        // 如果沒有合作商，嘗試使用預設線上預約合作商
+        if (!$partner) {
+            $partner = Partner::where('is_default_for_booking', true)->first();
+        }
 
-        // 計算開始和結束時間
+        // 計算租期天數與調車費用總金額（只算調車費用）
+        $bookingDateCarbon = $booking->booking_date instanceof Carbon 
+            ? $booking->booking_date->copy()->startOfDay()
+            : Carbon::parse($booking->booking_date)->startOfDay();
+        $endDateCarbon = $booking->end_date 
+            ? ($booking->end_date instanceof Carbon 
+                ? $booking->end_date->copy()->startOfDay()
+                : Carbon::parse($booking->end_date)->startOfDay())
+            : $bookingDateCarbon->copy();
+
+        // 計算天數差（夜數）
+        $diffDays = $bookingDateCarbon->diffInDays($endDateCarbon);
+        
+        // 判斷租期類型和計算天數：
+        // 1 天（同日租）：天數 = 1，使用當日調車費用
+        // 2 天（1 夜）：天數 = 1，使用跨日調車費用
+        // 3 天（2 夜）：天數 = 2，使用跨日調車費用
+        // 以此類推：天數 = diffDays（夜數）
+        if ($diffDays == 0) {
+            // 同日租：1 天，天數 = 1
+            $days = 1;
+            $isSameDayRental = true;
+        } else {
+            // 跨日租：天數 = diffDays（夜數）
+            $days = $diffDays;
+            $isSameDayRental = false;
+        }
+
+        $totalTransferFee = 0;
+
+        // 針對每個車型計算：合作商的機車型號單價 × 天數 × 台數
+        if ($booking->scooters && is_array($booking->scooters) && count($booking->scooters) > 0) {
+            foreach ($booking->scooters as $scooterItem) {
+                $modelString = $scooterItem['model'] ?? null; // 例如 "ES-1000 綠牌"
+                $count = $scooterItem['count'] ?? 0;
+
+                if (!$modelString || $count <= 0) {
+                    continue;
+                }
+
+                // 解析 model 和 type（格式：model + " " + type）
+                $parts = explode(' ', $modelString, 2);
+                $model = $parts[0] ?? ''; // 例如 "ES-1000"
+                $type = $parts[1] ?? '';  // 例如 "綠牌"
+
+                // 獲取合作商的機車型號單價（當日租或跨日租）
+                $transferFeePerUnit = 0;
+
+                if ($partner && $model && $type) {
+                    // 從 model + type 查找對應的 ScooterModel
+                    $scooterModel = ScooterModel::where('name', $model)
+                        ->where('type', $type)
+                        ->first();
+
+                    if ($scooterModel) {
+                        // 從 partner_scooter_model_transfer_fees 表查找調車費用
+                        $transferFeeRecord = PartnerScooterModelTransferFee::where('partner_id', $partner->id)
+                            ->where('scooter_model_id', $scooterModel->id)
+                            ->first();
+
+                        if ($transferFeeRecord) {
+                            if ($isSameDayRental) {
+                                $transferFeePerUnit = $transferFeeRecord->same_day_transfer_fee ?? 0;
+                            } else {
+                                $transferFeePerUnit = $transferFeeRecord->overnight_transfer_fee ?? 0;
+                            }
+                        }
+                    }
+                }
+
+                // 計算調車費用：合作商的機車型號單價 × 天數 × 台數
+                $totalTransferFee += (int) $transferFeePerUnit * (int) $days * (int) $count;
+            }
+        }
+
+        // 決定最終的 payment_amount：如果提供了則使用，否則使用計算出的調車費用
+        $paymentAmount = $requestedPaymentAmount !== null ? $requestedPaymentAmount : $totalTransferFee;
+
+        // 計算開始和結束時間（只使用日期，不需要時間）
         $bookingDate = $booking->booking_date instanceof Carbon 
             ? $booking->booking_date->format('Y-m-d') 
             : $booking->booking_date;
@@ -322,13 +476,9 @@ class BookingController extends Controller
                 : $booking->end_date)
             : null;
 
-        $startTime = $booking->ship_arrival_time 
-            ? $booking->ship_arrival_time 
-            : ($bookingDate . ' 08:00:00');
-        
-        $endTime = $endDate 
-            ? ($endDate . ' 18:00:00') 
-            : ($bookingDate . ' 18:00:00');
+        // 開始時間和結束時間只使用日期格式（預約日期 = 租借開始）
+        $startTime = $bookingDate;
+        $endTime = $endDate ? $endDate : $bookingDate;
 
         // 如果沒有提供機車 ID，自動選擇可用機車
         if (!$scooterIds || count($scooterIds) === 0) {

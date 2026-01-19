@@ -21,6 +21,10 @@ class ScooterResource extends JsonResource
                 return new StoreResource($this->store);
             }),
             'plate_number' => $this->plate_number,
+            'scooter_model_id' => $this->scooter_model_id,
+            'scooter_model' => $this->whenLoaded('scooterModel', function () {
+                return new ScooterModelResource($this->scooterModel);
+            }),
             'model' => $this->model,
             'type' => $this->type,
             'color' => $this->color,

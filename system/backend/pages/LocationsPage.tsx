@@ -103,6 +103,48 @@ const LocationsPage: React.FC = () => {
     }
   };
 
+  const handleDeleteImage = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // 阻止事件冒泡，防止觸發 file input
+    e.preventDefault(); // 阻止默認行為
+    if (!confirm('確定要刪除此圖片嗎？')) return;
+
+    if (editingLocation && editingLocation.image_path) {
+      try {
+        setUploading(true);
+        // 更新 location，將 image_path 設為 null
+        const response = await locationsApi.update(editingLocation.id, {
+          name: formData.name,
+          address: formData.address,
+          phone: formData.phone,
+          hours: formData.hours,
+          description: formData.description,
+          map_embed: formData.map_embed,
+          image_path: null,
+          sort_order: parseInt(formData.sort_order.toString()),
+          is_active: formData.is_active,
+        });
+        // 更新本地狀態
+        setImagePreview(null);
+        setImageFile(null);
+        // 更新編輯中的 location
+        if (response.data) {
+          setEditingLocation(response.data);
+        }
+        // 重新獲取資料列表
+        await fetchLocations();
+      } catch (error: any) {
+        console.error('Failed to delete image:', error);
+        alert(error.message || '刪除圖片失敗');
+      } finally {
+        setUploading(false);
+      }
+    } else {
+      // 如果是新上傳的圖片（還沒儲存），直接清除預覽
+      setImagePreview(null);
+      setImageFile(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setUploading(true);
@@ -358,11 +400,9 @@ const LocationsPage: React.FC = () => {
                       <img src={imagePreview} alt="Preview" className="max-h-48 mx-auto rounded" />
                       <button
                         type="button"
-                        onClick={() => {
-                          setImagePreview(editingLocation?.image_path ? `/storage/${editingLocation.image_path}` : null);
-                          setImageFile(null);
-                        }}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1"
+                        onClick={handleDeleteImage}
+                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 z-10 hover:bg-red-600 transition-colors"
+                        title="刪除圖片"
                       >
                         <X size={16} />
                       </button>
@@ -422,10 +462,7 @@ const LocationsPage: React.FC = () => {
                   {uploading ? (
                     <Loader2 className="animate-spin" size={18} />
                   ) : (
-                    <>
-                      <Plus size={18} />
-                      <span>{editingLocation ? '更新' : '新增'}</span>
-                    </>
+                    <span>{editingLocation ? '更新' : '新增'}</span>
                   )}
                 </button>
               </div>

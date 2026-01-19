@@ -1,5 +1,2665 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-17 15:57:00 (+8) - 加寬星期欄位和總台數/天數欄位
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **列寬調整**：將第 2 列（星期欄位）的寬度從 12 增加至 15
+  - 第 1 列（日期）保持 18，其他列保持 12
+
+### 功能說明
+- 星期欄位和總台數/天數欄位（第 2 列）現在有更寬的顯示空間，提升可讀性
+
+## 2026-01-17 15:55:00 (+8) - 合併每個車款的小計欄位：將每個車款的 4 個欄位合併成一個單元格
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **小計行欄位合併**：修改小計行的設置邏輯，將每個車款的 4 個欄位（當日租台數、跨日租台數、跨日租天數、金額）合併成一個單元格
+  - 在合併後的單元格中顯示該車款的小計金額（黑色字體）
+  - 使用 `worksheet.mergeCells()` 對每個車款執行合併操作
+  - 移除不再使用的 `colIdx` 變數
+
+### 功能說明
+- 每個車款的小計現在顯示在一個合併的單元格中，視覺上更清晰
+- 小計金額仍然為黑色字體，只有總金額行的「總金額」標籤和總金額數值為紅色
+
+## 2026-01-17 15:46:00 (+8) - 修正數據行金額欄位：將數據行中的金額從紅色改為黑色字體
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **數據行金額欄位**：移除金額欄位的紅色字體設置，所有數據行中的金額都設置為黑色字體
+  - 現在只有總金額行的「總金額」標籤和總金額數值（4500）是紅色，其他所有文字和數值（包括數據行的金額）都是黑色
+
+### 功能說明
+- 符合用戶要求：只有總金額相關內容為紅色，其他所有數據（包括數據行的金額、總台數/天數行的數值、小計行的數值）都為黑色字體
+
+## 2026-01-17 15:40:00 (+8) - 修正字體顏色：僅「總金額」標籤和總金額數值為紅色，其他所有文字和數值為黑色
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **總台數/天數行**：移除金額欄位的紅色字體設置，所有數值（台數、天數、金額）都設置為黑色字體
+  - **小計行**：移除金額欄位的紅色字體設置，所有小計數值都設置為黑色字體
+  - **總金額行**：確保「總金額」標籤為紅色，總金額數值（合併單元格中的總和）為紅色
+  - 現在只有「總金額」標籤和總金額數值是紅色，其他所有文字和數值都是黑色
+
+### 功能說明
+- 符合用戶要求：僅「總金額」標籤和總金額加總數字為紅色
+- 其他所有文字和數值（包括總台數/天數行的所有數值、小計行的所有數值）都為黑色字體
+
+## 2026-01-17 15:38:00 (+8) - 將所有文字置中對齊
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **添加置中對齊**：為所有樣式（`dataRowStyle`、`dataRowAlternateStyle`、`totalRowStyle`）添加 `alignment: { horizontal: 'center', vertical: 'middle' }`
+  - **應用對齊樣式**：在所有設置單元格樣式的地方（數據行、總計行、小計行、總金額行）都添加 `cell.alignment = style.alignment`
+  - 確保 Excel 導出文件中的所有文字都置中對齊
+
+### 功能說明
+- 所有 Excel 報表的文字內容（標題、表頭、數據、總計等）現在都會置中對齊
+- 提供更整潔、專業的報表視覺效果
+
+## 2026-01-17 15:32:00 (+8) - 修正變量重複聲明錯誤：將總金額行的 blankCell1 重命名為 totalBlankCell1
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **修正變量重複聲明錯誤**：將總金額行中的 `blankCell1` 重命名為 `totalBlankCell1`，避免與表頭行中的 `blankCell1` 變量衝突
+  - 錯誤信息：`The symbol "blankCell1" has already been declared`
+  - 解決方案：使用更具描述性的變量名 `totalBlankCell1` 來區分不同位置的空白單元格
+
+### 功能說明
+- 修正構建錯誤，確保代碼可以正常編譯
+- 變量命名更清晰，避免命名衝突
+
+## 2026-01-17 15:30:00 (+8) - 修正總金額行：將「總金額」標籤和總金額數值都設置為紅色字體
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **修正總金額行樣式**：將「總金額」標籤和總金額數值都設置為紅色字體
+  - **樣式邏輯**：
+    - 第 1 列（空白）：黑色字體
+    - 第 2 列（「總金額」標籤）：紅色字體（明確設置）
+    - 第 3 列開始（合併單元格，顯示總金額數值）：紅色字體（已設置）
+    - 其他所有文字和數字：黑色字體
+
+### 功能說明
+- 「總金額」標籤和總金額數值都使用紅色字體，突出顯示
+- 其他所有文字（包括小計、數量、日期等）保持黑色字體
+
+## 2026-01-17 15:28:00 (+8) - 修正總金額行：確保「總金額」標籤為黑色，只有總金額數值為紅色
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **修正總金額行樣式**：明確設置「總金額」標籤為黑色字體，只有總金額數值為紅色字體
+  - **樣式邏輯**：
+    - 第 1 列（空白）：黑色字體
+    - 第 2 列（「總金額」標籤）：黑色字體（明確設置）
+    - 第 3 列開始（合併單元格，顯示總金額數值）：紅色字體（僅當有數值時）
+  - 確保所有標籤文字保持黑色，只有金額數值顯示為紅色
+
+### 功能說明
+- 「總金額」標籤文字保持黑色，與表頭風格一致
+- 只有總金額數值顯示為紅色，突出重要信息
+
+## 2026-01-17 15:27:00 (+8) - 修正小計行：確保「小計」文字保持黑色，只有金額欄位為紅色
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **修正小計行樣式**：確保「小計」標籤文字保持黑色字體，只有金額欄位設置為紅色字體
+  - **樣式邏輯**：
+    - 第 2 列（「小計」標籤）：明確設置為黑色字體（`totalRowStyle.font`）
+    - 金額欄位（每 4 列中的第 4 列）：設置為紅色字體
+    - 其他欄位：黑色字體
+
+### 功能說明
+- 小計行的「小計」文字保持黑色，與表頭風格一致
+- 只有金額數值顯示為紅色，提高視覺區分度
+
+## 2026-01-17 15:26:00 (+8) - 凍結表頭行：凍結所有包含文字的表頭行（第 1-4 行）
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **添加凍結窗格功能**：使用 ExcelJS 的 `views` 屬性凍結表頭行
+  - **凍結範圍**：凍結前 4 行（第 1-4 行），包括：
+    - 第 1 行：標題行（「合作商出租月報表」）
+    - 第 2-4 行：表頭行（型號標題、當日租/跨日租、台數/天數/金額、日期/星期）
+  - **效果**：當滾動 Excel 表格時，表頭行保持固定，只有數據行（第 5 行開始）可以滾動
+
+### 功能說明
+- 提高 Excel 文件的可讀性，滾動查看數據時表頭始終可見
+- 使用 ExcelJS 的 `worksheet.views = [{ state: 'frozen', ySplit: 4 }]` 實現凍結窗格功能
+
+### 技術細節
+- `ySplit: 4` 表示凍結前 4 行（索引 0-3），從第 5 行（索引 4）開始可以滾動
+- 凍結窗格設置應在創建所有數據之後、導出之前進行
+
+## 2026-01-17 15:25:00 (+8) - 調整日期欄位寬度並將金額欄位設置為紅色字體
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **調整日期欄位寬度**：將第一列（日期欄位）的寬度從 12 調整為 18，使其有足夠空間顯示完整的日期文字
+  - **金額欄位紅色字體**：
+    - **數據行**：所有金額欄位（每 4 列中的第 4 列）設置為紅色字體（`#FF0000`）
+    - **總計行**：總台數/天數行中的金額欄位設置為紅色字體
+    - **小計行**：小計行中的金額欄位設置為紅色字體
+    - **總金額行**：總金額數值設置為紅色字體
+  - 使用 ARGB 格式的顏色值：`FFFF0000`（紅色）
+
+### 功能說明
+- 日期欄位寬度增加，確保日期文字完整顯示
+- 所有金額相關的欄位（數據行、小計行、總金額行）都使用紅色字體，提高可讀性和視覺區分度
+
+### 技術細節
+- 列寬設置：`worksheet.getColumn(1).width = 18`
+- 字體顏色設置：`font: { ...existingFont, color: { argb: 'FFFF0000' } }`
+- 金額欄位位置：每 4 列中的第 4 列（從第 3 列開始計算）
+
+## 2026-01-17 10:45:00 (+8) - 修正總金額行：將「總金額」之後的所有欄位合併成一個大單元格
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **修正總金額行合併邏輯**：將「總金額」標籤之後的所有欄位（從第 3 列到最後一列）合併成一個大單元格
+  - **修改前**：只合併所有型號的金額欄位（第 6、10、14... 列），其他欄位保持分開
+  - **修改後**：從「總金額」標籤後的第一列（第 3 列）開始，到最後一列（totalCols）全部合併成一個單元格
+  - **結構**：
+    - 第 1 列：空白（與「月結總計」垂直合併）
+    - 第 2 列：「總金額」標籤
+    - 第 3 列到最後一列：合併成一個大單元格，顯示總金額數值
+
+### 功能說明
+- 總金額行的顯示更符合預期，所有型號的欄位區域都合併成一個單元格來顯示總金額
+- 與 Excel 表格格式保持一致，提高可讀性
+
+## 2026-01-17 10:39:00 (+8) - 修正 ReferenceError：調整樣式變量定義順序，解決 "Cannot access before initialization" 錯誤
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **修正變量聲明順序**：將 `borderStyle`、`titleStyle`、`headerStyle` 等樣式變量的定義移到使用之前
+  - **問題原因**：在第 110 行使用了 `borderStyle` 和 `titleStyle`，但這些變量在後面（第 117 行）才定義，導致 JavaScript 的暫時性死區（Temporal Dead Zone）錯誤
+  - **解決方案**：將所有樣式變量的定義移到創建標題行之前，確保在使用前已定義
+
+### 功能說明
+- 修正 `ReferenceError: Cannot access 'E' before initialization` 錯誤
+- 確保所有變量在使用前都已正確定義，符合 JavaScript 的變量聲明規則
+
+### 技術細節
+- JavaScript 中使用 `const` 或 `let` 聲明的變量存在暫時性死區（TDZ），在聲明之前不能訪問
+- 編譯後的代碼中，變量名可能被編譯成單字母（如 `E`），但錯誤本質是變量未初始化就被使用
+
+## 2026-01-17 10:33:00 (+8) - 修正 ExcelJS 導出錯誤：添加數據驗證和合併單元格錯誤處理
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **添加數據驗證**：
+    - 驗證 `allModels` 是否為有效的非空數組，避免導出空數據時出錯
+    - 驗證 `totalCols` 是否在有效範圍內（1-16384），避免超出 Excel 最大列數限制
+  - **改善合併單元格錯誤處理**：
+    - 為合併總金額欄位操作添加 try-catch，避免合併超出範圍的單元格時出錯
+    - 為合併「月結總計」欄位操作添加 try-catch，避免合併無效行號時出錯
+    - 在合併前檢查列號和行號是否在有效範圍內
+  - **改善錯誤訊息**：當數據驗證失敗時，顯示具體的錯誤原因
+
+### 功能說明
+- 防止因為數據異常（如空數組、無效列數）導致的導出錯誤
+- 防止合併單元格時因為範圍問題導致的錯誤
+- 提供更清晰的錯誤提示，便於排查問題
+
+### 技術細節
+- Excel 最大列數為 16384（XFD 列）
+- 合併單元格前應驗證範圍是否有效
+- 空數組或無效數據應該在處理前就被捕獲
+
+## 2026-01-17 10:22:00 (+8) - 修正 ExcelJS 導出錯誤：改善錯誤處理和下載邏輯
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **改善 ExcelJS 寫入錯誤處理**：為 `workbook.xlsx.writeBuffer()` 添加 try-catch 塊，捕獲並記錄詳細錯誤信息
+  - **修正下載邏輯**：在點擊下載鏈接前，先將 `link` 元素添加到 `document.body`，確保在沒有用戶交互的上下文中也能正常觸發下載
+  - **改善錯誤日誌**：在 `writeBuffer` 失敗時記錄詳細錯誤信息，便於調試
+  - **修正合併單元格樣式**：確保「跨日租」合併單元格的邊框樣式正確設置
+
+### 功能說明
+- 修正導出時可能出現的錯誤，特別是 ExcelJS 寫入緩衝區和下載鏈接觸發的問題
+- 提供更詳細的錯誤信息，便於排查問題
+
+### 技術細節
+- ExcelJS 的 `writeBuffer()` 是異步操作，需要正確處理錯誤
+- 在某些瀏覽器環境中，下載鏈接需要先添加到 DOM 才能正常觸發下載
+
+## 2026-01-17 10:21:00 (+8) - 在第 4 行表頭添加「日期」和「星期」文字標籤
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **添加表頭標籤**：在第 4 行（表頭的最後一行）的前兩列添加「日期」和「星期」文字標籤
+  - **修改前**：第 4 行的前兩列為空白
+  - **修改後**：第 4 行第 1 列顯示「日期」，第 2 列顯示「星期」
+  - 樣式與其他表頭單元格一致（淺灰色背景、粗體、置中對齊、邊框）
+
+### 功能說明
+- 表頭結構更清晰，明確標示前兩列為日期和星期欄位
+- 與實際數據行（第 5 行開始）的結構對應，提高可讀性
+
+## 2026-01-17 10:16:00 (+8) - 為 Excel 導出表格添加邊框樣式
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **添加邊框樣式**：為所有單元格添加黑色細線邊框（`borderStyle`）
+  - **應用範圍**：
+    - 標題行：所有單元格都有邊框
+    - 表頭行（第 2-4 行）：所有單元格都有邊框
+    - 數據行：所有單元格都有邊框
+    - 總計行（月結總計）：所有單元格都有邊框
+  - 邊框樣式：使用 ExcelJS 的 `border` 屬性，設置上下左右四邊都為細線（`thin`）黑色邊框
+
+### 功能說明
+- 導出的 Excel 文件現在包含完整的邊框樣式，使表格結構更清晰
+- 所有單元格都有統一的黑色細線邊框，提高表格的可讀性
+
+## 2026-01-17 09:52:00 (+8) - 修正總金額行的計算邏輯：總金額應該是所有小計加起來的費用
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **修正總金額計算邏輯**：總金額行現在明確計算所有小計的總和（`allSubtotalsSum`），而不是使用 `grandTotalAmount`
+  - **邏輯說明**：
+    - 小計行：每個型號的金額欄位顯示該型號的總金額（當日租 + 跨日租）
+    - 總金額行：顯示所有小計加起來的總金額（所有型號的總金額加總）
+  - 確保總金額行正確顯示所有小計的總和
+
+## 2026-01-17 09:50:00 (+8) - 修正總金額行金額欄位位置計算錯誤
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **修正總金額欄位位置計算**：將 `firstModelAmountCol` 從 `2 + 3 = 5` 修正為 `6`（正確的第一個型號金額欄位位置）
+  - **優化總金額行設置邏輯**：明確標註每個欄位的用途，確保總金額正確填入第一個型號的金額欄位
+
+## 2026-01-17 09:20:00 (+8) - 修正總台數/天數和小計行的背景顏色為黃色
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **修正總計行樣式**：將「總台數/天數」和「小計」兩行的整行背景顏色設置為黃色（`#FFD966`），與「總金額」行一致
+
+## 2026-01-17 09:15:00 (+8) - 使用 ExcelJS 為導出的 Excel 文件添加表格顏色樣式
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **更新 Excel 庫**：保留 `xlsx` 用於其他導出功能，為 `handleExportPartnerReport` 添加 `exceljs` 導入
+  - **完全重寫 `handleExportPartnerReport` 函數**：使用 ExcelJS 替代 XLSX，支持單元格樣式和顏色
+  - **添加表格顏色樣式**：
+    - **標題行**（第 1 行）：淺藍色背景（`#B4C6E7`），粗體，14 號字體，置中對齊
+    - **表頭行**（第 2-4 行）：淺灰色背景（`#D9E1F2`），粗體，置中對齊
+    - **數據行**（第 5 行開始）：交替行顏色（白色 `#FFFFFF` 和淺灰色 `#F2F2F2`），提高可讀性
+    - **總計行**（月結總計，最後 3 行）：黃色背景（`#FFD966`），粗體，突出顯示
+  - 使用 ExcelJS 的 API：
+    - `workbook.addWorksheet()` 創建工作表
+    - `worksheet.getRow()` 和 `worksheet.getCell()` 設置單元格值
+    - `worksheet.mergeCells()` 合併單元格
+    - `cell.fill`、`cell.font`、`cell.alignment` 設置樣式
+    - `workbook.xlsx.writeBuffer()` 生成文件並下載
+
+### 功能說明
+- 導出的 Excel 文件現在包含完整的顏色樣式，使表格更易於閱讀和區分不同類型的行
+- 標題行使用淺藍色背景，表頭使用淺灰色背景，數據行使用交替顏色，總計行使用黃色背景
+- 樣式應用於「合作商單月詳細統計」中的 Export 功能
+
+### 技術細節
+- 使用 `exceljs` 庫（已安裝，版本 ^4.4.0）
+- 顏色格式：ARGB hex（8 位字符，例如 `FFB4C6E7`，前兩位 FF 是 alpha）
+- 文件下載：使用 `Blob` 和 `URL.createObjectURL()` 在瀏覽器中下載文件
+
+## 2026-01-17 09:11:14 (+8) - 為導出的 Excel 文件添加表格顏色樣式
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - **更新 Excel 庫**：將 `xlsx` 改為 `xlsx-js-style`，支持單元格樣式
+  - **添加表格顏色樣式**：
+    - **標題行**：淺藍色背景（`#B4C6E7`），粗體，14 號字體，置中對齊
+    - **表頭行**（第 2-4 行）：淺灰色背景（`#D9E1F2`），粗體，置中對齊
+    - **數據行**：交替行顏色（白色 `#FFFFFF` 和淺灰色 `#F2F2F2`），提高可讀性
+    - **總計行**（月結總計）：黃色背景（`#FFD966`），粗體，突出顯示
+  - 為所有單元格設置適當的背景色和字體樣式
+
+#### 依賴安裝
+- **package.json** (`system/backend/package.json`)
+  - 需要安裝 `xlsx-js-style` 庫（已更新導入，請執行 `npm install xlsx-js-style`）
+
+### 功能說明
+- 導出的 Excel 文件現在包含顏色樣式，使表格更易於閱讀和區分不同類型的行
+- 標題行使用淺藍色背景，表頭使用淺灰色背景，數據行使用交替顏色，總計行使用黃色背景
+- 樣式應用於「合作商單月詳細統計」中的 Export 功能
+
+### 技術細節
+- 使用 `xlsx-js-style` 庫（SheetJS 的樣式擴展版本）
+- 顏色格式：RGB hex（6 位字符，例如 `B4C6E7`）
+- 樣式設置：通過設置每個單元格的 `s` 屬性來應用樣式
+- 安裝命令：`cd system && npm install xlsx-js-style --save`
+
+## 2026-01-17 09:01:11 (+8) - 修正後端選項（下拉選單）有時沒有反應的問題
+
+### 變更內容
+
+#### 前端修正
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - **優化模態框事件處理**：修改模態框容器的 `onClick` 事件處理，只有在點擊模態框背景時才阻止事件冒泡，不會阻止 `select` 和其他交互元素的事件
+  - 之前的實現會阻止所有點擊事件的冒泡，可能導致 `select` 下拉選單無法正常打開
+
+- **styles.ts** (`system/backend/styles.ts`)
+  - **提升 select 元素層級**：為 `selectClasses` 添加 `z-10`，確保下拉選單在層級上優先於其他元素
+  - ChevronDown 圖標已設置 `pointer-events-none`，不會阻擋點擊
+
+### 問題說明
+- 後端的選項（下拉選單）有時會沒有反應，可能是因為模態框的事件處理阻止了 `select` 元素的點擊事件
+- 修正後，`select` 下拉選單應該可以正常打開和選擇
+
+## 2026-01-15 11:05:00 (+8) - 調整後端訂單新增/編輯中船班時間的布局
+
+### 變更內容
+
+#### 前端修正
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - **調整船班時間布局**：將「船班時間（來）」和「船班時間（回）」從並排的兩個輸入框（`grid grid-cols-2`）改為每個佔一行（`one line one input`）
+  - 每個船班時間輸入框現在都是獨立的 `div`，垂直排列
+
+### 功能說明
+- 「船班時間（來）」和「船班時間（回）」現在各佔一行，更易於閱讀和操作
+- 保持原有的功能不變（日期時間選擇、最小日期限制等）
+
+## 2026-01-15 11:03:14 (+8) - 將後端訂單新增/編輯的日期選擇器改為原生 HTML5 輸入框
+
+### 變更內容
+
+#### 前端修正
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - **移除 Flatpickr 依賴**：移除所有 `react-flatpickr`、`flatpickr` 相關的導入和配置
+  - **移除 Flatpickr 配置函數**：刪除 `getDateOptions()` 和 `getDatetimeOptions()` 函數
+  - **添加日期格式化函數**：
+    - `formatDateForInput()`：將日期格式化為 `YYYY-MM-DD`（用於 `type="date"` 輸入框）
+    - `formatDateTimeForInput()`：將日期時間格式化為 `YYYY-MM-DDTHH:mm`（用於 `type="datetime-local"` 輸入框）
+  - **替換日期輸入框**：
+    - **預約日期**：從 `Flatpickr` 改為 `type="date"` 原生輸入框
+    - **開始時間**：從 `Flatpickr` 改為 `type="date"` 原生輸入框，添加 `min` 屬性（不能早於預約日期）
+    - **結束時間**：從 `Flatpickr` 改為 `type="date"` 原生輸入框，添加 `min` 屬性（不能早於開始時間或預約日期）
+    - **預計還車時間**：從 `Flatpickr` 改為 `type="datetime-local"` 原生輸入框，添加 `min` 屬性（不能早於結束時間）
+    - **船班時間（來）**：從 `Flatpickr` 改為 `type="datetime-local"` 原生輸入框
+    - **船班時間（回）**：從 `Flatpickr` 改為 `type="datetime-local"` 原生輸入框，添加 `min` 屬性（不能早於船班時間（來））
+  - **添加輸入限制**：所有日期/日期時間輸入框都添加了 `onKeyDown` 和 `onPaste` 事件處理，防止鍵盤輸入和貼上（與前端線上預約系統一致）
+  - **更新編輯模式數據加載**：使用新的格式化函數處理編輯模式下的日期和日期時間數據
+
+### 功能說明
+- 所有日期選擇器現在使用原生 HTML5 輸入框，與前端線上預約系統保持一致
+- 移除了 Flatpickr 相關的所有代碼和依賴
+- 日期輸入框使用 `type="date"`，日期時間輸入框使用 `type="datetime-local"`
+- 添加了適當的 `min` 屬性來限制日期選擇範圍
+- 防止用戶通過鍵盤輸入或貼上無效的日期格式
+
+### 技術細節
+- 日期格式：`YYYY-MM-DD`（用於 `type="date"`）
+- 日期時間格式：`YYYY-MM-DDTHH:mm`（用於 `type="datetime-local"`）
+- 與前端線上預約系統（`system/frontend/pages/Booking.tsx`）使用相同的實現方式
+
+## 2026-01-15 10:25:26 (+8) - 實作訂單管理自動計算費用功能
+
+### 變更內容
+
+#### 後端修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 創建 `calculateOrderAmount()` 私有方法，實現費用計算邏輯
+  - 修改 `store()` 方法：如果沒有提供 `payment_amount` 或為 0，自動計算費用
+  - 修改 `update()` 方法：如果沒有提供 `payment_amount` 或為 0，自動計算費用
+  - 將 `payment_amount` 驗證規則從 `required` 改為 `nullable`
+  - 計算邏輯：
+    - 根據 `start_time` 和 `end_time` 計算天數（當日租 = 1 天，跨日租 = 夜數）
+    - 從 `scooter_ids` 獲取機車資料，按機車型號（model + type）分組
+    - 從 `partner_scooter_model_transfer_fees` 表查詢合作商的機車型號費用
+    - 計算公式：調車費用 × 天數 × 台數
+    - 累加所有機車型號的費用得到總金額
+
+#### 前端修正
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 添加 `isAmountManuallyEdited` 狀態，追蹤用戶是否手動修改過金額
+  - 修改 `modelStats` 計算：按 "model type" 分組（例如 "ES-1000 綠牌"）
+  - 添加 `calculateAmount()` 函數，實現前端費用計算邏輯
+  - 添加 `useEffect` 監聽：當合作商、機車選擇或時間變更時，自動計算費用
+  - 修改金額輸入框：當用戶手動修改時，設置 `isAmountManuallyEdited` 為 true
+  - 修改 `handleSubmit()`：如果沒有提供金額，自動計算費用
+  - 更新 Partner interface：添加 `transfer_fees` 欄位定義
+
+### 功能說明
+- 新增訂單時，如果沒有提供金額，會根據合作商、機車型號和時間自動計算費用
+- 更新訂單時，如果修改了合作商、機車或時間，且沒有提供金額，會自動重新計算費用
+- 用戶可以手動輸入金額來覆蓋自動計算的結果
+- 計算邏輯與 `BookingController::convertToOrder()` 和報表計算邏輯一致
+
+### 技術細節
+- 天數計算：
+  ```php
+  $isSameDay = $startTime->isSameDay($endTime);
+  if ($isSameDay) {
+      $days = 1; // 當日租
+  } else {
+      $days = $startTime->diffInDays($endTime); // 跨日租：夜數
+  }
+  ```
+- 費用查詢：從 `partner_scooter_model_transfer_fees` 表查詢，根據 `scooter_model_id` 匹配
+- 前端計算：使用 `useCallback` 和 `useEffect` 實現響應式計算
+
+## 2026-01-15 08:35:00 (+8) - 修正預計還車時間日期選擇器的獨立 focus 處理
+
+### 變更內容
+
+#### 前端修正
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 為預計還車時間的 Flatpickr 添加獨立的 focus 處理
+  - 添加 `onOpen` 和 `onClose` 回調函數，確保日期選擇器有獨立的 focus 狀態
+  - 添加 `clickOpens: true` 選項到所有日期選擇器配置中
+
+### 問題說明
+- 用戶要求預計還車時間的日期選擇器應該有自己獨立的 focus
+- 確保點擊時能正確打開並獲得焦點
+
+## 2026-01-14 22:55:00 (+8) - 修正日期選擇器：確保每個日期欄位使用獨立的日曆
+
+### 變更內容
+
+#### 前端修正
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 修改 Flatpickr 配置，確保每個日期欄位使用獨立的日曆
+  - 將 `dateOptions` 改為 `getDateOptions()` 函數，每次調用都返回新的配置對象
+  - 為每個 Flatpickr 實例添加唯一的 key（包含 `editingOrder?.id` 或 'new'）
+  - 添加 `static: true` 選項，使每個日曆使用靜態定位，避免共享日曆視圖
+  - 修改所有日期欄位：
+    - 預約日期（`appointment_date`）
+    - 開始時間（`start_time`）
+    - 結束時間（`end_time`）
+    - 預計還車時間（`expected_return_time`）
+    - 船班時間（來）（`ship_arrival_time`）
+    - 船班時間（回）（`ship_return_time`）
+
+### 問題說明
+- 用戶要求每個日期欄位都是獨立的，不能共用同一個日曆
+- 之前的實現可能導致多個日期欄位共享日曆實例
+
+### 技術細節
+- 每個 Flatpickr 實例使用唯一的 key：`${fieldName}-${editingOrder?.id || 'new'}`
+- 配置對象使用函數返回，確保每次都是新對象
+- 添加 `static: true` 選項，避免日曆視圖共享
+
+## 2026-01-14 22:50:00 (+8) - 隱藏合作商分類功能
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 隱藏「合作商分類」按鈕和相關功能
+  - 註釋掉「合作商分類」按鈕和分隔符號
+  - 註釋掉 `PartnerCategoryModal` 組件
+
+### 問題說明
+- 用戶要求隱藏「合作商分類」功能
+
+## 2026-01-14 22:45:00 (+8) - 修正 Excel 格式：每個型號 4 欄，金額全部寫在第 4 欄
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修正 Excel 表頭結構：每個型號改為 4 欄
+  - 欄位結構：
+    - 第 1 欄：當日租台數
+    - 第 2 欄：跨日租台數
+    - 第 3 欄：跨日租天數
+    - 第 4 欄：金額（當日租和跨日租共用）
+  - 修改數據行：金額全部寫在第 4 欄
+  - 修改總計行和小計行：金額全部寫在第 4 欄
+
+### 問題說明
+- 用戶要求金額全部寫在第 4 欄，如圖片所示
+- 之前誤解為 7 欄結構，應改為 4 欄結構
+
+### 技術細節
+- 表頭結構：
+  - 第二行：機車型號標題（每個型號佔 4 欄）
+  - 第三行：當日租（1 欄）、跨日租（3 欄合併）
+  - 第四行：台數（當日租下）、台數、天數、金額（跨日租下）
+- 數據行：每個型號 4 欄（當日租台數、跨日租台數、跨日租天數、金額）
+- 金額欄位：當日租和跨日租共用第 4 欄
+
+## 2026-01-14 22:35:00 (+8) - 修改 Excel 格式：當日租金額寫在跨日租金額位置，共用金額欄位
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 Excel 表頭結構：當日租從 2 欄（台數、金額）改為 4 欄（台數、空白、空白、金額）
+  - 當日租和跨日租共用最後一個金額欄位
+  - 每個型號從 5 欄改為 7 欄：當日租（台數、空白、空白、金額）4 欄 + 跨日租（台數、天數、金額）3 欄
+  - 修改數據行：當日租台數後空 2 格，金額寫在跨日租金額的位置
+  - 修改總計行和小計行：當日租和跨日租共用金額欄位
+
+### 問題說明
+- 用戶要求當日租的台數和金額之間空 2 格，金額寫在跨日租金額的位置
+- 當日租和跨日租共用最後一個金額欄位，不是分開寫
+
+### 技術細節
+- 表頭結構：
+  - 第二行：機車型號標題（每個型號佔 7 欄）
+  - 第三行：當日租（4 欄合併：台數、空白、空白、金額）、跨日租（3 欄合併：台數、天數、金額）
+  - 第四行：台數、空白、空白、金額（當日租下）、台數、天數、金額（跨日租下）
+- 數據行：每個型號 7 欄（當日租台數、空白、空白、金額、跨日租台數、跨日租天數、空白）
+- 金額欄位：當日租和跨日租共用第 4 欄（金額位置）
+
+## 2026-01-14 22:20:00 (+8) - 修改 Excel 格式：當日租增加金額欄位
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 Excel 表頭結構：當日租從 1 欄（台數）改為 2 欄（台數、金額）
+  - 每個型號從 4 欄改為 5 欄：當日租（台數、金額）2 欄 + 跨日租（台數、天數、金額）3 欄
+  - 修改數據行：當日租顯示台數和金額
+  - 修改總計行和小計行：當日租也顯示金額
+
+### 問題說明
+- 用戶要求當日租也要顯示金額，如圖片所示
+- 之前當日租只有台數（1 欄），現在改為台數、金額（2 欄）
+
+### 技術細節
+- 表頭結構：
+  - 第二行：機車型號標題（每個型號佔 5 欄）
+  - 第三行：當日租（2 欄合併）、跨日租（3 欄合併）
+  - 第四行：台數、金額（當日租下）、台數、天數、金額（跨日租下）
+- 數據行：每個型號 5 欄（當日租台數、當日租金額、跨日租台數、跨日租天數、跨日租金額）
+
+## 2026-01-14 22:08:00 (+8) - 修復 Export 功能錯誤：修正未定義變數 dateWithWeekday
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修正 `handleExportPartnerReport()` 函數中的未定義變數錯誤
+  - 問題：使用了未定義的變數 `dateWithWeekday`，導致 Export 時出現錯誤
+  - 修正：將 `dateWithWeekday` 改為 `formattedDate`，這是已經定義的變數
+
+### 問題說明
+- 用戶點擊 Export 按鈕時出現錯誤："匯出合作商月報表時發生錯誤，請稍後再試"
+- 原因是使用了未定義的變數 `dateWithWeekday`
+
+### 技術細節
+- 修正位置：第 145 行和第 155 行
+- 將 `dateWithWeekday` 改為 `formattedDate`，這是從 `dateStr` 格式化後的日期字串
+
+## 2026-01-14 22:04:15 (+8) - 修正 partnerDailyReport 數量計算錯誤，參考 partnerMonthlyStatistics 的累加邏輯
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修正 `processPartnerOrders()` 方法中的數量計算錯誤
+  - 問題：如果同一個訂單內同一個型號有多筆 `order_scooter` 記錄，會覆蓋而不是累加
+  - 修正：參考 `partnerMonthlyStatistics` 的邏輯，當同一個訂單內同一個型號有多筆記錄時，累加數量、天數和金額
+  - 修正數據轉換邏輯：`$dateOrders` 已經按 `order_number` 分組，不需要再次 `groupBy`
+
+### 問題說明
+- 用戶報告數量計算錯誤
+- `partnerDailyReport` 的計算方式應該與 `partnerMonthlyStatistics` 一致
+- 同一個訂單內，如果同一個型號有多筆記錄，應該累加而不是覆蓋
+
+### 技術細節
+- 累加邏輯：
+  ```php
+  if ($orderModels->has($modelString)) {
+      $existing = $orderModels->get($modelString);
+      // 累加數量、天數、金額
+      'same_day_count' => ($existing['same_day_count'] ?? 0) + ($isSameDay ? $scooterCount : 0),
+      // ...
+  }
+  ```
+- 數據結構：`$datesData` 是 `Collection<date, Collection<order_number, Collection<model_string, modelData>>>`
+
+## 2026-01-14 21:53:18 (+8) - 修改合作商月報表 Excel 格式：當日租1欄，跨日租3欄，按 order_number 分開顯示
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 Excel 表頭結構：
+    - 第一層：機車型號標題（每個型號佔 4 欄）
+    - 第二層：當日租（1 欄）、跨日租（3 欄）
+    - 第三層：台數（當日租下，1 欄）、台數、天數、金額（跨日租下，3 欄）
+  - 修改數據行格式：
+    - 當日租：只顯示台數（1 欄）
+    - 跨日租：顯示台數、天數、金額（3 欄）
+  - 修改總計行和小計行以符合新格式
+  - 支援按 `order_number` 分開顯示：同一天有多個訂單時，每個訂單顯示一行
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修改 `processPartnerOrders()` 方法，按 `order_number` 分開存儲數據
+  - 修改 `partnerDailyReport()` 返回結構：
+    - 將 `dates[].models` 改為 `dates[].orders[]`
+    - 每個 `order` 包含 `order_number` 和 `models` 陣列
+    - 即使型號相同，不同的 `order_number` 也會分開顯示
+
+### 問題說明
+- 用戶要求 Excel 格式調整：
+  - 當日租：只有台數（1 欄）
+  - 跨日租：台數、天數、金額（3 欄）
+  - 每個型號總共 4 欄（1 + 3）
+- 不同的 `order_number`，即使型號相同，也要寫成不同資料（分開顯示）
+
+### 技術細節
+- Excel 表頭結構：
+  ```
+  第一層：機車型號（每個型號 4 欄）
+  第二層：當日租（1欄）、跨日租（3欄）
+  第三層：台數（當日租）、台數、天數、金額（跨日租）
+  ```
+- 數據結構變更：
+  ```php
+  // 舊結構
+  dates[].models[]
+  
+  // 新結構
+  dates[].orders[].models[]
+  dates[].orders[].order_number
+  ```
+- 前端處理：如果同一天有多個訂單，每個訂單顯示一行，只有第一個訂單顯示日期
+
+## 2026-01-14 21:37:19 (+8) - 修復合作商月報表匯出功能錯誤
+
+### 變更內容
+
+#### 前端修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修復 `handleExportPartnerReport()` 函數中的變數作用域問題
+  - 修復 `subtotalRow` 中使用未定義變數 `modelSameDayTotalAmount` 和 `modelOvernightTotalAmount` 的錯誤
+  - 改進空字符串處理邏輯：
+    - 當後端返回空字符串 `''` 時，正確轉換為數字 0 進行計算
+    - 使用 `Number()` 函數確保類型轉換正確
+    - 在數據行、總計行和小計行中統一處理空值
+
+### 問題說明
+- 點擊 Export 按鈕時出現錯誤："匯出合作商月報表時發生錯誤，請稍後再試"
+- 後端 API 正常返回數據，但前端處理數據時出現變數作用域錯誤
+- 空字符串值未正確轉換為數字，導致計算錯誤
+
+### 技術細節
+- 修復變數作用域：在 `subtotalRow` 的 `forEach` 循環中重新計算 `modelSameDayTotalAmount` 和 `modelOvernightTotalAmount`
+- 空值處理：
+  ```typescript
+  const sameDayCount = modelData.same_day_count === '' ? 0 : Number(modelData.same_day_count) || 0;
+  ```
+- 確保所有累加操作都正確處理空字符串和數字類型
+
+## 2026-01-14 21:26:09 (+8) - 改寫 partnerDailyReport 使用 partnerMonthlyStatistics 的計算方式
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 改寫 `partnerDailyReport()` 方法，使用與 `partnerMonthlyStatistics()` 相同的計算邏輯
+  - 統一計算方式：
+    - 天數計算：當日租 = 1 天，跨日租 = 夜數（`diffInDays`）
+    - 費用計算：金額 × 天數 × 台數
+    - 數據結構：按日期分組，然後按機車型號分組，分別累加當日租和跨日租
+  - 改進數據處理流程：
+    - 使用 `foreach` 循環處理訂單，而不是 `flatMap`
+    - 使用 `collect()` 按日期和機車型號分組累加
+    - 確保當日租和跨日租分開計算和累加
+
+### 問題說明
+- `partnerDailyReport` 和 `partnerMonthlyStatistics` 應該使用相同的計算邏輯
+- 確保兩個 API 的計算結果一致
+
+### 技術細節
+- 計算邏輯統一：
+  ```php
+  // 判斷當日租或跨日租
+  $isSameDay = $startTime->isSameDay($endTime);
+  if ($isSameDay) {
+      $days = 1; // 當日租
+  } else {
+      $days = $startTime->diffInDays($endTime); // 跨日租：夜數
+  }
+  
+  // 費用計算
+  $amount = (int) $transferFeePerUnit * $days * $scooterCount;
+  ```
+- 數據累加：按日期和機車型號分組，分別累加當日租和跨日租的數據
+
+## 2026-01-14 21:16:16 (+8) - 修正跨日天數計算：改為計算夜數（start_date ~ end_date - 1）
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修正跨日天數計算邏輯
+  - 跨日計算改為夜數：`start_date ~ end_date - 1`
+  - 計算規則：
+    - 當日租：同一天 = 1 天
+    - 跨日租：計算夜數
+      - 1/1-1/2 = 1 夜（2天1夜）
+      - 1/1-1/3 = 2 夜（3天2夜）
+      - 1/1-1/4 = 3 夜（4天3夜）
+  - 使用 `diffInDays()` 直接作為夜數（不需要 +1 或 -1）
+
+### 問題說明
+- 跨日租應該計算夜數，而不是總天數
+- 例如：1/1-1/3 應該是 2 夜（3天2夜），不是 3 天
+
+### 技術細節
+- 天數計算：
+  ```php
+  if ($isSameDay) {
+      $days = 1; // 當日租
+  } else {
+      $days = $startTime->diffInDays($endTime); // 跨日租：直接使用 diffInDays 作為夜數
+  }
+  ```
+- 範例：
+  - 1/1-1/1：`diffInDays = 0`，但 `isSameDay = true`，所以 `days = 1`（當日租）
+  - 1/1-1/2：`diffInDays = 1`，`isSameDay = false`，所以 `days = 1`（1夜）
+  - 1/1-1/3：`diffInDays = 2`，`isSameDay = false`，所以 `days = 2`（2夜）
+  - 1/1-1/4：`diffInDays = 3`，`isSameDay = false`，所以 `days = 3`（3夜）
+
+## 2026-01-14 20:44:05 (+8) - 修正合作商分類統計：區分當日租和跨日租，分別計算費用
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修改 `partnerMonthlyStatistics()` 方法，區分當日租和跨日租
+  - 使用 `start_time` 和 `end_time` 判斷：
+    - 同一天：計算當日費用（`same_day_transfer_fee`）
+    - 跨日：計算跨日費用（`overnight_transfer_fee`）
+  - 計算公式：金額 × 天數 × 台數
+    - 例如：2台 = 金額 × 天數 × 2
+    - 例如：3台 = 金額 × 天數 × 3
+  - 相同型號的費用個別計算（當日租和跨日租分開）
+  - 返回數據包含：
+    - `same_day_count`, `same_day_days`, `same_day_amount`（當日租）
+    - `overnight_count`, `overnight_days`, `overnight_amount`（跨日租）
+    - `total_count`, `total_days`, `total_amount`（總計）
+
+#### 前端顯示修正
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 更新 `PartnerCategoryModal` 組件
+  - 表格改為兩層表頭：第一層顯示機車型號，第二層顯示「當日租」和「跨日租」
+  - 每個機車型號下分別顯示當日租和跨日租的台數、天數、金額
+  - 總金額顯示全部費用（當日租 + 跨日租）
+
+### 問題說明
+- 需要區分當日租和跨日租，分別計算費用
+- 相同型號在同一天可能同時有當日租和跨日租的訂單，需要分開計算
+- 總金額是所有費用的總和
+
+### 技術細節
+- 費用計算：
+  - 當日租：`same_day_transfer_fee × 天數 × 台數`
+  - 跨日租：`overnight_transfer_fee × 天數 × 台數`
+- 數據結構：
+  ```json
+  {
+    "model": "ES-1000 綠牌",
+    "same_day_count": 1,
+    "same_day_days": 1,
+    "same_day_amount": 200,
+    "overnight_count": 2,
+    "overnight_days": 2,
+    "overnight_amount": 1800,
+    "total_count": 3,
+    "total_days": 3,
+    "total_amount": 2000
+  }
+  ```
+
+## 2026-01-14 20:44:05 (+8) - 新增前端合作商單月統計 API（按日期分組）
+
+### 變更內容
+
+#### 新增 API 端點
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 新增 `partnerMonthlyStatistics()` 方法
+  - 提供前端合作商單月統計功能，返回 JSON 格式
+  - 分合作商統計，按日期和機車型號計算費用
+
+- **api.php** (`routes/api.php`)
+  - 新增路由：`GET /api/orders/partner-monthly-statistics`
+
+### 功能說明
+- **分合作商統計**：按 `orders.partner_id` 分組統計
+- **按日期分組**：返回該月份每一天的數據（包含所有日期，即使沒有訂單）
+- **計算天數邏輯**：
+  - 同一天算 1 天（當日租）
+  - 超過 1 天，直接減 1（跨日租）
+  - 例如：1/1-1/1=1天, 1/1-1/2=1天(2-1), 1/1-1/3=2天(3-1)
+- **費用計算**：使用跨日租費用（`overnight_transfer_fee`）
+- **計算公式**：機車型號數量 × 合作商機車型號的金額 × 天數
+- **使用的表**：`orders`, `order_scooter`, `scooters`
+- **Header**：使用 `scooter_models` 表產生所有機車型號列表
+
+### 技術細節
+- 查詢該月份的所有訂單（`start_time` 在該月份範圍內）
+- 透過 `order_scooter.scooter_id` 關聯到 `scooters` 表取得 `model`
+- 按合作商、日期和機車型號分組統計
+- 使用 `start_time` 的日期作為分組鍵
+- 返回格式：
+  ```json
+  {
+    "data": {
+      "partners": [
+        {
+          "partner_id": 1,
+          "partner_name": "合作商名稱",
+          "dates": [
+            {
+              "date": "2026-01-01",
+              "weekday": "Wednesday",
+              "models": [
+                {
+                  "model": "ES-1000 綠牌",
+                  "count": 3,
+                  "days": 1,
+                  "amount": 300
+                }
+              ]
+            },
+            {
+              "date": "2026-01-02",
+              "weekday": "Thursday",
+              "models": []
+            }
+          ]
+        }
+      ],
+      "headers": ["ES-1000 綠牌", "ES-2000 白牌", ...]
+    },
+    "month": "2026-01"
+  }
+  ```
+
+## 2026-01-14 17:46:36 (+8) - OrderScooter 移除所有 ScooterModel 相關邏輯
+
+### 變更內容
+
+#### 模型修正
+- **OrderScooter.php** (`app/Models/OrderScooter.php`)
+  - 移除 `scooterModel()` 方法（hasOneThrough 關聯）
+  - 修改 `getModelNameAttribute()`：只使用 `scooter->attributes['model']`，不再使用 `scooterModel`
+  - 修改 `getModelTypeAttribute()`：只使用 `scooter->attributes['type']`，不再使用 `scooterModel`
+  - 修改 `getModelStringAttribute()`：移除所有 `scooterModel` 相關邏輯，只使用 `scooter` 表的 `model` 和 `type` 欄位
+  - 優先順序改為：`scooter.model/type` > `plate_number`
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在 `partnerDailyReport` 方法中，移除 `scooterModel` 的載入
+  - 查詢改為：`OrderScooter::where('order_id', '=', $order->id)->with(['scooter'])->get()`
+  - 不再載入 `scooter.scooterModel` 關聯
+
+### 問題說明
+- `OrderScooter` 不應該使用 `ScooterModel`，應該直接使用 `Scooter` 表的 `model` 和 `type` 欄位
+- 簡化邏輯，移除不必要的關聯查詢
+
+### 技術細節
+- 查詢方式：
+  ```php
+  OrderScooter::where('order_id', '=', $order->id)
+      ->with(['scooter'])
+      ->get()
+  ```
+- 型號資訊取得：
+  - 直接從 `$this->scooter->attributes['model']` 和 `$this->scooter->attributes['type']` 取得
+  - 不再透過 `scooterModel` 關聯
+
+## 2026-01-14 17:42:22 (+8) - partnerDailyReport 改用 OrderScooter 模型
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在 `partnerDailyReport` 方法中改用 `OrderScooter` 模型，取代直接使用 `DB::table('order_scooter')`
+  - 使用 Eloquent 關聯查詢：`OrderScooter::where('order_id', $order->id)->with(['scooter.scooterModel'])->get()`
+  - 使用 `OrderScooter` 模型的 `model_string` accessor 來取得機車型號字串
+  - 簡化代碼，利用模型的 accessor 自動處理型號資訊的優先順序
+
+#### 模型優化
+- **OrderScooter.php** (`app/Models/OrderScooter.php`)
+  - 優化 `getModelStringAttribute()` accessor，確保正確處理型號資訊的優先順序
+  - 優先順序：`scooterModel` > `scooter.model/type` > `plate_number`
+
+### 問題說明
+- 原本使用 `DB::table('order_scooter')` 直接查詢，代碼較複雜
+- 改用 `OrderScooter` 模型可以更好地利用 Eloquent 的關聯和 accessor
+- 代碼更簡潔，維護更容易
+
+### 技術細節
+- 查詢方式：
+  ```php
+  OrderScooter::where('order_id', $order->id)
+      ->with(['scooter.scooterModel'])
+      ->get()
+  ```
+- 分組邏輯：
+  - 使用 `$orderScooter->model_string` accessor 取得型號字串
+  - 使用 `filter()` 過濾掉空字串的 model_string
+- 優點：
+  - 代碼更簡潔
+  - 利用 Eloquent 的關聯和 accessor
+  - 更容易維護和擴展
+
+## 2026-01-14 17:40:34 (+8) - 新增 OrderScooter 模型及相關方法
+
+### 變更內容
+
+#### 新增模型
+- **OrderScooter.php** (`app/Models/OrderScooter.php`)
+  - 創建 `OrderScooter` 模型，對應 `order_scooter` 表
+  - 添加 `order()` 方法：獲取所屬的訂單
+  - 添加 `scooter()` 方法：獲取所屬的機車
+  - 添加 `scooterModel()` 方法：透過 `hasOneThrough` 獲取機車型號
+  - 添加 `getModelNameAttribute()` accessor：獲取機車型號名稱
+  - 添加 `getModelTypeAttribute()` accessor：獲取機車型號類型
+  - 添加 `getModelStringAttribute()` accessor：獲取機車型號字串（name + type）
+
+#### 模型關聯更新
+- **Order.php** (`app/Models/Order.php`)
+  - 添加 `orderScooters()` 方法：獲取該訂單的所有 `OrderScooter` 記錄
+
+- **Scooter.php** (`app/Models/Scooter.php`)
+  - 添加 `orderScooters()` 方法：獲取該機車的所有 `OrderScooter` 記錄
+
+### 問題說明
+- 需要一個專門的模型來處理 `order_scooter` 表的操作
+- 方便直接查詢和操作 `order_scooter` 記錄，而不需要透過 pivot 表
+
+### 技術細節
+- `OrderScooter` 模型使用 `protected $table = 'order_scooter'` 指定表名
+- 關聯方法：
+  - `order()`: `belongsTo(Order::class)`
+  - `scooter()`: `belongsTo(Scooter::class)`
+  - `scooterModel()`: `hasOneThrough(ScooterModel::class, Scooter::class)`
+- Accessor 方法會自動處理型號資訊的取得，優先使用 `scooterModel` 關聯，如果沒有則使用 `scooter` 本身的 `model` 和 `type` 欄位
+
+## 2026-01-14 17:39:03 (+8) - 修正 order_scooter 查詢，確保從 scooters 表取得 model 欄位
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修正查詢 `order_scooter` 時的欄位選擇
+  - 明確從 `scooters` 表取得 `model` 欄位（別名為 `scooter_model`）
+  - 確保分組邏輯正確使用 `scooters.model` 和 `scooters.type` 欄位
+
+### 問題說明
+- 查詢 `order_scooter` 時需要確保能取得機車的 model 資訊
+- `scooters` 表有 `model` 和 `type` 欄位，應該在查詢時明確選取
+
+### 技術細節
+- 查詢欄位：
+  ```php
+  ->select(
+      'order_scooter.id as order_scooter_id',
+      'order_scooter.order_id',
+      'order_scooter.scooter_id',
+      'scooters.model as scooter_model',  // scooters 表的 model 欄位
+      'scooters.type as scooter_type',     // scooters 表的 type 欄位
+      'scooter_models.name as model_name',  // scooter_models 表的 name
+      'scooter_models.type as model_type'    // scooter_models 表的 type
+  )
+  ```
+- 分組邏輯：
+  1. 優先使用 `scooter_models.name` + `scooter_models.type`
+  2. 若無，使用 `scooters.model` + `scooters.type`（從 `scooter_model` 和 `scooter_type` 取得）
+  3. 最後使用 `scooters.plate_number`
+
+## 2026-01-14 17:37:24 (+8) - 改用 order_scooter 表查詢，確保所有機車記錄都被計算
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 改用直接查詢 `order_scooter` 表，而不是使用 `Order->scooters` 關聯
+  - 使用 `DB::table('order_scooter')` 進行 JOIN 查詢，載入 `scooters` 和 `scooter_models` 資料
+  - 確保每一筆 `order_scooter` 記錄都被正確計算和顯示
+
+### 問題說明
+- `orders` 與 `order_scooter` 顯示有 3 台機車，但報表中只看到 2 台
+- 原因是使用 `Order->scooters` 關聯時，可能因為某些原因導致記錄遺漏
+- 改用直接查詢 `order_scooter` 表可以確保每一筆記錄都被計算
+
+### 技術細節
+- 查詢方式：
+  ```php
+  \DB::table('order_scooter')
+      ->where('order_id', $order->id)
+      ->join('scooters', 'order_scooter.scooter_id', '=', 'scooters.id')
+      ->leftJoin('scooter_models', 'scooters.scooter_model_id', '=', 'scooter_models.id')
+  ```
+- 台數計算：使用 `$orderScooters->count()` 計算該型號的機車數量
+
+## 2026-01-14 17:29:34 (+8) - 修正合作商日報表機車分組，確保所有機車都會顯示
+
+### 變更內容
+
+#### 後端 API 修正
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 調整機車分組邏輯：
+    - 優先使用 `scooterModel` 的 `name` + `type` 作為分組鍵
+    - 若無 `scooterModel`，使用機車本身的 `model` 和 `type`（透過 accessor）
+    - 若仍無型號與類型，最後以 `plate_number` 車牌號作為分組鍵，避免記錄被過濾
+  - 目的：即使某些機車沒有綁定車型或型號資料不完整，依然會出現在合作商日報表中
+
+### 問題說明
+- `orders` 與 `order_scooter` 顯示有 3 台機車，但報表中只看到 2 台
+- 其中一台機車因為缺少車型 / 類型資訊，被分組邏輯產生空字串鍵，後續在 `filter()` 時被移除
+
+### 技術細節
+- 新的分組鍵優先順序：
+  1. `{$scooter->scooterModel->name} {$scooter->scooterModel->type}`
+  2. `{$scooter->model} {$scooter->type}`（Scooter 模型 accessor）
+  3. `plate_number`（車牌號）
+- 如此可保證每一筆 `order_scooter` 記錄都有非空的分組鍵，避免在 `->filter()` 時被排除
+
+## 2026-01-14 17:03:52 (+8) - 統一調車費用計算邏輯：合作商的機車型號單價 × 天數 × 台數
+
+### 變更內容
+
+#### 調車費用計算邏輯統一
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 更新調車費用計算邏輯，添加詳細註釋
+  - 計算公式：合作商的機車型號單價 × 天數 × 台數
+  - 變數命名改為 `$transferFeePerUnit` 以更清晰表達含義
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 更新 `store()` 方法中的調車費用計算邏輯
+  - 更新 `update()` 方法中的調車費用計算邏輯
+  - 統一計算順序：調車費用 × 天數 × 台數（與 OrderController 保持一致）
+  - 更新註釋說明計算公式
+
+### 問題說明
+- 確保所有 API 使用相同的調車費用計算邏輯
+- 計算公式：**合作商的機車型號單價 × 天數 × 台數**
+- 統一變數命名和註釋，提高代碼可讀性
+
+### 技術細節
+- 計算步驟：
+  1. 獲取合作商的機車型號單價（當日租或跨日租）
+  2. 計算天數（當日租=1，跨日租=開始日期到結束日期的天數差）
+  3. 計算台數（同一訂單中相同型號的機車數量）
+  4. 計算總費用：單價 × 天數 × 台數
+
+## 2026-01-14 16:02:04 (+8) - 移除後端 Excel 生成功能，只保留數據生成
+
+### 變更內容
+
+#### 後端 API 簡化
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 移除 `partnerDailyReport()` 方法中所有 Excel 生成相關的代碼
+  - 移除 `format` 參數的驗證和處理邏輯
+  - 移除 `PartnerMonthlyReportExport` 類的使用
+  - 移除 `PhpOffice\PhpSpreadsheet\Writer\Xlsx` 的引用
+  - 簡化方法，只返回 JSON 數據
+
+### 問題說明
+- 由於前端已經改為直接產生 Excel 文件，後端不再需要處理 Excel 生成
+- 後端 `partnerDailyReport` API 現在只負責產生和返回 JSON 數據
+- 前端獲取 JSON 數據後，使用 `xlsx` 庫在前端產生 Excel 文件
+
+### 技術細節
+- 移除的內容：
+  - `format` 參數驗證
+  - Excel 文件生成邏輯
+  - 臨時文件處理
+  - 文件下載響應
+- 保留的內容：
+  - 數據查詢和處理邏輯
+  - JSON 數據返回
+
+## 2026-01-14 16:00:25 (+8) - 改為前端直接產生 Excel 文件
+
+### 變更內容
+
+#### 前端功能改進
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `handleExportPartnerReport` 函數，改為在前端直接產生 Excel 文件
+  - 從後端獲取 JSON 數據（使用 `format=json` 參數）
+  - 使用 `xlsx` 庫在前端產生 Excel 文件，格式與後端產生的格式一致
+  - 實現完整的 Excel 結構：標題、多層表頭、數據行、總計行
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 更新 `partnerDailyReport` API 方法，支持 `format` 參數
+
+### 問題說明
+- 之前是後端產生 Excel 文件，前端直接下載
+- 現在改為前端獲取 JSON 數據，然後在前端使用 `xlsx` 庫產生 Excel
+- 優點：
+  - 減少後端負擔
+  - 前端可以即時產生，無需等待後端處理
+  - 可以更好地處理錯誤和用戶反饋
+
+### 技術細節
+- 使用 `xlsx` 庫（SheetJS）產生 Excel 文件
+- Excel 格式包括：
+  - 標題行（合併單元格）
+  - 多層表頭（當日租/跨日租、機車型號、台數/天數/金額）
+  - 數據行（按日期和機車型號）
+  - 總計行（月結總計、小計、總金額）
+- 合併單元格使用 `ws['!merges']` 屬性
+- 列寬設置使用 `ws['!cols']` 屬性
+
+## 2026-01-14 15:57:00 (+8) - 添加 format 參數支持前端選擇返回格式（Excel 或 JSON）
+
+### 變更內容
+
+#### API 功能增強
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在 `partnerDailyReport()` 方法中添加 `format` 參數支持
+  - 支持 `format=excel`：返回 Excel 文件（需要 partner_id）
+  - 支持 `format=json`：返回 JSON 數據（即使有 partner_id）
+  - 未指定 format 時保持向後兼容：有 partner_id 返回 Excel，沒有返回 JSON
+  - 移除剩餘的 `dd()` 調試語句
+
+### 問題說明
+- 如果 React 前端需要直接處理 Excel 取得資料，有兩種方式：
+  1. **下載 Excel 文件**：使用 `format=excel` 或直接提供 `partner_id`，後端返回 Excel 文件
+  2. **獲取 JSON 數據**：使用 `format=json` 或不提供 `partner_id`，後端返回結構化的 JSON 數據
+- 前端可以根據需求選擇：
+  - 需要下載文件給用戶：使用 Excel 格式
+  - 需要在前端讀取和處理數據：使用 JSON 格式（不需要在前端安裝 Excel 處理庫）
+
+### 技術細節
+- API 使用方式：
+  ```
+  GET /api/orders/partner-daily-report?month=2026-01&partner_id=1&format=excel  // 返回 Excel 文件
+  GET /api/orders/partner-daily-report?month=2026-01&partner_id=1&format=json  // 返回 JSON 數據
+  GET /api/orders/partner-daily-report?month=2026-01&partner_id=1              // 默認返回 Excel（向後兼容）
+  GET /api/orders/partner-daily-report?month=2026-01                            // 默認返回 JSON（向後兼容）
+  ```
+- 驗證規則：`format` 參數必須是 `excel` 或 `json`
+- 如果指定 `format=excel` 但沒有提供 `partner_id`，會返回 422 錯誤
+
+## 2026-01-14 15:54:15 (+8) - 修正 Excel 下載變成 HTML 的問題
+
+### 變更內容
+
+#### Excel 匯出功能
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 移除 Excel 生成路徑上的 `dd()` 調試語句，避免返回 HTML 調試輸出而不是 Excel 文件
+  - 添加文件驗證，檢查文件是否存在且大小大於 0
+  - 改進錯誤日誌記錄，記錄文件生成失敗的詳細信息
+
+### 問題說明
+- 當 Excel 文件下載時變成 HTML 格式，通常是因為：
+  1. `dd()` 語句被執行，返回調試輸出（HTML 格式）而不是文件
+  2. 文件沒有正確生成，返回錯誤頁面（HTML 格式）
+- 解決方案：移除所有會阻止文件下載的 `dd()` 語句，並添加文件驗證確保文件正確生成
+
+### 技術細節
+- 移除的 `dd()` 語句：
+  - `dd('Step 12: Excel 檔案生成完成', ...)` - 在文件生成後
+  - `dd('Step 13: 準備下載 Excel', ...)` - 在下載前
+- 添加的文件驗證：
+  ```php
+  if (!file_exists($tempFile) || filesize($tempFile) === 0) {
+      // 記錄錯誤並返回錯誤響應
+  }
+  ```
+
+## 2026-01-14 15:25:05 (+8) - 修正 PhpSpreadsheet Xlsx Writer 使用方式
+
+### 變更內容
+
+#### Excel 匯出功能
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 將 `Xlsx` Writer 的使用方式從鏈式調用改為分步驟執行，提高可讀性和錯誤處理能力
+  - 添加 try-catch 錯誤處理，捕獲 Excel 生成過程中的異常
+  - 確保臨時文件有正確的 `.xlsx` 擴展名
+  - 添加詳細的錯誤日誌記錄
+
+### 問題說明
+- `use PhpOffice\PhpSpreadsheet\Writer\Xlsx;` 的使用方式可能有問題
+- 原來的寫法 `(new Xlsx($export->generate()))->save($tempFile);` 雖然語法正確，但缺少錯誤處理
+- 改為更明確的分步驟寫法，便於調試和錯誤處理
+
+### 技術細節
+- 使用方式：
+  ```php
+  $spreadsheet = $export->generate();
+  $writer = new Xlsx($spreadsheet);
+  $writer->save($tempFile);
+  ```
+- 添加錯誤處理，捕獲可能的異常（如文件權限問題、內存不足等）
+- 確保臨時文件有正確的擴展名，避免下載時的文件類型問題
+
+## 2026-01-14 14:15:11 - 修正部署腳本：添加 Composer 依賴安裝步驟
+
+### 變更內容
+
+#### 部署腳本
+- **build.sh** (`build.sh`)
+  - 在 Git 更新後、資料庫遷移前添加 `composer install --no-dev --optimize-autoloader` 步驟
+  - 更新所有步驟編號從 [1/9] 到 [1/10] 到 [10/10]
+  - 確保在執行任何 artisan 命令前，所有 Composer 依賴都已正確安裝
+
+### 問題說明
+- 部署時出現 PHP Fatal Error: `Class "SebastianBergmann\Version" not found`
+- 錯誤發生在執行 `php artisan migrate`、`php artisan route:cache`、`php artisan config:cache` 等命令時
+- 原因是 `vendor` 目錄中的依賴不完整，缺少 `sebastian/version` 套件（PHPUnit 的依賴）
+- 當添加了新的套件（如 `maatwebsite/excel`）後，需要在部署時執行 `composer install` 來安裝所有依賴
+
+### 技術細節
+- 使用 `composer install --no-dev --optimize-autoloader` 來：
+  - `--no-dev`: 不安裝開發依賴（減少部署時間和空間）
+  - `--optimize-autoloader`: 優化自動載入器（提升性能）
+- 執行順序：
+  1. Git pull
+  2. **Composer install**（新增）
+  3. 清除 Laravel 快取
+  4. 資料庫遷移
+  5. 其他部署步驟
+
+## 2026-01-14 12:25:01 (+8) - 添加 Excel 匯出錯誤處理和日誌記錄
+
+### 變更內容
+
+#### 後端錯誤處理
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在 Excel 生成邏輯中添加 try-catch 錯誤處理
+  - 添加臨時檔案創建檢查
+  - 添加檔案存在性檢查
+  - 添加詳細的錯誤日誌記錄（包含錯誤訊息、堆疊追蹤、partner_id、month）
+  - 返回友好的錯誤訊息給前端（在 debug 模式下包含詳細錯誤資訊）
+
+### 問題說明
+- 用戶在點擊 Export 按鈕時遇到 500 Internal Server Error
+- 需要添加錯誤處理來診斷問題原因
+- 可能的問題原因：
+  1. PhpSpreadsheet 套件沒有正確安裝
+  2. 缺少必要的 PHP 擴展（如 zip）
+  3. 臨時檔案權限問題
+  4. 代碼執行時的錯誤
+
+### 技術細節
+- 使用 `\Log::error()` 記錄錯誤訊息和堆疊追蹤
+- 檢查 `tempnam()` 返回值是否為 false
+- 檢查生成的檔案是否存在
+- 在 debug 模式下返回詳細錯誤資訊，生產環境下返回簡化錯誤訊息
+
+## 2026-01-14 12:04:52 (+8) - 修正部署腳本：在清除快取前先刪除舊配置檔案
+
+### 變更內容
+
+#### 部署腳本
+- **build.sh** (`build.sh`)
+  - 在清除快取前先刪除 `config/excel.php` 檔案（如果存在）
+  - 確保在執行 `php artisan config:clear` 前不會載入舊配置
+  - 調整執行順序：先刪除配置檔案，再清除快取，最後執行 artisan 命令
+
+### 問題說明
+- 執行 `php artisan config:clear` 時出現錯誤：`Class "Maatwebsite\Excel\Excel" not found`
+- 原因是 `config/excel.php` 配置檔案仍然存在，Laravel 在清除快取時會嘗試載入這個檔案
+- 當 Laravel 載入配置時，會嘗試載入已移除套件的類別，導致錯誤
+- 解決方案：在執行任何 artisan 命令前，先手動刪除 `config/excel.php` 檔案
+
+### 技術細節
+- 執行順序很重要：
+  1. 先刪除 `config/excel.php`（如果存在）
+  2. 刪除快取的配置檔案 `bootstrap/cache/config.php`
+  3. 然後才執行 `php artisan config:clear` 等命令
+- 這樣可以確保 Laravel 不會嘗試載入已移除套件的配置檔案
+
+## 2026-01-14 12:03:18 (+8) - 修正部署腳本：在安裝依賴前清除快取，避免舊配置衝突
+
+### 技術細節
+- `php artisan config:clear`：清除配置快取
+- `php artisan cache:clear`：清除應用程式快取
+- `php artisan route:clear`：清除路由快取
+- `php artisan view:clear`：清除視圖快取
+- 手動刪除 `bootstrap/cache/config.php`：確保完全清除快取的配置
+
+## 2026-01-14 12:01:07 (+8) - 修正部署腳本：解決 Composer 安裝時的腳本執行問題
+
+### 變更內容
+
+#### 部署腳本
+- **build.sh** (`build.sh`)
+  - 在 Composer 安裝前先清理 `vendor` 目錄，避免依賴衝突
+  - 使用 `--no-scripts` 選項跳過可能依賴開發套件的腳本執行
+  - 安裝完成後單獨執行 `composer dump-autoload` 重新生成 autoload
+
+### 問題說明
+- 執行 `composer install --no-dev` 時，`prePackageUninstall` 腳本試圖載入 `sebastian/version`（開發依賴），導致錯誤
+- 原因是舊的 vendor 目錄中可能還有開發依賴的殘留，或腳本在卸載舊套件時需要這些依賴
+- 解決方案：先清理 vendor 目錄，然後使用 `--no-scripts` 跳過腳本執行，最後單獨生成 autoload
+
+### 技術細節
+- `--no-scripts`：跳過所有 Composer 腳本（pre-install-cmd, post-install-cmd 等）
+- 清理 vendor 目錄：確保乾淨的安裝環境
+- 單獨執行 `dump-autoload`：確保 autoload 檔案正確生成
+
+## 2026-01-14 11:54:57 (+8) - 將 Excel 套件從 maatwebsite/excel 改為 phpoffice/phpspreadsheet
+
+### 變更內容
+
+#### 依賴套件
+- **composer.json** (`composer.json`)
+  - 移除 `maatwebsite/excel` (^1.1)
+  - 添加 `phpoffice/phpspreadsheet` (^2.0)
+
+#### Excel 匯出功能
+- **PartnerMonthlyReportExport.php** (`app/Exports/PartnerMonthlyReportExport.php`)
+  - 完全重寫，改用 PhpSpreadsheet API
+  - 移除 `FromArray` 和 `WithTitle` 介面（maatwebsite/excel 專用）
+  - 新增 `generate()` 方法，直接返回 `Spreadsheet` 物件
+  - 使用 PhpSpreadsheet 的 API 進行單元格設置、合併、樣式設定
+  - 保持原有的 Excel 結構和格式（標題、多層表頭、數據行、總計行）
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 移除 `Maatwebsite\Excel\Facades\Excel` 引用
+  - 添加 `PhpOffice\PhpSpreadsheet\Writer\Xlsx` 引用
+  - 更新 Excel 生成邏輯：
+    - 調用 `$export->generate()` 獲取 Spreadsheet 物件
+    - 使用 `Xlsx` Writer 將 Spreadsheet 寫入臨時檔案
+    - 使用 Laravel 的 `response()->download()` 返回檔案下載
+    - 設定 `deleteFileAfterSend(true)` 自動清理臨時檔案
+
+### 問題說明
+- 部署時 `composer install --no-dev` 執行失敗，因為 `maatwebsite/excel` 的依賴（特別是 `sebastian/version`）在生產環境安裝時出現問題
+- `phpoffice/phpspreadsheet` 是更底層、更穩定的 Excel 處理套件，不依賴 Laravel 特定的包裝器
+- 改用 PhpSpreadsheet 可以避免部署時的依賴問題，同時提供更直接的控制
+
+### 技術細節
+- PhpSpreadsheet 使用方式：
+  - 創建 `Spreadsheet` 物件
+  - 獲取 `ActiveSheet`
+  - 使用 `setCellValueByColumnAndRow()` 設置單元格值
+  - 使用 `mergeCells()` 合併單元格
+  - 使用 `getStyle()` 設置樣式和對齊
+  - 使用 `Xlsx` Writer 生成檔案
+
+## 2026-01-14 11:51:31 (+8) - 修正部署腳本：添加 Composer 依賴安裝步驟
+
+### 變更內容
+
+#### 部署腳本
+- **build.sh** (`build.sh`)
+  - 在 Git 更新後、資料庫遷移前添加 Composer 依賴安裝步驟
+  - 執行 `composer install --no-dev --optimize-autoloader` 來安裝所有依賴
+  - 更新所有後續步驟的編號（從 [3/9] 到 [10/10]）
+
+### 問題說明
+- 部署時出現錯誤：缺少 `sebastian/version` 套件（PHPUnit 的依賴）
+- 原因是部署腳本中沒有執行 `composer install`，導致新添加的套件（如 `maatwebsite/excel`）及其依賴沒有被安裝
+- 現在部署流程會自動安裝所有 Composer 依賴，確保所有套件都正確安裝
+
+### 部署流程更新
+1. 切換到專案目錄
+2. 更新程式碼 (git pull)
+3. **安裝 Composer 依賴**（新增）
+4. 資料庫遷移
+5. 清除並快取 Laravel 路由
+6. 清除並快取 Laravel 配置
+7. 清除後端 React 緩存
+8. 構建後端 (React)
+9. 清除前端 React 緩存
+10. 構建前端 (React)
+
+## 2026-01-14 11:42:01 (+8) - 使用 Laravel Excel 套件在後端生成 Excel 檔案
+
+### 變更內容
+
+#### 後端
+- **安裝套件**
+  - 安裝 `maatwebsite/excel` v1.1.5 套件
+  - 使用 PHPExcel 庫生成 Excel 檔案
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 修改 `partnerDailyReport()` 方法
+  - 如果提供了 `partner_id`，生成並返回 Excel 檔案（使用 `Excel::download()`）
+  - 如果沒有提供 `partner_id`，返回 JSON 數據（保持向後兼容）
+  - 獲取所有機車型號（從 `ScooterModel` 表，按照 `sort_order` 降序排序）
+  - 查詢訂單時只使用 `start_time` 的日期部分（使用 `DATE_FORMAT(start_time, "%Y-%m")`）
+  - 判斷當日租/跨日租：`start_time` 和 `end_time` 同一天 = 當日租，否則 = 跨日租
+
+- **PartnerMonthlyReportExport.php** (`app/Exports/PartnerMonthlyReportExport.php`)
+  - 新增 Export 類，實現 `FromArray` 和 `WithTitle` 接口
+  - 生成符合圖片格式的 Excel 報表
+  - Header 結構（4層）：
+    1. 第一行：標題「合作商名稱機車出租月報表」（跨越多列）
+    2. 第二行：「當日租 200/台」、「跨日租 300/台」，然後是各個機車型號（每個型號跨4列）
+    3. 第三行：「日期」、「星期」，然後每個型號下分為「當日租」（1列）和「跨日租」（3列）
+    4. 第四行：四個空白列，然後每個型號下：當日租只有「台數」（1列），跨日租有「台數」、「天數」、「金額」（3列）
+  - 數據行：包含整個月的所有日期（1號到當月最後一天），沒有費用的日期顯示為空白
+  - 總計行：月結總計、總台數/天數、小計、總金額
+
+#### 前端
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 新增 `downloadFile()` 方法，用於下載文件
+  - 新增 `downloadPartnerMonthlyReport()` API 方法
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 簡化 `handleExportPartnerReport()` 函數
+  - 移除前端生成 Excel 的代碼（之前使用 XLSX 庫）
+  - 現在直接調用 API 下載後端生成的 Excel 檔案
+  - 保留 XLSX 導入（因為 `handleExportExcel` 函數仍在使用）
+
+### 功能說明
+- 整個流程現在完全在後端完成：
+  1. 前端調用 API（提供 `month` 和 `partner_id`）
+  2. 後端查詢訂單數據（使用 `start_time` 的日期部分）
+  3. 後端判斷當日租/跨日租（`start_time` 和 `end_time` 同一天 = 當日租）
+  4. 後端計算調車費用
+  5. 後端生成 Excel 檔案
+  6. 後端返回 Excel 檔案供前端下載
+- 報表格式完全符合圖片要求：
+  - 標題為「合作商名稱機車出租月報表」
+  - Header 包含所有機車型號（從機車型號管理獲取）
+  - 包含整個月的所有日期（1號到當月最後一天）
+  - 沒有費用的日期和欄位顯示為空白
+  - 總計行格式正確
+
+## 2026-01-14 11:23:52 (+8) - 修正合作商報表：改為月報表並使用 start_time 日期查詢
+
+### 變更內容
+
+#### 前端
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改標題為「合作商名稱機車出租月報表」（例如："行動潛水機車出租月報表"）
+  - 將所有「日報表」相關文字改為「月報表」
+  - 工作表名稱改為「月報表」
+  - 錯誤訊息中的「日報表」改為「月報表」
+
+#### 後端
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - `partnerDailyReport()` 方法已經正確使用 `DATE_FORMAT(start_time, "%Y-%m")` 來查詢訂單
+  - 只使用 `start_time` 的日期部分進行查詢和分組，符合要求
+
+### 功能說明
+- 報表標題現在顯示為「合作商名稱機車出租月報表」，與第二張圖片格式一致
+- 查詢訂單時只使用 `start_time` 的日期部分（使用 `DATE_FORMAT`）
+- 報表類型從「日報表」改為「月報表」，更準確反映報表內容
+
+## 2026-01-14 11:11:35 (+8) - 修正合作商日報表總計行格式，使其與 Excel 設定一致
+
+### 變更內容
+
+#### 前端
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修正總金額行的格式
+  - 添加總金額單元格合併功能，使總金額跨越多列（從第一個型號的跨日租金額欄位開始）
+  - 確保如果值為0則顯示為空白（與 Excel 設定一致）
+
+### 功能說明
+- 總金額現在會跨越多列顯示（使用單元格合併）
+- 所有值為0的欄位都會顯示為空白，符合 Excel 設定的要求
+- 總計行的格式現在與 Excel 模板完全一致
+
+## 2026-01-14 11:04:42 (+8) - 調整合作商日報表：header 顯示所有機車型號
+
+### 變更內容
+
+#### 前端
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `handleExportPartnerReport()` 函數
+  - 從機車型號管理 API (`scooterModelsApi.list()`) 獲取所有機車型號
+  - Header 現在顯示所有機車型號（按照 `sort_order` 降序排序），而不是只顯示有訂單的型號
+  - 型號格式：`name type`（例如："ES-2000 白牌"）
+  - 即使某個型號在該月份沒有訂單，也會在 header 中顯示
+
+### 功能說明
+- 導出的日報表 header 現在包含所有機車型號（從機車型號管理中獲取）
+- 型號按照 `sort_order` 降序排序（與機車型號管理頁面一致）
+- 即使某個型號在該月份沒有訂單數據，也會在 header 中顯示，數據欄位為空白
+- 這樣可以確保報表格式一致，方便對比不同月份的數據
+
+## 2026-01-14 11:01:50 (+8) - 調整合作商日報表 header 結構以符合圖片格式
+
+### 變更內容
+
+#### 前端
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `handleExportPartnerReport()` 函數的 header 結構
+  - 新的 header 結構（4層）：
+    1. **第一行**：標題「行動潛水」（跨越多列）
+    2. **第二行**：「當日租 200/台」、「跨日租 300/台」，然後是各個機車型號（每個型號佔4列）
+    3. **第三行**：「日期」、「星期」，然後兩個空白列，接著每個型號下分為「當日租」（1列）和「跨日租」（3列合併顯示）
+    4. **第四行**：四個空白列，然後每個型號下：
+       - 當日租：只有「台數」（1列）
+       - 跨日租：「台數」、「天數」、「金額」（3列）
+  - 調整數據行格式：
+    - 每行包含：日期、星期、兩個空白列，然後每個型號下：當日租台數、跨日租台數、跨日租天數、跨日租金額
+  - 調整總計行格式：
+    - 總台數/天數行：月結總計、總台數/天數、兩個空白列，然後每個型號的統計數據
+    - 小計行：空白、小計、兩個空白列，然後每個型號的小計金額（顯示在跨日租金額欄位）
+    - 總金額行：空白、總金額、兩個空白列，然後總金額（顯示在第一個型號的跨日租金額欄位）
+  - 調整列寬設置以符合新的結構
+  - 添加單元格合併功能：
+    - 第一行標題「行動潛水」跨越多列（從A1到最後一列）
+    - 第二行每個機車型號跨4列
+    - 第三行每個型號的「跨日租」跨3列（台數、天數、金額）
+
+### 功能說明
+- Header 結構現在完全符合圖片格式
+- 當日租只顯示台數，不顯示天數和金額
+- 跨日租顯示台數、天數、金額
+- 數據行從第5行開始（之前是第7行）
+- 使用 Excel 單元格合併功能，使 header 更美觀
+
+## 2026-01-14 10:58:29 (+8) - 調整合作商日報表導出：包含整個月的所有日期
+
+### 變更內容
+
+#### 前端
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `handleExportPartnerReport()` 函數
+  - 移除日期過濾邏輯，現在會顯示 1 號到當月最後一天的所有日期
+  - 對於沒有費用的日期，顯示日期和星期，但數據欄位（台數、天數、金額）顯示為空白
+  - 對於有費用的日期，正常顯示數據
+  - 總計計算仍然只計算有費用的部分
+
+### 功能說明
+- 導出的日報表現在包含整個月的所有日期（1號到當月最後一天）
+- 如果某個日期沒有費用（所有型號的費用都是 0），該日期仍會顯示，但數據欄位為空白
+- 這樣可以更清楚地看到整個月的完整情況，包括沒有訂單的日期
+
+## 2026-01-14 10:51:39 (+8) - 移除匯出月報表功能
+
+### 變更內容
+
+#### 前端
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 移除 `handleExportMonthlyReport()` 函數
+  - 移除「匯出月報表」按鈕
+  - 保留「匯出 Excel」按鈕（用於匯出合作商統計）
+
+### 功能說明
+- 已完全移除「匯出月報表」功能
+- 用戶現在只能使用「匯出 Excel」功能匯出合作商統計數據
+- 合作商統計視窗中的 Export 按鈕仍然可用，用於匯出各合作商的詳細日報表
+
+## 2026-01-14 10:50:17 (+8) - 新增合作商統計 Export 功能（導出有費用的日報表）
+
+### 變更內容
+
+#### 後端
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 新增 `partnerDailyReport()` 方法，用於獲取合作商的詳細日報表數據
+  - 新增路由：`GET /api/orders/partner-daily-report`
+  - 數據結構：
+    - 按合作商分組
+    - 每個合作商包含一個月的每一天
+    - 每個日期包含所有機車型號的數據
+    - 每個機車型號區分當日租和跨日租
+    - 包含台數、天數、金額
+    - 只返回有費用的部分（調車費用 > 0）
+  - 計算邏輯：
+    - 根據訂單的開始日期和結束日期判斷當日租或跨日租
+    - 從 `partner_scooter_model_transfer_fees` 表查詢合作商的機車型號調車費用
+    - 計算公式：調車費用 × 台數 × 天數
+    - 只記錄有費用的數據
+  - 修改 `statistics()` 方法，在返回的 `partner_stats` 中包含 `partner_id`
+
+#### 前端
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 新增 `partnerDailyReport()` API 方法
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 在 `StatsModal` 組件中新增 Export 功能
+  - 為每個合作商添加 Export 按鈕
+  - 實現 `handleExportPartnerReport()` 函數，導出合作商的詳細日報表
+  - 導出格式：
+    - 標題：合作商名稱 + "機車出租日報表"
+    - 月份：YYYY年MM月
+    - 表頭：日期、星期，然後每個機車型號（當日租：台數、天數、金額；跨日租：台數、天數、金額）
+    - 數據行：一個月的每一天（只包含有費用的日期）
+    - 月結總計：總台數/天數、小計、總金額
+  - 只導出有費用的部分（過濾掉沒有費用的日期和型號）
+  - 文件名格式：`合作商名稱-YYYYMM.xlsx`
+
+### 功能說明
+- 在合作商單月詳細統計視窗中，每個合作商旁邊都有 Export 按鈕
+- 點擊 Export 按鈕後，會導出該合作商在該月份的詳細日報表
+- 日報表包含：
+  - 一個月的每一天（只包含有費用的日期）
+  - 每個機車型號的當日租和跨日租數據
+  - 台數、天數、金額（調車費用）
+  - 月結總計（總台數/天數、小計、總金額）
+- 計算方法：
+  - 天數：根據租期類型計算（同日租：1天，跨日租：夜數）
+  - 型號記錄數：每個機車型號在該日期的台數
+  - 金額：調車費用 × 台數 × 天數
+
+### 導出範例
+假設合作商「蘭光智能」在 2026年1月：
+- 日期：2026年1月15日（星期一）
+- ES-1000 綠牌：
+  - 當日租：1台，1天，金額 200
+  - 跨日租：1台，2天，金額 600
+- ES-2000 白牌：
+  - 跨日租：1台，3天，金額 900
+
+導出的 Excel 文件會包含這些詳細數據，以及月結總計。
+
+## 2026-01-14 10:29:25 (+8) - 調整未確認預約列表按鈕位置與 Email 齊平
+
+### 變更內容
+
+#### 前端
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 調整未確認預約列表的布局
+  - 將「拒絕」和「確認轉為訂單」按鈕移動到與 Email 欄位同一行
+  - 使用 `flex items-center justify-between` 布局，Email 在左側，按鈕在右側
+  - 按鈕與 Email 垂直對齊（齊平）
+
+### 功能說明
+- 未確認預約列表展開後，Email 欄位和操作按鈕現在在同一行顯示
+- Email 顯示在左側，拒絕和確認按鈕顯示在右側
+- 按鈕與 Email 欄位垂直對齊，視覺效果更加整齊
+
+## 2026-01-14 10:22:41 (+8) - 修改訂單編號生成規則為年月+流水號格式
+
+### 變更內容
+
+#### 後端
+- **Order.php** (`app/Models/Order.php`)
+  - 修改 `boot()` 方法中的訂單編號生成邏輯
+  - 新格式：`ORD-年月-流水號`（例如：`ORD-202601-00001`）
+  - 流水號格式：5位數，前面補0（例如：00001, 00002, ...）
+  - 每月流水號從 00001 開始計算
+  - 當換月份時，流水號自動重置為 00001
+
+### 功能說明
+- 訂單編號格式：`ORD-YYYYMM-NNNNN`
+  - `ORD`：固定前綴
+  - `YYYYMM`：年月（例如：202601 表示 2026年1月）
+  - `NNNNN`：5位數流水號（例如：00001, 00002, ...）
+- 每月自動重置：當月份改變時，流水號從 00001 重新開始
+- 自動查詢：系統會自動查詢該月份的最大訂單編號，並生成下一個流水號
+
+### 編號範例
+- 2026年1月：
+  - 第1筆：`ORD-202601-00001`
+  - 第2筆：`ORD-202601-00002`
+  - 第3筆：`ORD-202601-00003`
+- 2026年2月（換月後重置）：
+  - 第1筆：`ORD-202602-00001`
+  - 第2筆：`ORD-202602-00002`
+
+### 技術細節
+- 使用 `where('order_number', 'like', $prefix . '%')` 查詢該月份的所有訂單
+- 從最大訂單編號中提取流水號部分（最後5位數字）
+- 使用 `str_pad()` 將流水號格式化為5位數（前面補0）
+- 如果該月份還沒有訂單，從 00001 開始
+
+## 2026-01-14 10:18:56 (+8) - 修復訂單日期顯示和費用計算問題
+
+### 變更內容
+
+#### 後端
+- **OrderResource.php** (`app/Http/Resources/OrderResource.php`)
+  - 修改 `start_time` 和 `end_time` 的格式化，從 `'Y-m-d H:i:s'` 改為 `'Y-m-d'`
+  - 只顯示日期，不顯示時間（符合需求：租借開始和租借結束只需要日期）
+
+#### 前端
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改訂單列表顯示，將 `start_time` 和 `end_time` 從 `formatDateTime()` 改為 `formatDate()`
+  - 租借開始和租借結束現在只顯示日期，不顯示時間
+
+- **ConvertBookingModal.tsx** (`system/backend/components/ConvertBookingModal.tsx`)
+  - 移除傳入 `payment_amount` 參數
+  - 讓後端根據合作商的機車型號費用自動計算調車費用
+  - 確保使用調車費用計算，而不是前端計算的租車費用
+
+### 功能說明
+- 訂單列表中的「租借開始」和「租借結束」現在只顯示日期（例如：2026-01-15），不顯示時間
+- 預約轉訂單時，無論使用哪個組件（`handleConvertBookingClick` 或 `ConvertBookingModal`），都會使用後端計算的調車費用
+- 確保費用計算基於合作商的機車型號費用，而不是租車費用
+
+### 問題修復
+- 修復了訂單列表中日期時間顯示問題（之前顯示 `2026-01-15 00:00`，現在只顯示 `2026-01-15`）
+- 修復了 `ConvertBookingModal` 傳入 `payment_amount` 導致覆蓋後端計算的調車費用的問題
+
+## 2026-01-14 10:11:23 (+8) - 修改訂單開始時間和結束時間為只使用日期格式
+
+### 變更內容
+
+#### 後端
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 修改 `convertToOrder()` 方法中的時間處理邏輯
+  - `start_time` 和 `end_time` 改為只保存日期格式（`Y-m-d`），移除時間部分
+  - `expected_return_time` 保持日期時間格式（其他欄位保持不變）
+  - 預約日期 = 租借開始，只需要日期，不需要時間
+
+#### 前端
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 修改 `start_time` 和 `end_time` 的輸入框，從日期時間選擇器改為只選擇日期
+  - 將 Flatpickr 的 `options` 從 `getDatetimeOptions()` 改為 `dateOptions`
+  - 修改 `onChange` 處理，只保存日期格式（`Y-m-d`），不帶時間
+  - 更新 placeholder 文字從「選擇日期時間」改為「選擇日期」
+  - 新增 `formatDateOnly()` 函數，用於編輯模式下處理可能帶時間的舊數據
+  - 編輯模式下，`start_time` 和 `end_time` 使用 `formatDateOnly()` 格式化
+  - `expected_return_time`, `ship_arrival_time`, `ship_return_time` 保持使用 `formatDateTime()`（日期時間格式）
+
+### 功能說明
+- 訂單的開始時間和結束時間現在只需要選擇日期，不需要選擇時間
+- 預約轉訂單時，`start_time` 和 `end_time` 會自動使用預約日期和結束日期（只保存日期）
+- 其他日期時間欄位（`expected_return_time`, `ship_arrival_time`, `ship_return_time`）保持日期時間格式不變
+- 編輯模式下可以正確處理舊數據（可能帶時間的數據會自動提取日期部分）
+
+### 技術細節
+- 後端驗證規則 `nullable|date` 已支持日期格式（不帶時間）
+- MySQL/MariaDB 的 `datetime` 欄位可以接受只有日期的值（會自動補 00:00:00）
+- 日期比較邏輯使用 `strtotime()`，可以正確處理只有日期的格式
+
+## 2026-01-14 09:43:04 (+8) - 修正天數計算規則
+
+### 變更內容
+
+#### 後端
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 修正 `send()` 和 `convertToOrder()` 方法中的天數計算邏輯
+  - 天數計算規則：
+    - 1 天（同日租）：天數 = 1，使用當日調車費用 (`same_day_transfer_fee`)
+    - 2 天（1 夜）：天數 = 1，使用跨日調車費用 (`overnight_transfer_fee`)
+    - 3 天（2 夜）：天數 = 2，使用跨日調車費用 (`overnight_transfer_fee`)
+    - 以此類推：天數 = diffInDays（夜數）
+  - 計算公式：天數 = diffInDays（開始日期到結束日期的天數差）
+
+### 功能說明
+- 天數計算改為使用夜數（diffInDays），確保計算邏輯正確
+- 同日租（1天）仍使用當日調車費用，天數為 1
+- 跨日租使用跨日調車費用，天數等於夜數（diffInDays）
+
+### 計算範例
+- 開始日期：2026/1/14，結束日期：2026/1/14 → 1 天，天數 = 1（同日租）
+- 開始日期：2026/1/14，結束日期：2026/1/15 → 2 天，1 夜，天數 = 1（跨日租）
+- 開始日期：2026/1/14，結束日期：2026/1/16 → 3 天，2 夜，天數 = 2（跨日租）
+- 開始日期：2026/1/14，結束日期：2026/1/17 → 4 天，3 夜，天數 = 3（跨日租）
+
+## 2026-01-14 09:39:50 (+8) - 後臺訂單管理：修改計算規則使用合作商的機車型號費用
+
+### 變更內容
+
+#### 後端
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 修改 `convertToOrder()` 方法，新增調車費用計算邏輯
+  - 根據合作商（partner_id）查詢該合作商的機車型號調車費用
+  - 計算邏輯：
+    1. 根據預約的開始日期和結束日期計算租期天數
+    2. 判斷租期類型：同日租（1天）使用 `same_day_transfer_fee`，跨日租使用 `overnight_transfer_fee`
+    3. 遍歷預約中的每個機車型號需求，從 `partner_scooter_model_transfer_fees` 表查詢對應的調車費用
+    4. 計算公式：調車費用 × 台數 × 天數
+    5. 累加所有車型的調車費用得到總金額
+  - 如果沒有提供 `payment_amount`，自動使用計算出的調車費用作為訂單金額
+  - 如果提供了 `payment_amount`，則使用提供的金額（允許手動覆蓋）
+  - 將 `payment_amount` 驗證規則從 `required` 改為 `nullable`（可選）
+  - 如果沒有指定合作商，會嘗試使用預約中的 `partner_id`，或使用預設線上預約合作商
+
+#### 前端
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `handleConvertBookingClick()` 函數
+  - 移除前端的手動金額計算，不再傳入 `payment_amount`
+  - 讓後端根據合作商的機車型號費用自動計算調車費用
+
+### 功能說明
+- 後臺訂單管理在將預約轉為訂單時，會自動根據選擇的合作商查詢該合作商的機車型號調車費用
+- 根據預約的租期天數和機車型號、數量，自動計算調車費用總金額
+- 計算規則與線上預約的計算邏輯一致，確保數據一致性
+- 如果沒有選擇合作商，系統會使用預約中記錄的合作商或預設線上預約合作商
+- 管理員仍可手動輸入金額來覆蓋自動計算的結果
+
+### 計算範例
+假設預約：
+- 預約日期：2026/1/14
+- 結束日期：2026/1/17（共 4 天，跨日租）
+- 合作商：藍白
+- 機車型號：ES-TEST 白牌 x 1，ES-1000 綠牌 x 1
+- 藍白合作商設定：
+  - ES-TEST 白牌：跨日調車費用 200
+  - ES-1000 綠牌：跨日調車費用 150
+
+計算結果：
+- ES-TEST 白牌：200 × 1 × 4 = 800
+- ES-1000 綠牌：150 × 1 × 4 = 600
+- 總調車費用：800 + 600 = 1,400
+
+## 2026-01-14 09:11:54 (+8) - 合作商新增/編輯時機車型號按順序排列
+
+### 變更內容
+
+#### 前端
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 更新 `ScooterModel` interface，新增 `sort_order` 欄位
+  - 在顯示機車型號時，按照 `sort_order` 降序排列（數字越大越靠前）
+  - 確保合作商新增或編輯時，機車型號按照設定的順序顯示
+
+### 功能說明
+- 合作商新增或編輯時，調車費用設定區塊中的機車型號會按照後端設定的 `sort_order` 順序排列顯示
+- 排序方式：`sort_order` 數字越大越靠前（降序排列），與後端 API 排序邏輯一致
+
+## 2026-01-13 17:38:17 (+8) - 線上預約新增調車費用總金額計算 (total_amount for bookings)
+
+### 變更內容
+
+#### 後端
+- **Migration** (`database/migrations/2026_01_12_224000_add_total_amount_to_bookings_table.php`)
+  - 在 `bookings` 資料表新增 `total_amount` 欄位 (`unsignedInteger`, `nullable`)，用於儲存預約調車費用的總金額（只包含調車費用，不含租金）。
+
+- **Booking.php** (`app/Models/Booking.php`)
+  - 在 `$fillable` 中新增 `total_amount`，並在 `$casts` 中將其轉換為 `integer`，方便後端與前端使用。
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 在 `send()` 方法中，依據線上預約的開始日期 (`appointmentDate`) 與結束日期 (`endDate`) 判斷租期類型與天數：
+    - 若開始日期與結束日期相同（`diffInDays = 0`）：視為當日租，天數固定為 1，使用 `same_day_transfer_fee_*` 欄位。
+    - 若天數大於 1（即任何跨天的情況，`diffInDays > 0`）：視為跨日租，使用夜數計算天數：`days = diffInDays(start, end)`（例如：1/1–1/2 → 1；1/1–1/3 → 2），使用 `overnight_transfer_fee_*` 欄位。
+    - **規則**：只要大於 1 個天數（即不是同一天），就按照跨日計算。
+  - 對每個車型需求 (`$data['scooters']`) 計算調車費用：
+    - 依車型（白牌 / 綠牌 / 電輔車 / 三輪車）對應到合作商的調車費用欄位（`*_white|green|electric|tricycle`）。
+    - 計算公式：單一車型費用 = 對應調車費用 × 該車型台數 × 天數（夜數）。
+    - 將所有車型的費用加總為 `$totalTransferFee`，並在建立 `Booking` 時寫入 `total_amount` 欄位。
+  - 若找不到預設合作商或該車型費用未設定，則視為 0 元，不影響其他車型的計算。
+
+### 功能說明
+- 線上預約在送出時，會根據「預設合作商」的調車費用設定、租期天數（以夜數計算）與每個車型的台數，自動計算並儲存「調車費用總金額」到 `bookings.total_amount`。
+- 此總金額僅包含調車費用，不會包含租車費用，方便後續對帳與報表使用。
+
+## 2026-01-12 22:40:00 (+8) - 合作商新增調車費用欄位（按車型分類）
+
+### 變更內容
+
+#### 後端
+- **Migration** (`database/migrations/2026_01_12_223000_add_transfer_fees_to_partners_table.php`)
+  - 新增 migration 添加兩個欄位到 partners 表：
+    - `same_day_transfer_fee` (decimal, nullable): 當日調車費用
+    - `overnight_transfer_fee` (decimal, nullable): 跨日調車費用
+
+- **Migration** (`database/migrations/2026_01_12_223100_modify_transfer_fees_to_partners_table.php`)
+  - 新增 modify migration，將兩個欄位改為8個欄位（按車型分類）：
+    - 在 `up()` 方法中：
+      - 先檢查並刪除舊的 `same_day_transfer_fee` 和 `overnight_transfer_fee` 欄位（如果存在）
+      - 然後添加8個新欄位到 partners 表（4種車型 × 2種租期）：
+        - 當日調車費用：
+          - `same_day_transfer_fee_white` (decimal, nullable): 當日調車費用-白牌
+          - `same_day_transfer_fee_green` (decimal, nullable): 當日調車費用-綠牌
+          - `same_day_transfer_fee_electric` (decimal, nullable): 當日調車費用-電輔車
+          - `same_day_transfer_fee_tricycle` (decimal, nullable): 當日調車費用-三輪車
+        - 跨日調車費用：
+          - `overnight_transfer_fee_white` (decimal, nullable): 跨日調車費用-白牌
+          - `overnight_transfer_fee_green` (decimal, nullable): 跨日調車費用-綠牌
+          - `overnight_transfer_fee_electric` (decimal, nullable): 跨日調車費用-電輔車
+          - `overnight_transfer_fee_tricycle` (decimal, nullable): 跨日調車費用-三輪車
+    - 在 `down()` 方法中：
+      - 刪除新的8個欄位
+      - 回復舊的兩個欄位（`same_day_transfer_fee` 和 `overnight_transfer_fee`），如果需要的話
+
+- **Migration** (`database/migrations/2026_01_12_223200_change_transfer_fees_to_integer.php`)
+  - 新增 migration，將8個調車費用欄位從 decimal 改為 unsignedInteger（正整數）：
+    - 在 `up()` 方法中：
+      - 先將現有的 decimal 值轉換為整數（使用 ROUND 函數四捨五入）
+      - 然後使用 `change()` 方法將欄位類型從 `decimal(10, 2)` 改為 `unsignedInteger`
+    - 在 `down()` 方法中：
+      - 將欄位類型回復為 `decimal(10, 2)`
+
+- **Partner.php** (`app/Models/Partner.php`)
+  - 在 `$fillable` 陣列中新增8個調車費用欄位
+
+- **PartnerController.php** (`app/Http/Controllers/Api/PartnerController.php`)
+  - 在 `store` 和 `update` 方法的驗證規則中新增8個費用欄位的驗證：
+    - 所有費用欄位：nullable|integer|min:0（只允許正整數，0以上）
+
+- **PartnerResource.php** (`app/Http/Resources/PartnerResource.php`)
+  - 在返回數據中新增8個調車費用欄位
+  - 將 integer 值轉換為 int 類型返回
+
+#### 前端
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 更新 `Partner` interface，新增8個調車費用欄位
+  - 更新 `formData` state，新增8個費用欄位
+  - 更新 `handleOpenModal` 和 `handleCloseModal`，處理新欄位的初始化和重置
+  - 更新 `handleSubmit`，將所有費用欄位轉換為正整數或 null 後提交（使用 parseInt）
+  - 在表單中新增調車費用區塊（位於「商店主管」下方）：
+    - **當日調車費用**區塊：
+      - 白牌：數字輸入框（只允許正整數）
+      - 綠牌：數字輸入框（只允許正整數）
+      - 電輔車：數字輸入框（只允許正整數）
+      - 三輪車：數字輸入框（只允許正整數）
+    - **跨日調車費用**區塊：
+      - 白牌：數字輸入框（只允許正整數）
+      - 綠牌：數字輸入框（只允許正整數）
+      - 電輔車：數字輸入框（只允許正整數）
+      - 三輪車：數字輸入框（只允許正整數）
+    - 所有費用欄位：最小值 0，步長 1，只允許正整數（使用正則表達式驗證 `/^\d+$/`）
+
+### 功能說明
+- 合作商現在可以按車型分別設定當日調車費用和跨日調車費用
+- 支援4種車型：白牌、綠牌、電輔車、三輪車
+- 每個車型可以分別設定當日調車費用和跨日調車費用
+- 所有費用欄位都是可選的（nullable），可以為空
+- 費用欄位只允許正整數（0以上），不支援小數點
+- 前端使用正則表達式驗證，只允許輸入數字
+- 在新增和編輯合作商時都可以設定這些費用
+
+---
+
+## 2026-01-12 22:30:00 (+8) - 新增行動潛水月報表匯出功能
+
+### 變更內容
+
+#### 後端
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 新增 `monthlyReport` 方法，生成月報表數據
+  - 以 start_time 的月份為主來篩選訂單（使用 DATE_FORMAT 查詢）
+  - 按日期和車型分組數據，區分當日租和跨日租
+  - 日期使用 start_time 的日期（例如：訂單 1/11-1/15，key 在 1/11）
+  - 生成整個月份的日期列表（即使沒有訂單也要顯示）
+  - 判斷當日租/跨日租：如果 start_time 和 end_time 在同一天，則是當日租；否則是跨日租
+  - 計算天數（夜）：結束日期 - 開始日期（只有跨日租才累加天數）
+  - 天數 = 所有訂單天數相加
+  - 金額：所有訂單金額相加（當日租和跨日租都累加）
+  - 返回格式：包含 dates 數組（整個月份的所有日期，每個日期包含該日期所有車型的數據）和 models 數組（所有出現的車型列表）
+
+- **api.php** (`routes/api.php`)
+  - 新增 `/orders/monthly-report` API 路由，接收月份參數（YYYY-MM 格式）
+
+#### 前端
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 在 `ordersApi` 中新增 `monthlyReport` 方法，調用月報表 API
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 新增 `handleExportMonthlyReport` 函數，匯出月報表為 Excel 格式
+  - 新增「匯出月報表」按鈕（藍色），位於「匯出 Excel」按鈕旁邊
+  - 月報表格式（符合圖片格式）：
+    - 第一行：標題「蘭光智能機車出租月報表」
+    - 第二行：副標題「行動潛水」
+    - 第三行：價格資訊「當日租 200/台，跨日租 300/台」
+    - 表頭（3層結構，符合第二張圖片）：
+      - 第一層：左側為「日期」、「星期」，右側為每個車型名稱
+      - 第二層：每個車型下分為「當日租」、「跨日租」
+      - 第三層：
+        - 當日租下：台數
+        - 跨日租下：台數、天數、金額
+    - 數據行：顯示整個月份的所有日期（即使沒有訂單也顯示），每行包含該日期所有車型的數據
+    - 月結總計：
+      - 總台數/天數：每個車型的總台數、總天數、總金額
+      - 小計：每個車型的金額小計
+      - 總金額：所有車型的總和
+    - 文件名：行動潛水月報表-YYYYMM.xlsx
+
+### 功能說明
+- 月報表用於告知合作商每個月幾號叫了什麼車、幾台、幾天、多少錢
+- 每個月都需要這一份報表來對帳和收款
+- 日期以訂單的 start_time 日期為準（例如：訂單 1/11-1/15，key 在 1/11）
+- 顯示整個月份的所有日期，即使沒有訂單也顯示（數據為0）
+- 區分當日租和跨日租：如果 start_time 和 end_time 在同一天，則是當日租；否則是跨日租
+- 天數計算：結束日期 - 開始日期（夜數），只有跨日租才累加天數
+- 天數 = 所有訂單天數相加
+- 金額 = 所有訂單金額相加（當日租和跨日租都累加）
+- 報表格式採用3層表頭結構：車型 → 當日租/跨日租 → 台數/天數/金額
+
+---
+
+## 2026-01-12 22:24:00 (+8) - 移除後台表單提交按鈕中的 Plus 圖標
+
+### 變更內容
+
+#### 後台
+- **ContactInfosPage.tsx** (`system/backend/pages/ContactInfosPage.tsx`)
+  - 移除表單提交按鈕中的 `<Plus size={18} />` 圖標
+  - 現在只顯示文字「更新」或「新增」
+
+- **LocationsPage.tsx** (`system/backend/pages/LocationsPage.tsx`)
+  - 移除表單提交按鈕中的 `<Plus size={18} />` 圖標
+  - 現在只顯示文字「更新」或「新增」
+
+### 功能說明
+- 所有後台表單的提交按鈕現在只顯示文字，不再有 Plus 圖標
+- 保持一致的 UI 設計風格
+- 其他頁面（GuidelinesPage、RentalPlansPage、BannersPage、GuesthousesPage 等）已經沒有 Plus 圖標
+
+---
+
+## 2026-01-12 22:21:00 (+8) - 修復後台「門市據點」圖片刪除功能
+
+### 問題分析
+- 圖片刪除按鈕被 file input 覆蓋，點擊刪除按鈕時會觸發文件選擇對話框
+- 刪除圖片功能不完整，無法真正刪除已上傳的圖片
+
+### 變更內容
+
+#### 後端
+- **LocationController.php** (`app/Http/Controllers/Api/LocationController.php`)
+  - 在 `update` 方法的驗證規則中添加 `image_path` 欄位（允許 nullable）
+  - 當 `image_path` 被設為 `null` 時，自動刪除舊圖片檔案
+  - 使用 `ImageService` 刪除圖片檔案
+
+#### 後台
+- **LocationsPage.tsx** (`system/backend/pages/LocationsPage.tsx`)
+  - 新增 `handleDeleteImage` 函數處理圖片刪除
+  - 使用 `e.stopPropagation()` 和 `e.preventDefault()` 防止觸發 file input
+  - 為刪除按鈕添加 `z-10` 確保在 file input 之上
+  - 刪除圖片時會調用 API 更新 location，將 `image_path` 設為 `null`
+  - 刪除後重新獲取資料並更新編輯狀態
+
+### 功能說明
+- 圖片刪除按鈕現在可以正常工作，不會被 file input 覆蓋
+- 點擊刪除按鈕會顯示確認對話框
+- 確認後會真正刪除圖片檔案和資料庫記錄
+- 刪除後會自動更新列表和編輯狀態
+
+---
+
+## 2026-01-12 22:18:00 (+8) - 修正「門市據點」頁面描述文字，添加「各地服務據點位置」高亮顯示
+
+### 變更內容
+
+#### 前端
+- **Location.tsx** (`system/frontend/pages/Location.tsx`)
+  - 恢復完整的描述文字：「蘭光電動機車各地服務據點位置，歡迎您前來門市參觀選車，我們提供最專業的服務與諮詢。」
+  - 為「各地服務據點位置」添加粗體和淺色背景高亮效果
+  - 使用 `<span className="font-bold bg-gray-100 px-2 py-1 rounded">` 來實現高亮顯示
+  - 更新位置：
+    - SEO meta description
+    - Structured data description
+    - Header 區塊的描述文字（帶有 HTML 格式）
+
+### 功能說明
+- 「門市據點」頁面描述文字現在與設計圖一致
+- 「各地服務據點位置」以粗體和淺色背景高亮顯示，更突出
+- 保持完整的描述內容
+
+---
+
+## 2026-01-12 22:16:00 (+8) - 確認「聯絡我們」刪除功能正常，無圖片要求
+
+### 變更內容
+
+#### 後台
+- **ContactInfosPage.tsx** (`system/backend/pages/ContactInfosPage.tsx`)
+  - 確認刪除功能正常運作
+  - 刪除功能不涉及圖片處理（ContactInfo 沒有圖片欄位）
+  - `uploading` 狀態僅用於表單提交，不影響刪除功能
+
+### 功能說明
+- 「聯絡我們」的刪除功能正常，不會要求圖片
+- ContactInfo 資料表沒有圖片欄位，刪除時只刪除文字資料
+- 刪除按鈕功能正常，點擊後會顯示確認對話框，確認後刪除記錄
+
+---
+
+## 2026-01-12 22:14:00 (+8) - 修正前台「交通位置」頁面中「門市據點」的描述文字
+
+### 變更內容
+
+#### 前端
+- **Location.tsx** (`system/frontend/pages/Location.tsx`)
+  - 確認「門市據點」頁面的描述文字已修正
+  - 描述文字為：「歡迎您前來門市參觀選車，我們提供最專業的服務與諮詢。」
+  - 已移除「蘭光電動機車各地服務據點位置」部分，使描述更簡潔
+  - 更新位置：
+    - SEO meta description
+    - Structured data description
+    - Header 區塊的描述文字
+
+### 功能說明
+- 「門市據點」頁面描述文字已簡潔自然
+- 已移除冗長的「各地服務據點位置」描述
+- 保持專業服務與諮詢的承諾
+
+---
+
+## 2026-01-12 22:09:00 (+8) - 修復後台選單中「聯絡我們」顯示問題
+
+### 變更內容
+
+#### 後台
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 重新添加「聯絡我們」選單項
+  - 位置在「租車須知」之後、「門市據點」之前
+  - 路徑：`/contact-infos`
+
+### 功能說明
+- 後台選單現在正確顯示「聯絡我們」選項
+- 「聯絡我們」位於「門市據點」前面，符合需求
+- 點擊後可進入聯絡資訊管理頁面
+
+---
+
+## 2026-01-12 22:05:00 (+8) - 建立聯絡資訊管理功能並移除 footer 聯絡資訊
+
+### 變更內容
+
+#### 後端
+- **Migration** (`database/migrations/2026_01_12_214342_create_contact_infos_table.php`)
+  - 建立 `contact_infos` 資料表
+  - 欄位：`store_name`（店名）、`address`（地址）、`phone`（電話）、`line_id`（LINE ID）、`sort_order`（排序）、`is_active`（是否啟用）
+
+- **Model** (`app/Models/ContactInfo.php`)
+  - 建立 ContactInfo Model
+  - 定義 fillable 欄位和 casts
+
+- **Controller** (`app/Http/Controllers/Api/ContactInfoController.php`)
+  - 建立 ContactInfoController
+  - 實作 CRUD 操作（index, store, show, update, destroy）
+  - 支援 `active_only` 和 `search` 參數
+
+- **API Routes** (`routes/api.php`)
+  - 新增 `/api/contact-infos` 路由
+  - 公開 GET 端點，保護的 POST/PUT/DELETE 端點
+
+#### 前端
+- **Contact.tsx** (`system/frontend/pages/Contact.tsx`)
+  - 更新為從 API 取得聯絡資訊
+  - 動態顯示多個聯絡資訊卡片
+  - 每個卡片顯示店名、地址、電話、LINE ID
+  - 地址和電話可點擊（Google Maps 和電話連結）
+  - LINE ID 可點擊開啟 LINE
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - 新增 `contactInfos.list()` API 方法
+
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 移除 footer 中的地址、LINE ID、電話資訊
+  - 只保留 Logo 和社群媒體連結
+
+#### 後台
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 在「網站內容管理」選單中新增「聯絡我們」選項
+  - 位置在「租車須知」之後、「門市據點」之前
+
+- **ContactInfosPage.tsx** (`system/backend/pages/ContactInfosPage.tsx`)
+  - 建立聯絡資訊管理頁面
+  - 功能包括：列表顯示、新增、編輯、刪除
+  - 表單欄位：店名、地址、電話、LINE ID、排序、狀態
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 新增 `contactInfosApi` API 客戶端
+  - 包含 list, get, create, update, delete 方法
+
+- **App.tsx** (`system/backend/App.tsx`)
+  - 新增 `/contact-infos` 路由
+  - 使用 lazy loading 載入 ContactInfosPage
+
+### 功能說明
+- 後台可以管理多個聯絡資訊（店名、地址、電話、LINE ID）
+- 前端「聯絡我們」頁面會動態顯示所有啟用的聯絡資訊
+- Footer 不再顯示固定的聯絡資訊，改由「聯絡我們」頁面統一管理
+- 後台選單中「聯絡我們」位於「門市據點」前面
+
+---
+
+## 2026-01-12 21:16:00 (+8) - 更新「門市據點」頁面描述文字
+
+### 變更內容
+
+#### 前端
+- **Location.tsx** (`system/frontend/pages/Location.tsx`)
+  - 更新頁面描述文字：
+    - 從「蘭光電動機車位於小琉球交通便利的位置，歡迎您前來門市參觀選車，我們提供最專業的服務與諮詢。」
+    - 改為「蘭光電動機車各地服務據點位置，歡迎您前來門市參觀選車，我們提供最專業的服務與諮詢。」
+  - 更新位置：
+    - SEO meta description
+    - Structured data description
+    - Header 區塊的描述文字
+
+### 功能說明
+- 「門市據點」頁面現在使用更簡潔的描述
+- 強調「各地服務據點位置」，更符合多據點的服務模式
+- 保持專業服務與諮詢的承諾
+
+---
+
+## 2026-01-12 21:11:00 (+8) - 更新「租車方案」頁面描述文字
+
+### 變更內容
+
+#### 前端
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 更新頁面描述文字：
+    - 從「蘭光電動機車提供多種電動車租賃方案，滿足您不同的旅遊需求，讓您輕鬆探索小琉球的美景。」
+    - 改為「蘭光電動機車提供彈性且多樣化的租賃方案，適用於旅遊、通勤與短期移動等多種情境。我們依據不同使用需求，規劃完善的租期與車型選擇，讓顧客能以安心、便利的方式完成每一次出行。」
+  - 更新位置：
+    - SEO meta description
+    - Structured data description
+    - Header 區塊的描述文字
+
+### 功能說明
+- 「租車方案」頁面現在使用更專業和詳細的描述
+- 強調彈性、多樣化、適用多種情境
+- 強調依據不同需求規劃完善的租期與車型選擇
+- 強調安心、便利的服務體驗
+
+---
+
+## 2026-01-12 21:06:00 (+8) - 更新「關於我們」頁面內容
+
+### 變更內容
+
+#### 前端
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 更新「我們的使命」區塊內容：
+    - 強調「高品質的電動機車租賃服務」
+    - 強調「更環保、更舒適且更安心的方式完成」
+    - 強調「交通不只是移動的工具，而是旅程體驗中不可或缺的一環」
+    - 強調「專注於服務流程與細節」
+  - 更新「我們的 story」區塊內容：
+    - 更新開立時間為「2025 年7月」
+    - 詳細描述公司成立的背景和理念
+    - 強調電動機車的優勢（安靜、低碳、輕鬆自在）
+    - 強調持續優化服務品質的承諾
+    - 強調用心經營與專業服務的重要性
+  - 更新 SEO 描述和 header 描述文字
+
+### 功能說明
+- 「關於我們」頁面現在包含更詳細和專業的內容
+- 內容更符合品牌定位和服務理念
+- 強調環保、舒適、安心和專業服務
+
+---
+
+## 2026-01-12 20:51:00 (+8) - 為 mobile 選單添加 logo 和關閉按鈕
+
+### 變更內容
+
+#### 前端
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 在 mobile menu overlay 頂部添加 header 區塊
+  - 包含 logo（可點擊返回首頁）和關閉按鈕（X 圖標）
+  - 調整選單結構：
+    - Header：logo + 關閉按鈕
+    - Navigation：導航連結列表
+    - Footer：行動按鈕（線上預約、聯絡我們）
+  - 移除原本的 `pt-24` padding，改用結構化的 header
+
+### 功能說明
+- Mobile 選單現在包含完整的 header，顯示 logo 和關閉按鈕
+- Logo 可點擊返回首頁並關閉選單
+- 關閉按鈕（X）位於右上角，方便關閉選單
+- 選單結構更清晰，符合常見的 mobile menu 設計模式
+
+---
+
+## 2026-01-12 20:46:00 (+8) - 修復 mobile 選單中「關於我們」被 header 遮擋的問題
+
+### 問題分析
+- Mobile header 的 z-index 是 `z-[60]`
+- Mobile menu overlay 的 z-index 原本是 `z-[55]`
+- 因為 header 的 z-index 更高，它會遮擋 menu overlay 的頂部內容
+- 這導致第一個選單項目「關於我們」被 header 遮擋而無法顯示
+
+### 變更內容
+
+#### 前端
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 將 mobile menu overlay 的 z-index 從 `z-[55]` 調整為 `z-[65]`
+  - 確保 menu overlay 在 header 之上，不會被遮擋
+  - 這樣「關於我們」就能正常顯示在選單的第一個位置
+
+### 功能說明
+- Mobile 選單現在會正確顯示所有 5 個導航項目
+- 「關於我們」會顯示在「租車方案」之前
+- Menu overlay 現在位於 header 之上，不會被遮擋
+
+---
+
+## 2026-01-12 20:32:00 (+8) - 確認 mobile 導航選單代碼正確，建議重新構建以解決顯示問題
+
+### 問題分析
+- 代碼檢查確認 `NAV_ITEMS` 包含「關於我們」且順序正確（第一個位置）
+- Mobile 選單使用 `NAV_ITEMS.map()` 渲染所有項目，沒有過濾邏輯
+- 代碼邏輯完全正確，問題可能是構建緩存或瀏覽器緩存
+
+### 建議解決方案
+1. 清除 Vite 構建緩存：`cd system/frontend && rm -rf node_modules/.vite dist`
+2. 重新構建前端：`cd system/frontend && pnpm build`
+3. 清除瀏覽器緩存並硬刷新（Ctrl+F5 或 Cmd+Shift+R）
+
+### 代碼確認
+- `constants.tsx`: `NAV_ITEMS` 包含「關於我們」在第一個位置
+- `Layout.tsx`: Mobile 選單使用 `NAV_ITEMS.map()` 渲染所有項目
+- 沒有過濾邏輯或條件判斷
+
+---
+
+## 2026-01-12 20:32:00 (+8) - 修復 mobile 導航選單缺少「關於我們」的問題
+
+### 變更內容
+
+#### 前端
+- **constants.tsx** (`system/frontend/constants.tsx`)
+  - 確認 NAV_ITEMS 包含「關於我們」並在「租車方案」前面
+  - 順序：關於我們 → 租車方案 → 租車須知 → 交通位置 → 聯絡我們
+
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 確認 mobile 選單使用 `NAV_ITEMS.map()` 渲染所有項目
+  - 沒有過濾邏輯，應該顯示所有 5 個導航項目
+
+### 問題說明
+- 代碼確認正確，`NAV_ITEMS` 包含「關於我們」且順序正確
+- Mobile 選單應該顯示所有項目
+- 如果仍然看不到「關於我們」，可能是構建緩存問題，需要重新構建前端
+
+### 建議
+- 清除瀏覽器緩存（Ctrl+F5 或 Cmd+Shift+R）
+- 重新構建前端：`cd system/frontend && pnpm build`
+- 清除 Vite 緩存：`rm -rf node_modules/.vite dist`
+
+---
+
+## 2026-01-12 17:43:00 (+8) - 確認 mobile 導航選單包含「關於我們」並在「租車方案」前面
+
+### 變更內容
+
+#### 前端
+- **constants.tsx** (`system/frontend/constants.tsx`)
+  - 確認 NAV_ITEMS 順序正確：
+    - 「關於我們」已在第一個位置
+    - 「租車方案」在第二個位置
+    - 確保 mobile 和 desktop 導航選單都正確顯示所有項目
+
+### 功能說明
+- Mobile 導航選單現在應該正確顯示「關於我們」在「租車方案」前面
+- NAV_ITEMS 的順序已確認正確
+- 如果 mobile 上仍然看不到「關於我們」，可能是緩存問題，請清除瀏覽器緩存或重新構建
+
+---
+
+## 2026-01-12 17:38:00 (+8) - 為 mobile 底部的「蘭光電動機車」區塊添加圓角
+
+### 變更內容
+
+#### 前端
+- **Layout.tsx** (`system/frontend/components/Layout.tsx`)
+  - 為 mobile 底部的 footer 區塊添加圓角：
+    - 在 mobile 上使用白色背景（`bg-white md:bg-[#f0f4ff]`）
+    - 添加頂部圓角：`rounded-t-[80px] md:rounded-t-none`
+    - 在 mobile 上顯示圓潤的頂部圓角，與 Hero Section 的圓角風格一致
+    - Desktop 上保持原來的樣式（無頂部圓角）
+
+### 功能說明
+- Mobile 底部的「蘭光電動機車」聯繫信息區塊現在有圓潤的頂部圓角（80px）
+- 與 Hero Section 的圓角風格保持一致
+- Desktop 上保持原來的樣式，不影響桌面端的顯示
+
+---
+
+## 2026-01-12 17:31:00 (+8) - 增加圓角半徑以匹配圖片中紅線標示的圓潤形狀
+
+### 變更內容
+
+#### 前端
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 增加圓角半徑以匹配圖片中紅線標示的圓潤形狀：
+    - 將圓角半徑從 `60px` 增加到 `80px`
+    - 讓圓角更圓潤，更接近圖片中紅線標示的橢圓形圓潤形狀
+    - 確保在 mobile 和 desktop 上都能顯示相同的圓潤圓角效果
+
+### 功能說明
+- Hero Section 圖片現在有更圓潤的圓角（80px），更接近圖片中紅線標示的形狀
+- 圓角在所有設備上保持一致，使用 inline style 確保渲染一致性
+- 提供更圓潤、更美觀的視覺效果
+
+---
+
+## 2026-01-12 17:19:00 (+8) - 使用 inline style 確保圓角在所有設備上正確顯示
+
+### 變更內容
+
+#### 前端
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 使用 inline style 確保圓角在所有設備上正確顯示：
+    - 在容器 div 和 img 元素上都添加 `style={{ borderRadius: '60px' }}`
+    - 確保 mobile 和 desktop 上都能顯示圓角效果
+    - 移除 Tailwind 響應式圓角類別，改用固定的 inline style 以確保一致性
+
+### 功能說明
+- Hero Section 圖片現在在所有設備上都有統一的圓角（60px）
+- 使用 inline style 確保圓角在所有瀏覽器和設備上都能正確渲染
+- 確保 mobile 和 desktop 上都能看到完整的圓角效果
+
+---
+
+## 2026-01-12 17:15:00 (+8) - 增加 Hero Section 圖片圓角半徑，讓圓弧更圓
+
+### 變更內容
+
+#### 前端
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 增加 Hero Section 圖片容器的圓角半徑：
+    - 從 `rounded-[40px] sm:rounded-[50px] md:rounded-[60px] lg:rounded-[80px]` 
+    - 改為 `rounded-[60px] sm:rounded-[80px] md:rounded-[100px] lg:rounded-[120px] xl:rounded-[150px]`
+    - 圓角半徑大幅增加，讓圓弧效果更明顯、更圓潤
+    - 在超大螢幕上（xl）使用更大的圓角（150px）
+
+### 功能說明
+- Hero Section 圖片現在有更明顯的圓弧造型
+- 圓角半徑根據螢幕尺寸響應式調整，從 60px 到 150px
+- 提供更圓潤、更美觀的視覺效果
+
+---
+
+## 2026-01-12 17:11:00 (+8) - 為 Hero Section 圖片添加四邊圓弧造型
+
+### 變更內容
+
+#### 前端
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 為 Hero Section 圖片容器添加圓角：
+    - 添加響應式圓角類別：`rounded-[40px] sm:rounded-[50px] md:rounded-[60px] lg:rounded-[80px]`
+    - 在保持滿版顯示的同時，為圖片添加四邊圓弧造型
+    - 圓角大小會根據螢幕尺寸自動調整
+
+### 功能說明
+- Hero Section 圖片現在有四邊圓弧造型
+- 圓角大小會根據螢幕尺寸響應式調整
+- 在保持滿版顯示的同時，提供更美觀的視覺效果
+
+---
+
+## 2026-01-12 17:05:00 (+8) - 修改 Hero Section 為完全滿版顯示，移除上下灰色框
+
+### 變更內容
+
+#### 前端
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 修改 Hero Section 為完全滿版顯示：
+    - 移除 section 的上下 padding（`py-12 sm:py-16 md:py-0`），改為無 padding
+    - 移除容器的左右 padding（`px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16`），改為 `px-0` 讓內容完全滿版
+    - 移除 gap（`gap-8 sm:gap-12`），改為 `gap-0` 讓左右內容緊貼
+    - 將 padding 移到文字區塊內部（`px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-8 md:py-0`），確保文字有適當間距但圖片滿版
+    - 移除圖片容器的圓角和陰影（`rounded-[40px] sm:rounded-[60px] md:rounded-[80px] overflow-hidden shadow-2xl blob-shape`），讓圖片完全滿版顯示
+    - 現在 Hero Section 在 desktop 和 mobile 上都完全滿版，沒有上下灰色框，左右內容在同一排
+
+### 功能說明
+- Hero Section 現在在 desktop 和 mobile 上都完全滿版顯示
+- 移除了上下灰色框（padding），讓內容填滿整個區塊
+- Desktop 上左右內容在同一排，沒有左右邊距
+- 圖片區域完全滿版，文字區域保持適當的內部 padding
+
+---
+
+## 2026-01-12 17:01:00 (+8) - 修改 Hero Section 為滿版顯示（Desktop 和 Mobile）
+
+### 變更內容
+
+#### 前端
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 修改 Hero Section 為滿版顯示：
+    - 移除 `container mx-auto` 限制，改為 `w-full` 讓區塊滿版顯示
+    - 調整 padding：從 `px-4 sm:px-6 md:px-12` 改為 `px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16`
+    - 添加 `w-full` 到 section 元素，確保在 desktop 和 mobile 上都滿版顯示
+    - 現在 Hero Section 在 desktop 和 mobile 上都使用相同的滿版模式
+
+### 功能說明
+- Hero Section 現在在 desktop 和 mobile 上都滿版顯示
+- 移除了容器寬度限制，讓內容可以充分利用整個螢幕寬度
+- 保持了適當的 padding，確保內容不會貼到螢幕邊緣
+
+---
+
+## 2026-01-12 16:02:00 (+8) - 修復首頁 Hero Section 圖片被裁剪問題
+
+### 變更內容
+
+#### 前端
+- **Home.tsx** (`system/frontend/pages/Home.tsx`)
+  - 修復 Hero Section 圖片顯示問題：
+    - 將 `object-cover` 改為 `object-contain`，確保圖片完整顯示而不被裁剪
+    - 添加 `bg-gray-100` 背景色，當圖片比例與容器不匹配時提供背景
+    - 現在圖片會完整顯示，左右兩側不會被刪除
+
+### 功能說明
+- Hero Section 的圖片現在會完整顯示，不會被裁剪
+- 如果圖片比例與容器不匹配，會顯示灰色背景而不是裁剪圖片
+- 確保用戶可以看到完整的圖片內容
+
+---
+
+## 2026-01-12 15:59:00 (+8) - 配置後端管理系統也使用自動 API URL 檢測
+
+### 變更內容
+
+#### 後端
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 實現自動 API URL 檢測（與前端一致）：
+    - 根據當前域名自動判斷 API 基礎 URL
+    - Production 環境（languangsmart.com）使用 `https://languangsmart.com/api`
+    - Develop 環境（scooter-rental.ai-tracks.com）使用 `https://scooter-rental.ai-tracks.com/api`
+    - 開發環境默認使用 `http://localhost:8000/api`
+    - 優先使用環境變數 `VITE_API_BASE_URL`（如果設置）
+
+#### 部署腳本
+- **build.sh** (`build.sh`)
+  - 在構建後端時也自動設置環境變數：
+    - Production 模式：設置 `VITE_API_BASE_URL=https://languangsmart.com/api`
+    - Develop 模式：設置 `VITE_API_BASE_URL=https://scooter-rental.ai-tracks.com/api`
+  - 在構建輸出中顯示使用的 API URL
+
+### 功能說明
+- 後端管理系統現在也會自動根據域名判斷 API URL
+- 與前端保持一致的自動檢測邏輯
+- 構建腳本會為前端和後端都設置正確的 API URL
+
+---
+
+## 2026-01-12 15:55:00 (+8) - 配置 Production 環境使用 languangsmart.com API
+
+### 變更內容
+
+#### 前端
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - 實現自動 API URL 檢測：
+    - 根據當前域名自動判斷 API 基礎 URL
+    - Production 環境（languangsmart.com）使用 `https://languangsmart.com/api`
+    - Develop 環境（scooter-rental.ai-tracks.com）使用 `https://scooter-rental.ai-tracks.com/api`
+    - 開發環境默認使用 `http://localhost:8000/api`
+    - 優先使用環境變數 `VITE_API_BASE_URL`（如果設置）
+
+#### 部署腳本
+- **build.sh** (`build.sh`)
+  - 在構建前端時自動設置環境變數：
+    - Production 模式：設置 `VITE_API_BASE_URL=https://languangsmart.com/api`
+    - Develop 模式：設置 `VITE_API_BASE_URL=https://scooter-rental.ai-tracks.com/api`
+  - 在構建輸出中顯示使用的 API URL
+
+### 功能說明
+- Production 環境現在會自動使用 `https://languangsmart.com/api` 作為 API 基礎 URL
+- 無需手動配置環境變數，系統會根據當前域名自動判斷
+- 構建腳本會自動設置正確的 API URL，確保構建後的應用使用正確的 API 端點
+
+---
+
+## 2026-01-12 15:53:00 (+8) - 添加故障排除文檔
+
+### 變更內容
+
+#### 文檔
+- **TROUBLESHOOTING.md** (新建)
+  - 添加故障排除指南，包含常見問題和解決方案：
+    - API 連接問題（ERR_CONNECTION_REFUSED）
+    - CSS 文件 404 錯誤
+    - CORS 問題
+  - 提供詳細的檢查步驟和解決方案
+
+### 功能說明
+- 幫助開發者快速診斷和解決常見的開發環境問題
+- 提供多種解決方案以適應不同的開發環境（Laravel serve、Laragon 等）
+
+---
+
+## 2026-01-12 15:51:00 (+8) - 修復 index.css 404 錯誤和 API CORS 問題
+
+### 變更內容
+
+#### 前端
+- **index.html** (`system/frontend/index.html`)
+  - 移除不存在的 `/index.css` 引用：
+    - 刪除 `<link rel="stylesheet" href="/index.css">` 標籤
+    - 項目使用 Tailwind CSS（通過 CDN），不需要額外的 CSS 文件
+
+#### 後端
+- **bootstrap/app.php** (`bootstrap/app.php`)
+  - 添加 CORS 中間件配置：
+    - 在 API 路由中添加 `HandleCors` 中間件
+    - 確保 API 請求可以正確處理跨域請求
+
+### 問題修復
+1. **index.css 404 錯誤**：
+   - 原因：`index.html` 中引用了不存在的 `/index.css` 文件
+   - 解決：移除該引用，因為項目使用 Tailwind CSS CDN，不需要額外的 CSS 文件
+
+2. **API captcha/generate 請求失敗**：
+   - 原因：缺少 CORS 配置，導致跨域請求被阻止
+   - 解決：在 `bootstrap/app.php` 中添加 `HandleCors` 中間件到 API 路由
+
+### 功能說明
+- 前端現在不會再嘗試加載不存在的 `index.css` 文件
+- API 請求現在可以正確處理跨域請求，包括 `captcha/generate` 端點
+- 確保前端（運行在 localhost:3000）可以正確訪問後端 API（運行在 localhost:8000）
+
+---
+
 ## 2026-01-12 14:50:00 (+8) - 完全移除 Banner 內容寬度限制，確保 Desktop 完整顯示
 
 ### 變更內容

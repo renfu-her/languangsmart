@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\PartnerController;
 use App\Http\Controllers\Api\ScooterController;
+use App\Http\Controllers\Api\ScooterModelController;
+use App\Http\Controllers\Api\ScooterTypeController;
 use App\Http\Controllers\Api\ScooterModelColorController;
 use App\Http\Controllers\Api\FineController;
 use App\Http\Controllers\Api\AccessoryController;
@@ -23,6 +25,7 @@ use App\Http\Controllers\Api\BookingController;
 use App\Http\Controllers\Api\HomeImageController;
 use App\Http\Controllers\Api\EnvironmentImageController;
 use App\Http\Controllers\Api\ShuttleImageController;
+use App\Http\Controllers\Api\ContactInfoController;
 
 // Auth Routes (Public)
 Route::post('/login', [AuthController::class, 'login']);
@@ -67,6 +70,9 @@ Route::prefix('orders')->group(function () {
     Route::get('/', [OrderController::class, 'index']);
     Route::post('/', [OrderController::class, 'store']);
     Route::get('/statistics', [OrderController::class, 'statistics']);
+    Route::get('/monthly-report', [OrderController::class, 'monthlyReport']);
+    Route::get('/partner-daily-report', [OrderController::class, 'partnerDailyReport']);
+    Route::get('/partner-monthly-statistics', [OrderController::class, 'partnerMonthlyStatistics']);
     Route::get('/years', [OrderController::class, 'getYears']);
     Route::get('/months', [OrderController::class, 'getMonthsByYear']);
     Route::get('/{order}', [OrderController::class, 'show'])->where('order', '[0-9]+');
@@ -105,6 +111,25 @@ Route::prefix('scooters')->group(function () {
     Route::put('/{scooter}', [ScooterController::class, 'update']);
     Route::delete('/{scooter}', [ScooterController::class, 'destroy']);
     Route::post('/{scooter}/upload-photo', [ScooterController::class, 'uploadPhoto']);
+});
+
+// Scooter Types API
+Route::prefix('scooter-types')->group(function () {
+    Route::get('/', [ScooterTypeController::class, 'index']);
+    Route::post('/', [ScooterTypeController::class, 'store']);
+    Route::get('/{scooterType}', [ScooterTypeController::class, 'show']);
+    Route::put('/{scooterType}', [ScooterTypeController::class, 'update']);
+    Route::delete('/{scooterType}', [ScooterTypeController::class, 'destroy']);
+});
+
+// Scooter Models API
+Route::prefix('scooter-models')->group(function () {
+    Route::get('/', [ScooterModelController::class, 'index']);
+    Route::post('/', [ScooterModelController::class, 'store']);
+    Route::get('/{scooterModel}', [ScooterModelController::class, 'show']);
+    Route::put('/{scooterModel}', [ScooterModelController::class, 'update']);
+    Route::delete('/{scooterModel}', [ScooterModelController::class, 'destroy']);
+    Route::post('/{scooterModel}/upload-image', [ScooterModelController::class, 'uploadImage']);
 });
 
 // Scooter Model Colors API
@@ -233,5 +258,16 @@ Route::prefix('shuttle-images')->group(function () {
         Route::post('/', [ShuttleImageController::class, 'store']);
         Route::put('/{shuttleImage}', [ShuttleImageController::class, 'update']);
         Route::delete('/{shuttleImage}', [ShuttleImageController::class, 'destroy']);
+    });
+});
+
+// Contact Infos API (Public for frontend, Protected for admin)
+Route::prefix('contact-infos')->group(function () {
+    Route::get('/', [ContactInfoController::class, 'index']); // Public
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [ContactInfoController::class, 'store']);
+        Route::get('/{contactInfo}', [ContactInfoController::class, 'show']);
+        Route::put('/{contactInfo}', [ContactInfoController::class, 'update']);
+        Route::delete('/{contactInfo}', [ContactInfoController::class, 'destroy']);
     });
 });
