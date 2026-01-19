@@ -21,6 +21,7 @@ class StoreResource extends JsonResource
             'phone' => $this->phone,
             'manager' => $this->manager,
             'photo_path' => $this->photo_path ? asset('storage/' . $this->photo_path) : null,
+            'notice' => $this->notice,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

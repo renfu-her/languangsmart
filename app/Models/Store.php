@@ -15,6 +15,7 @@ class Store extends Model
         'phone',
         'manager',
         'photo_path',
+        'notice',
     ];
 
     /**
