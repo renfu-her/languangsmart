@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus, ExternalLink } from 'lucide-react';
+import { Plus, Minus, ExternalLink, X, Store, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import SEO from '../components/SEO';
 import { publicApi } from '../lib/api';
@@ -10,6 +10,14 @@ interface Guideline {
   category: string;
   question: string;
   answer: string;
+  store_id?: number | null;
+  store?: { id: number; name: string; notice?: string | null } | null;
+}
+
+interface Store {
+  id: number;
+  name: string;
+  notice?: string | null;
 }
 
 interface Guesthouse {
@@ -30,6 +38,9 @@ interface ShuttleImage {
 
 const Guidelines: React.FC = () => {
   const [guidelines, setGuidelines] = useState<Guideline[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [showStoreModal, setShowStoreModal] = useState(false);
   const [guesthouses, setGuesthouses] = useState<Guesthouse[]>([]);
   const [shuttleImages, setShuttleImages] = useState<ShuttleImage[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,9 +48,24 @@ const Guidelines: React.FC = () => {
   const [filter, setFilter] = useState('所有問題');
 
   useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const response = await publicApi.stores.list();
+        const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
+        setStores(sortedStores);
+        // 如果有很多店家，預設選擇第一個店家
+        if (sortedStores.length > 0 && !selectedStore) {
+          setSelectedStore(sortedStores[0]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stores:', error);
+      }
+    };
+
     const fetchGuidelines = async () => {
       try {
-        const response = await publicApi.guidelines.list();
+        const params = selectedStore ? { store_id: selectedStore.id } : undefined;
+        const response = await publicApi.guidelines.list(params);
         setGuidelines(response.data || []);
       } catch (error) {
         console.error('Failed to fetch guidelines:', error);
@@ -69,10 +95,15 @@ const Guidelines: React.FC = () => {
       }
     };
 
-    fetchGuidelines();
+    fetchStores();
+    if (selectedStore) {
+      fetchGuidelines();
+    } else {
+      setLoading(false);
+    }
     fetchGuesthouses();
     fetchShuttleImages();
-  }, []);
+  }, [selectedStore]);
 
   const categories = Array.from(new Set(guidelines.map(g => g.category)));
   const allCategories = ['所有問題', ...categories];
@@ -110,7 +141,21 @@ const Guidelines: React.FC = () => {
         <div className="max-w-4xl mx-auto">
           <h1 className="text-2xl sm:text-3xl md:text-4xl serif mb-2">租賃須知</h1>
           <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-light serif tracking-tighter mb-3 sm:mb-4">Q&A</h2>
-          <div className="mt-3 sm:mt-4 text-xs text-gray-400 uppercase tracking-widest">首頁 &gt; 租賃須知</div>
+          <div className="mt-3 sm:mt-4 text-xs text-gray-400 uppercase tracking-widest mb-6 sm:mb-8">首頁 &gt; 租賃須知</div>
+          
+          {/* 店家選擇按鈕 */}
+          {stores.length > 0 && (
+            <div className="mb-6 sm:mb-8">
+              <button
+                onClick={() => setShowStoreModal(true)}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all text-gray-800 font-medium"
+              >
+                <Store size={18} />
+                <span>{selectedStore ? selectedStore.name : '選擇店家'}</span>
+                <ChevronDown size={18} />
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -263,6 +308,73 @@ const Guidelines: React.FC = () => {
             <path fill="#fcfcfc" fillOpacity="1" d="M0,224L80,213.3C160,203,320,181,480,181.3C640,181,800,203,960,192C1120,181,1280,139,1360,117.3L1440,96L1440,320L1360,320C1280,320,1120,320,960,320C800,320,640,320,480,320C320,320,160,320,80,320L0,320Z"></path>
           </svg>
       </div>
+
+      {/* 店家選擇視窗 */}
+      {showStoreModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800">選擇店家</h2>
+              <button
+                onClick={() => setShowStoreModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {stores.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>目前沒有店家</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {stores.map((store) => (
+                    <button
+                      key={store.id}
+                      onClick={() => {
+                        setSelectedStore(store);
+                        setShowStoreModal(false);
+                        setLoading(true);
+                      }}
+                      className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                        selectedStore?.id === store.id
+                          ? 'border-orange-500 bg-orange-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            selectedStore?.id === store.id
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-gray-200 text-gray-600'
+                          }`}>
+                            <Store size={18} />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800">{store.name}</p>
+                            {store.notice && (
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-1">{store.notice}</p>
+                            )}
+                          </div>
+                        </div>
+                        {selectedStore?.id === store.id && (
+                          <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
