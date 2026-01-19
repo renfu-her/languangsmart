@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import { rentalPlansApi, storesApi } from '../lib/api';
-import { useStore } from '../contexts/StoreContext';
 import { inputClasses, labelClasses, searchInputClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses, selectClasses, chevronDownClasses } from '../styles';
 
 interface RentalPlan {
@@ -22,15 +21,12 @@ interface Store {
 }
 
 const RentalPlansPage: React.FC = () => {
-  const { currentStore } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<RentalPlan | null>(null);
   const [plans, setPlans] = useState<RentalPlan[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStoreFilter, setSelectedStoreFilter] = useState<number | ''>('');
-  const [selectedStoreForDisplay, setSelectedStoreForDisplay] = useState<number | ''>('');
   const [formData, setFormData] = useState({
     model: '',
     price: '',
@@ -44,26 +40,18 @@ const RentalPlansPage: React.FC = () => {
 
   useEffect(() => {
     fetchStores();
+    fetchPlans();
   }, []);
 
   useEffect(() => {
     fetchPlans();
-  }, [searchTerm, selectedStoreFilter, selectedStoreForDisplay]);
+  }, [searchTerm]);
 
   const fetchStores = async () => {
     try {
       const response = await storesApi.list();
       const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
       setStores(sortedStores);
-      // 如果有很多店家，預設選擇第一個
-      if (sortedStores.length > 0) {
-        if (selectedStoreFilter === '' && !currentStore) {
-          setSelectedStoreFilter(sortedStores[0].id);
-        }
-        if (selectedStoreForDisplay === '') {
-          setSelectedStoreForDisplay(sortedStores[0].id);
-        }
-      }
     } catch (error) {
       console.error('Failed to fetch stores:', error);
     }
@@ -74,9 +62,6 @@ const RentalPlansPage: React.FC = () => {
     try {
       const params: any = {};
       if (searchTerm) params.search = searchTerm;
-      // 使用 selectedStoreForDisplay 或 selectedStoreFilter 或 currentStore
-      const storeId = selectedStoreForDisplay || selectedStoreFilter || currentStore?.id;
-      if (storeId) params.store_id = storeId;
       const response = await rentalPlansApi.list(params);
       setPlans(response.data || []);
     } catch (error) {
@@ -95,7 +80,7 @@ const RentalPlansPage: React.FC = () => {
         price: plan.price.toString(),
         sort_order: plan.sort_order,
         is_active: plan.is_active,
-        store_id: plan.store_id?.toString() || currentStore?.id.toString() || '',
+        store_id: plan.store_id?.toString() || '',
       });
       setImagePreview(plan.image_path ? `/storage/${plan.image_path}` : null);
     } else {
@@ -105,7 +90,7 @@ const RentalPlansPage: React.FC = () => {
         price: '',
         sort_order: 0,
         is_active: true,
-        store_id: currentStore?.id.toString() || '',
+        store_id: '',
       });
       setImagePreview(null);
     }
@@ -136,7 +121,7 @@ const RentalPlansPage: React.FC = () => {
         ...formData,
         price: parseFloat(formData.price),
         sort_order: parseInt(formData.sort_order.toString()),
-        store_id: formData.store_id || currentStore?.id || null,
+        store_id: formData.store_id || null,
       };
 
       if (editingPlan) {
@@ -201,8 +186,8 @@ const RentalPlansPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
+      <div className="mb-6">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
@@ -211,41 +196,6 @@ const RentalPlansPage: React.FC = () => {
             onChange={(e) => setSearchTerm(e.target.value)}
             className={searchInputClasses}
           />
-        </div>
-        <div className="relative min-w-[200px]">
-          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">店家</label>
-          {stores.length === 0 ? (
-            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-500 dark:text-gray-400">
-              沒有店家
-            </div>
-          ) : (
-            <>
-              <select
-                value={selectedStoreForDisplay}
-                onChange={(e) => {
-                  const storeId = e.target.value ? Number(e.target.value) : '';
-                  setSelectedStoreForDisplay(storeId);
-                  setSelectedStoreFilter(storeId);
-                }}
-                className={selectClasses}
-              >
-                {stores.map(store => (
-                  <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
-                ))}
-              </select>
-              <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-              {selectedStoreForDisplay && (
-                <div className="mt-2">
-                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">注意事項</label>
-                  <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 min-h-[60px]">
-                    {stores.find(s => s.id === selectedStoreForDisplay)?.notice || '無'}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
         </div>
       </div>
 
