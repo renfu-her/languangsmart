@@ -12,12 +12,13 @@ interface RentalPlan {
   sort_order: number;
   is_active: boolean;
   store_id?: number | null;
-  store?: { id: number; name: string } | null;
+  store?: { id: number; name: string; notice?: string | null } | null;
 }
 
 interface Store {
   id: number;
   name: string;
+  notice?: string | null;
 }
 
 const RentalPlansPage: React.FC = () => {
@@ -53,6 +54,10 @@ const RentalPlansPage: React.FC = () => {
       const response = await storesApi.list();
       const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
       setStores(sortedStores);
+      // 如果沒有選擇商店，且商店列表不為空，預設選擇第一個商店
+      if (sortedStores.length > 0 && selectedStoreFilter === '' && !currentStore) {
+        setSelectedStoreFilter(sortedStores[0].id);
+      }
     } catch (error) {
       console.error('Failed to fetch stores:', error);
     }
@@ -194,7 +199,7 @@ const RentalPlansPage: React.FC = () => {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
-            placeholder="搜尋型號..."
+            placeholder="搜尋型號或店家..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={searchInputClasses}
@@ -207,9 +212,13 @@ const RentalPlansPage: React.FC = () => {
             className={selectClasses}
           >
             <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">所有商店</option>
-            {stores.map(store => (
-              <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
-            ))}
+            {stores.length === 0 ? (
+              <option value="" disabled className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">沒有店家</option>
+            ) : (
+              stores.map(store => (
+                <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
+              ))
+            )}
           </select>
           <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M6 9l6 6 6-6" />
@@ -232,6 +241,7 @@ const RentalPlansPage: React.FC = () => {
               <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
                 <tr>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">商店</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">注意事項</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">圖片</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">型號</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">價格</th>
@@ -244,7 +254,10 @@ const RentalPlansPage: React.FC = () => {
                 {plans.map((plan) => (
                   <tr key={plan.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">{plan.store?.name || '-'}</span>
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{plan.store?.name || '沒有店家'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{plan.store?.notice || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       {plan.image_path ? (
