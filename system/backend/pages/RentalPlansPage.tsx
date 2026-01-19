@@ -232,9 +232,9 @@ const RentalPlansPage: React.FC = () => {
               <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
                 <tr>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">圖片</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">商店</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">型號</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">價格</th>
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">商店</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">排序</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">狀態</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 text-center">操作</th>
@@ -259,13 +259,13 @@ const RentalPlansPage: React.FC = () => {
                       )}
                     </td>
                     <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{plan.store?.name || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
                       <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{plan.model}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-orange-600">${Math.floor(plan.price)} / 24H</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">{plan.store?.name || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">{plan.sort_order}</span>

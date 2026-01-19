@@ -8,6 +8,7 @@ interface Store {
   phone: string | null;
   manager: string;
   photo_path: string | null;
+  notice: string | null;
 }
 
 interface StoreContextType {

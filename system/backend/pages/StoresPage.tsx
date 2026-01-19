@@ -10,6 +10,7 @@ interface Store {
   phone: string | null;
   manager: string;
   photo_path: string | null;
+  notice: string | null;
 }
 
 const StoresPage: React.FC = () => {
@@ -23,6 +24,7 @@ const StoresPage: React.FC = () => {
     address: '',
     phone: '',
     manager: '',
+    notice: '',
   });
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -59,6 +61,7 @@ const StoresPage: React.FC = () => {
         address: store.address || '',
         phone: store.phone || '',
         manager: store.manager,
+        notice: store.notice || '',
       });
       setPhotoPreview(store.photo_path || null);
       setShouldDeletePhoto(false);
@@ -69,6 +72,7 @@ const StoresPage: React.FC = () => {
         address: '',
         phone: '',
         manager: '',
+        notice: '',
       });
       setPhotoPreview(null);
     }
@@ -79,12 +83,13 @@ const StoresPage: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingStore(null);
-    setFormData({
-      name: '',
-      address: '',
-      phone: '',
-      manager: '',
-    });
+      setFormData({
+        name: '',
+        address: '',
+        phone: '',
+        manager: '',
+        notice: '',
+      });
     setPhotoFile(null);
     setPhotoPreview(null);
     setShouldDeletePhoto(false);
@@ -366,6 +371,21 @@ const StoresPage: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, manager: e.target.value })}
                   />
                 </div>
+              </div>
+              <div>
+                <label className={labelClasses}>
+                  注意事項
+                </label>
+                <textarea
+                  rows={4}
+                  className={inputClasses}
+                  placeholder="輸入該商店的注意事項..."
+                  value={formData.notice}
+                  onChange={(e) => setFormData({ ...formData, notice: e.target.value })}
+                />
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  每個商店可以有一個專屬的注意事項
+                </p>
               </div>
               <div>
                 <label className={`${labelClasses} mb-3`}>店面形象照片</label>
