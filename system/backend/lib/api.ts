@@ -474,7 +474,7 @@ export const bannersApi = {
 };
 
 export const rentalPlansApi = {
-  list: (params?: { active_only?: boolean; search?: string }) =>
+  list: (params?: { active_only?: boolean; search?: string; store_id?: number }) =>
     api.get('/rental-plans', params),
   get: (id: string | number) => api.get(`/rental-plans/${id}`),
   create: (data: any) => api.post('/rental-plans', data),
@@ -485,7 +485,7 @@ export const rentalPlansApi = {
 };
 
 export const guidelinesApi = {
-  list: (params?: { active_only?: boolean; category?: string; search?: string }) =>
+  list: (params?: { active_only?: boolean; category?: string; search?: string; store_id?: number }) =>
     api.get('/guidelines', params),
   get: (id: string | number) => api.get(`/guidelines/${id}`),
   create: (data: any) => api.post('/guidelines', data),
@@ -503,7 +503,7 @@ export const contactInfosApi = {
 };
 
 export const locationsApi = {
-  list: (params?: { active_only?: boolean; search?: string }) =>
+  list: (params?: { active_only?: boolean; search?: string; store_id?: number }) =>
     api.get('/locations', params),
   get: (id: string | number) => api.get(`/locations/${id}`),
   create: (data: any) => api.post('/locations', data),

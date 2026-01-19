@@ -15,7 +15,13 @@ class RentalPlan extends Model
         'image_path',
         'sort_order',
         'is_active',
+        'store_id',
     ];
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
 
     protected $casts = [
         'price' => 'decimal:2',

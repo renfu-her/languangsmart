@@ -21,7 +21,13 @@ class Location extends Model
         'map_embed',
         'sort_order',
         'is_active',
+        'store_id',
     ];
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
 
     protected $casts = [
         'is_active' => 'boolean',

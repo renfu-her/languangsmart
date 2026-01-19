@@ -15,7 +15,13 @@ class Guideline extends Model
         'answer',
         'sort_order',
         'is_active',
+        'store_id',
     ];
+
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
 
     protected $casts = [
         'is_active' => 'boolean',
