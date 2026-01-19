@@ -2,6 +2,7 @@
 import React, { Suspense } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { StoreProvider } from './contexts/StoreContext';
 import DashboardLayout from './components/DashboardLayout';
 import LoginPage from './pages/LoginPage';
 
@@ -59,7 +60,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
 const App: React.FC = () => {
   return (
     <AuthProvider>
-      <HashRouter>
+      <StoreProvider>
+        <HashRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={
@@ -166,6 +168,7 @@ const App: React.FC = () => {
           </Route>
         </Routes>
       </HashRouter>
+      </StoreProvider>
     </AuthProvider>
   );
 };

@@ -26,6 +26,7 @@ class Booking extends Model
         'note',
         'status',
         'partner_id',
+        'store_id',
         'total_amount',
     ];
 
@@ -38,4 +39,12 @@ class Booking extends Model
         'children' => 'integer',
         'total_amount' => 'integer',
     ];
+
+    /**
+     * Get the store that owns the booking.
+     */
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
 }

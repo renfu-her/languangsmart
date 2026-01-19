@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, Plus, AlertCircle, CheckCircle2, MoreHorizontal, Camera, X, Loader2, Calendar, Edit3, Trash2, ChevronDown } from 'lucide-react';
 import { finesApi, scootersApi } from '../lib/api';
+import { useStore } from '../contexts/StoreContext';
 import Flatpickr from 'react-flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import { MandarinTraditional } from 'flatpickr/dist/l10n/zh-tw.js';
@@ -29,6 +30,7 @@ interface Scooter {
 }
 
 const FinesPage: React.FC = () => {
+  const { currentStore } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFine, setEditingFine] = useState<Fine | null>(null);
   const [fines, setFines] = useState<Fine[]>([]);
@@ -76,6 +78,7 @@ const FinesPage: React.FC = () => {
       const params: any = {};
       if (paymentStatusFilter) params.payment_status = paymentStatusFilter;
       if (searchTerm) params.search = searchTerm;
+      if (currentStore) params.store_id = currentStore.id;
       const response = await finesApi.list(Object.keys(params).length > 0 ? params : undefined);
       setFines(response.data || []);
     } catch (error) {

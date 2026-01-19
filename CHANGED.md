@@ -1,5 +1,92 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-19 16:17:40 (Asia/Taipei) - 商店管理功能增強
+
+### 變更內容
+
+#### 資料庫變更
+- **新增遷移文件**：
+  - `2026_01_19_081200_add_store_id_to_orders_table.php`：為 orders 表添加 store_id 欄位
+  - `2026_01_19_081201_add_store_id_to_bookings_table.php`：為 bookings 表添加 store_id 欄位
+
+#### 後端變更
+
+- **模型更新**：
+  - `Order.php`：添加 `store_id` 到 fillable，添加 `store()` 關係方法
+  - `Booking.php`：添加 `store_id` 到 fillable，添加 `store()` 關係方法
+
+- **控制器更新**：
+  - `OrderController.php`：
+    - `index()` 方法支持 `store_id` 過濾
+    - `store()` 和 `update()` 方法支持 `store_id` 參數
+    - `statistics()` 方法支持 `store_id` 過濾
+    - `partnerDailyReport()` 和 `partnerMonthlyStatistics()` 方法支持 `store_id` 過濾
+  - `FineController.php`：
+    - `index()` 方法支持通過 `scooter.store_id` 過濾
+  - `ScooterController.php`：
+    - `index()` 方法支持 `store_id` 過濾
+  - `BookingController.php`：
+    - `index()` 方法支持 `store_id` 過濾
+    - `send()` 方法支持 `storeId` 參數
+
+#### 前端後台變更
+
+- **新增 StoreContext** (`system/backend/contexts/StoreContext.tsx`)：
+  - 管理當前選擇的商店
+  - 提供商店列表、新增、更新、刪除功能
+  - 自動保存當前選擇的商店到 localStorage
+
+- **新增 StoreSelector 組件** (`system/backend/components/StoreSelector.tsx`)：
+  - 商店選擇下拉選單
+  - 支持新增、編輯、刪除商店
+  - 適配深色/淺色主題
+
+- **DashboardLayout 更新**：
+  - 集成 StoreSelector 組件
+  - 在側邊欄底部顯示商店選擇器
+
+- **App.tsx 更新**：
+  - 添加 StoreProvider 包裹整個應用
+
+- **頁面更新**：
+  - `OrdersPage.tsx`：添加商店過濾，統計和匯出功能支持商店過濾
+  - `FinesPage.tsx`：添加商店過濾
+  - `ScootersPage.tsx`：添加商店過濾
+
+- **API 更新** (`system/backend/lib/api.ts`)：
+  - `ordersApi.statistics()` 支持 `storeId` 參數
+  - `ordersApi.monthlyReport()` 支持 `storeId` 參數
+  - `ordersApi.partnerDailyReport()` 支持 `storeId` 參數
+  - `ordersApi.partnerMonthlyStatistics()` 支持 `storeId` 參數
+
+#### 前端前台變更
+
+- **Booking.tsx 更新**：
+  - 添加商店選擇下拉選單
+  - 表單提交時包含 `storeId` 參數
+  - 自動載入商店列表
+
+- **API 更新** (`system/frontend/lib/api.ts`)：
+  - `publicApi.booking.send()` 支持 `storeId` 參數
+  - 新增 `publicApi.stores.list()` 方法
+
+### 功能說明
+
+1. **商店管理**：
+   - 在後台側邊欄底部可以選擇當前商店
+   - 可以新增、編輯、刪除商店
+   - 當前選擇的商店會自動保存到 localStorage
+
+2. **數據過濾**：
+   - 訂單管理、罰單管理、機車清單會根據當前選擇的商店自動過濾
+   - 統計和匯出功能也會根據當前商店過濾
+
+3. **前臺預約**：
+   - 用戶在預約時可以選擇商店（選填）
+   - 預約數據會關聯到選擇的商店
+
+---
+
 ## 2026-01-17 15:57:00 (+8) - 加寬星期欄位和總台數/天數欄位
 
 ### 變更內容
