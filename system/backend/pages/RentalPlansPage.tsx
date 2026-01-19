@@ -213,26 +213,25 @@ const RentalPlansPage: React.FC = () => {
           />
         </div>
         <div className="relative min-w-[200px]">
-          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">店家</label>
           {stores.length === 0 ? (
             <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-500 dark:text-gray-400">
               沒有店家
             </div>
           ) : (
-            <select
-              value={selectedStoreId}
-              onChange={(e) => setSelectedStoreId(e.target.value ? Number(e.target.value) : '')}
-              className={selectClasses}
-            >
-              {stores.map(store => (
-                <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
-              ))}
-            </select>
-          )}
-          {stores.length > 0 && (
-            <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
+            <>
+              <select
+                value={selectedStoreId}
+                onChange={(e) => setSelectedStoreId(e.target.value ? Number(e.target.value) : '')}
+                className={selectClasses}
+              >
+                {stores.map(store => (
+                  <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
+                ))}
+              </select>
+              <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </>
           )}
         </div>
       </div>
