@@ -102,10 +102,10 @@ export const publicApi = {
     list: () => api.get('/shuttle-images'),
   },
   rentalPlans: {
-    list: () => api.get('/rental-plans', { active_only: true }),
+    list: (params?: { store_id?: number }) => api.get('/rental-plans', { active_only: true, ...params }),
   },
   guidelines: {
-    list: (params?: { category?: string }) => api.get('/guidelines', { active_only: true, ...params }),
+    list: (params?: { category?: string; store_id?: number }) => api.get('/guidelines', { active_only: true, ...params }),
   },
   locations: {
     list: () => api.get('/locations', { active_only: true }),

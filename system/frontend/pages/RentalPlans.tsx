@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, X, Store } from 'lucide-react';
 import SEO from '../components/SEO';
 import { publicApi } from '../lib/api';
 
@@ -9,16 +9,42 @@ interface RentalPlan {
   model: string;
   price: number;
   image_path: string | null;
+  store_id?: number | null;
+  store?: { id: number; name: string; notice?: string | null } | null;
+}
+
+interface Store {
+  id: number;
+  name: string;
+  notice?: string | null;
 }
 
 const RentalPlans: React.FC = () => {
   const [plans, setPlans] = useState<RentalPlan[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [selectedStore, setSelectedStore] = useState<Store | null>(null);
+  const [showStoreModal, setShowStoreModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const response = await publicApi.stores.list();
+        const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
+        setStores(sortedStores);
+        // 如果有很多店家，預設選擇第一個店家
+        if (sortedStores.length > 0 && !selectedStore) {
+          setSelectedStore(sortedStores[0]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch stores:', error);
+      }
+    };
+
     const fetchPlans = async () => {
       try {
-        const response = await publicApi.rentalPlans.list();
+        const params = selectedStore ? { store_id: selectedStore.id } : undefined;
+        const response = await publicApi.rentalPlans.list(params);
         setPlans(response.data || []);
       } catch (error) {
         console.error('Failed to fetch rental plans:', error);
@@ -28,8 +54,13 @@ const RentalPlans: React.FC = () => {
       }
     };
 
-    fetchPlans();
-  }, []);
+    fetchStores();
+    if (selectedStore) {
+      fetchPlans();
+    } else {
+      setLoading(false);
+    }
+  }, [selectedStore]);
 
   const structuredData = {
     '@context': 'https://schema.org',
@@ -61,6 +92,20 @@ const RentalPlans: React.FC = () => {
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl serif font-light mb-3 sm:mb-4">租車方案</h1>
           <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base mb-4 px-4">蘭光電動機車提供彈性且多樣化的租賃方案，適用於旅遊、通勤與短期移動等多種情境。我們依據不同使用需求，規劃完善的租期與車型選擇，讓顧客能以安心、便利的方式完成每一次出行。</p>
           <div className="mt-3 sm:mt-4 text-xs text-gray-400 mb-6 sm:mb-8">首頁 &gt; 租車方案</div>
+          
+          {/* 店家選擇按鈕 */}
+          {stores.length > 0 && (
+            <div className="mb-6 sm:mb-8">
+              <button
+                onClick={() => setShowStoreModal(true)}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all text-gray-800 font-medium"
+              >
+                <Store size={18} />
+                <span>{selectedStore ? selectedStore.name : '選擇店家'}</span>
+                <ChevronDown size={18} />
+              </button>
+            </div>
+          )}
           
           <div className="max-w-2xl mx-auto text-center px-4">
             <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">隨車附安全帽，並提供衛生帽套供使用</p>
@@ -130,6 +175,73 @@ const RentalPlans: React.FC = () => {
             </div>
           </div>
         </section>
+      )}
+
+      {/* 店家選擇視窗 */}
+      {showStoreModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+              <h2 className="text-xl font-bold text-gray-800">選擇店家</h2>
+              <button
+                onClick={() => setShowStoreModal(false)}
+                className="p-2 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            <div className="p-6 max-h-[60vh] overflow-y-auto">
+              {stores.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <p>目前沒有店家</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {stores.map((store) => (
+                    <button
+                      key={store.id}
+                      onClick={() => {
+                        setSelectedStore(store);
+                        setShowStoreModal(false);
+                        setLoading(true);
+                      }}
+                      className={`w-full p-4 rounded-xl border-2 transition-all text-left ${
+                        selectedStore?.id === store.id
+                          ? 'border-orange-500 bg-orange-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                            selectedStore?.id === store.id
+                              ? 'bg-orange-500 text-white'
+                              : 'bg-gray-200 text-gray-600'
+                          }`}>
+                            <Store size={18} />
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-800">{store.name}</p>
+                            {store.notice && (
+                              <p className="text-xs text-gray-500 mt-1 line-clamp-1">{store.notice}</p>
+                            )}
+                          </div>
+                        </div>
+                        {selectedStore?.id === store.id && (
+                          <div className="w-5 h-5 rounded-full bg-orange-500 flex items-center justify-center">
+                            <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                            </svg>
+                          </div>
+                        )}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
