@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Loader2, AlertCircle, RefreshCw, Store, ChevronDown } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useStore } from '../contexts/StoreContext';
-import { captchaApi } from '../lib/api';
+import { captchaApi, storesApi } from '../lib/api';
 
 interface Captcha {
   captcha_id: string;
@@ -92,7 +92,6 @@ const LoginPage: React.FC = () => {
 
     try {
       if (isEditingStore && editingStore) {
-        const { storesApi } = await import('../lib/api');
         await storesApi.update(editingStore.id, storeFormData);
       } else {
         await createStore(storeFormData);
