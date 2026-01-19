@@ -38,7 +38,12 @@ class RentalPlanController extends Controller
         // Search
         if ($request->has('search')) {
             $search = $request->get('search');
-            $query->where('model', 'like', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->where('model', 'like', "%{$search}%")
+                  ->orWhereHas('store', function ($storeQuery) use ($search) {
+                      $storeQuery->where('name', 'like', "%{$search}%");
+                  });
+            });
         }
 
         $plans = $query->orderBy('sort_order', 'asc')->orderBy('created_at', 'desc')->get();
