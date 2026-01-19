@@ -31,22 +31,23 @@ export const StoreProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const fetchStores = async () => {
     try {
       const response = await storesApi.list();
-      setStores(response.data || []);
+      const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
+      setStores(sortedStores);
       
       // 如果沒有當前選擇的商店，且商店列表不為空，選擇第一個
-      if (!currentStore && response.data && response.data.length > 0) {
+      if (!currentStore && sortedStores && sortedStores.length > 0) {
         const savedStoreId = localStorage.getItem('current_store_id');
         if (savedStoreId) {
-          const savedStore = response.data.find((s: Store) => s.id === parseInt(savedStoreId));
+          const savedStore = sortedStores.find((s: Store) => s.id === parseInt(savedStoreId));
           if (savedStore) {
             setCurrentStoreState(savedStore);
           } else {
-            setCurrentStoreState(response.data[0]);
-            localStorage.setItem('current_store_id', String(response.data[0].id));
+            setCurrentStoreState(sortedStores[0]);
+            localStorage.setItem('current_store_id', String(sortedStores[0].id));
           }
         } else {
-          setCurrentStoreState(response.data[0]);
-          localStorage.setItem('current_store_id', String(response.data[0].id));
+          setCurrentStoreState(sortedStores[0]);
+          localStorage.setItem('current_store_id', String(sortedStores[0].id));
         }
       }
     } catch (error) {

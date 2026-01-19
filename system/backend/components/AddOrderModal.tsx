@@ -278,7 +278,8 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
   const fetchStores = async () => {
     try {
       const response = await storesApi.list();
-      setStores(response.data || []);
+      const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
+      setStores(sortedStores);
     } catch (error) {
       console.error('Failed to fetch stores:', error);
     }
