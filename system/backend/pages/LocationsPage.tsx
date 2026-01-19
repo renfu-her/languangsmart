@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Trash2, Edit2, Image as ImageIcon, X, Loader2 } from 'lucide-react';
-import { locationsApi } from '../lib/api';
-import { inputClasses, labelClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
+import { locationsApi, storesApi } from '../lib/api';
+import { useStore } from '../contexts/StoreContext';
+import { inputClasses, labelClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses, selectClasses } from '../styles';
 
 interface Location {
   id: number;
@@ -14,12 +15,21 @@ interface Location {
   map_embed: string | null;
   sort_order: number;
   is_active: boolean;
+  store_id?: number | null;
+  store?: { id: number; name: string } | null;
+}
+
+interface Store {
+  id: number;
+  name: string;
 }
 
 const LocationsPage: React.FC = () => {
+  const { currentStore } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingLocation, setEditingLocation] = useState<Location | null>(null);
   const [locations, setLocations] = useState<Location[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -30,19 +40,35 @@ const LocationsPage: React.FC = () => {
     map_embed: '',
     sort_order: 0,
     is_active: true,
+    store_id: '',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    fetchLocations();
+    fetchStores();
   }, []);
+
+  useEffect(() => {
+    fetchLocations();
+  }, [currentStore]);
+
+  const fetchStores = async () => {
+    try {
+      const response = await storesApi.list();
+      setStores(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch stores:', error);
+    }
+  };
 
   const fetchLocations = async () => {
     setLoading(true);
     try {
-      const response = await locationsApi.list();
+      const params: any = {};
+      if (currentStore) params.store_id = currentStore.id;
+      const response = await locationsApi.list(params);
       setLocations(response.data || []);
     } catch (error) {
       console.error('Failed to fetch locations:', error);
@@ -64,6 +90,7 @@ const LocationsPage: React.FC = () => {
         map_embed: location.map_embed || '',
         sort_order: location.sort_order || 0,
         is_active: location.is_active ?? true,
+        store_id: location.store_id?.toString() || currentStore?.id.toString() || '',
       });
       setImagePreview(location.image_path ? `/storage/${location.image_path}` : null);
     } else {
@@ -77,6 +104,7 @@ const LocationsPage: React.FC = () => {
         map_embed: '',
         sort_order: 0,
         is_active: true,
+        store_id: currentStore?.id.toString() || '',
       });
       setImagePreview(null);
     }
@@ -153,6 +181,7 @@ const LocationsPage: React.FC = () => {
       const submitData = {
         ...formData,
         sort_order: parseInt(formData.sort_order.toString()),
+        store_id: formData.store_id || currentStore?.id || null,
       };
 
       if (editingLocation) {
@@ -230,6 +259,7 @@ const LocationsPage: React.FC = () => {
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">地址</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">電話</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">營業時間</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">商店</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">排序</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">狀態</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 text-center">操作</th>
@@ -264,6 +294,9 @@ const LocationsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">{location.hours || '-'}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{location.store?.name || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">{location.sort_order}</span>
@@ -319,6 +352,25 @@ const LocationsPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div>
+                <label className={labelClasses}>商店選擇</label>
+                <div className="relative">
+                  <select 
+                    className={selectClasses}
+                    value={formData.store_id}
+                    onChange={(e) => setFormData({ ...formData, store_id: e.target.value })}
+                  >
+                    <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">請選擇商店（非必選）</option>
+                    {stores.map(store => (
+                      <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
+                    ))}
+                  </select>
+                  <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </div>
+              </div>
+
               <div>
                 <label className={labelClasses}>門市名稱 *</label>
                 <input

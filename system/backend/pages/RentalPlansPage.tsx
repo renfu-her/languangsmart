@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Image as ImageIcon, X, Loader2 } from 'lucide-react';
-import { rentalPlansApi } from '../lib/api';
-import { inputClasses, labelClasses, searchInputClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
+import { rentalPlansApi, storesApi } from '../lib/api';
+import { useStore } from '../contexts/StoreContext';
+import { inputClasses, labelClasses, searchInputClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses, selectClasses, chevronDownClasses } from '../styles';
 
 interface RentalPlan {
   id: number;
@@ -10,12 +11,21 @@ interface RentalPlan {
   image_path: string | null;
   sort_order: number;
   is_active: boolean;
+  store_id?: number | null;
+  store?: { id: number; name: string } | null;
+}
+
+interface Store {
+  id: number;
+  name: string;
 }
 
 const RentalPlansPage: React.FC = () => {
+  const { currentStore } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<RentalPlan | null>(null);
   const [plans, setPlans] = useState<RentalPlan[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [formData, setFormData] = useState({
@@ -23,19 +33,36 @@ const RentalPlansPage: React.FC = () => {
     price: '',
     sort_order: 0,
     is_active: true,
+    store_id: '',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
+    fetchStores();
+  }, []);
+
+  useEffect(() => {
     fetchPlans();
-  }, [searchTerm]);
+  }, [searchTerm, currentStore]);
+
+  const fetchStores = async () => {
+    try {
+      const response = await storesApi.list();
+      setStores(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch stores:', error);
+    }
+  };
 
   const fetchPlans = async () => {
     setLoading(true);
     try {
-      const response = await rentalPlansApi.list(searchTerm ? { search: searchTerm } : undefined);
+      const params: any = {};
+      if (searchTerm) params.search = searchTerm;
+      if (currentStore) params.store_id = currentStore.id;
+      const response = await rentalPlansApi.list(params);
       setPlans(response.data || []);
     } catch (error) {
       console.error('Failed to fetch rental plans:', error);
@@ -53,6 +80,7 @@ const RentalPlansPage: React.FC = () => {
         price: plan.price.toString(),
         sort_order: plan.sort_order,
         is_active: plan.is_active,
+        store_id: plan.store_id?.toString() || currentStore?.id.toString() || '',
       });
       setImagePreview(plan.image_path ? `/storage/${plan.image_path}` : null);
     } else {
@@ -62,6 +90,7 @@ const RentalPlansPage: React.FC = () => {
         price: '',
         sort_order: 0,
         is_active: true,
+        store_id: currentStore?.id.toString() || '',
       });
       setImagePreview(null);
     }
@@ -72,12 +101,13 @@ const RentalPlansPage: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingPlan(null);
-    setFormData({
-      model: '',
-      price: '',
-      sort_order: 0,
-      is_active: true,
-    });
+      setFormData({
+        model: '',
+        price: '',
+        sort_order: 0,
+        is_active: true,
+        store_id: '',
+      });
     setImageFile(null);
     setImagePreview(null);
   };
@@ -91,6 +121,7 @@ const RentalPlansPage: React.FC = () => {
         ...formData,
         price: parseFloat(formData.price),
         sort_order: parseInt(formData.sort_order.toString()),
+        store_id: formData.store_id || currentStore?.id || null,
       };
 
       if (editingPlan) {
@@ -185,6 +216,7 @@ const RentalPlansPage: React.FC = () => {
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">圖片</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">型號</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">價格</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">商店</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">排序</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">狀態</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 text-center">操作</th>
@@ -213,6 +245,9 @@ const RentalPlansPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-bold text-orange-600">${Math.floor(plan.price)} / 24H</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{plan.store?.name || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">{plan.sort_order}</span>
@@ -268,6 +303,25 @@ const RentalPlansPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div>
+                <label className={labelClasses}>商店選擇</label>
+                <div className="relative">
+                  <select 
+                    className={selectClasses}
+                    value={formData.store_id}
+                    onChange={(e) => setFormData({ ...formData, store_id: e.target.value })}
+                  >
+                    <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">請選擇商店（非必選）</option>
+                    {stores.map(store => (
+                      <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
+                    ))}
+                  </select>
+                  <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M6 9l6 6 6-6" />
+                  </svg>
+                </div>
+              </div>
+
               <div>
                 <label className={labelClasses}>型號 *</label>
                 <input

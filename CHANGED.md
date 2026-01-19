@@ -1,5 +1,67 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-20 12:00:00 (Asia/Taipei) - 租車方案、租車須知、門市據點添加商店支援
+
+### 變更內容
+
+#### 資料庫變更
+- **新增遷移文件**：
+  - `2026_01_20_000001_add_store_id_to_rental_plans_table.php`：為 rental_plans 表添加 store_id 欄位
+  - `2026_01_20_000002_add_store_id_to_guidelines_table.php`：為 guidelines 表添加 store_id 欄位
+  - `2026_01_20_000003_add_store_id_to_locations_table.php`：為 locations 表添加 store_id 欄位
+
+#### 後端變更
+
+- **模型更新**：
+  - `RentalPlan.php`：添加 `store_id` 到 fillable，添加 `store()` 關係方法
+  - `Guideline.php`：添加 `store_id` 到 fillable，添加 `store()` 關係方法
+  - `Location.php`：添加 `store_id` 到 fillable，添加 `store()` 關係方法
+
+- **控制器更新**：
+  - `RentalPlanController.php`：
+    - `index()` 方法支持 `store_id` 過濾，並載入 store 關係
+    - `store()` 和 `update()` 方法支持 `store_id` 參數驗證
+  - `GuidelineController.php`：
+    - `index()` 方法支持 `store_id` 過濾，並載入 store 關係
+    - `store()` 和 `update()` 方法支持 `store_id` 參數驗證
+  - `LocationController.php`：
+    - `index()` 方法支持 `store_id` 過濾，並載入 store 關係
+    - `store()` 和 `update()` 方法支持 `store_id` 參數驗證
+
+#### 前端後台變更
+
+- **API 定義更新** (`system/backend/lib/api.ts`)：
+  - `rentalPlansApi.list()` 支持 `store_id` 參數
+  - `guidelinesApi.list()` 支持 `store_id` 參數
+  - `locationsApi.list()` 支持 `store_id` 參數
+
+- **RentalPlansPage 更新** (`system/backend/pages/RentalPlansPage.tsx`)：
+  - 集成 `useStore` hook 獲取當前選擇的商店
+  - 添加商店列表獲取功能
+  - 在表單中添加商店選擇下拉選單
+  - 列表顯示商店名稱欄位
+  - 搜尋和列表自動根據當前選擇的商店過濾
+
+- **GuidelinesPage 更新** (`system/backend/pages/GuidelinesPage.tsx`)：
+  - 集成 `useStore` hook 獲取當前選擇的商店
+  - 添加商店列表獲取功能
+  - 在表單中添加商店選擇下拉選單
+  - 列表顯示商店名稱欄位
+  - 搜尋和列表自動根據當前選擇的商店過濾
+
+- **LocationsPage 更新** (`system/backend/pages/LocationsPage.tsx`)：
+  - 集成 `useStore` hook 獲取當前選擇的商店
+  - 添加商店列表獲取功能
+  - 在表單中添加商店選擇下拉選單
+  - 列表顯示商店名稱欄位
+  - 列表自動根據當前選擇的商店過濾
+
+### 功能說明
+
+1. **商店過濾**：所有三個頁面（租車方案、租車須知、門市據點）都會根據側邊欄選擇的商店自動過濾顯示的資料
+2. **商店選擇**：在新增或編輯時，可以選擇該資料所屬的商店，如果沒有選擇則使用當前選擇的商店作為預設值
+3. **搜尋功能**：搜尋功能會結合商店過濾，只搜尋當前商店的資料
+
 ## 2026-01-19 16:17:40 (Asia/Taipei) - 商店管理功能增強
 
 ### 變更內容

@@ -23,11 +23,16 @@ class LocationController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Location::query();
+        $query = Location::with('store');
 
         // Filter by active status for public API
         if ($request->has('active_only') && $request->get('active_only')) {
             $query->where('is_active', true);
+        }
+
+        // Filter by store_id
+        if ($request->has('store_id')) {
+            $query->where('store_id', $request->get('store_id'));
         }
 
         // Search
@@ -60,6 +65,7 @@ class LocationController extends Controller
             'map_embed' => 'nullable|string',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'store_id' => 'nullable|exists:stores,id',
         ]);
 
         if ($validator->fails()) {
