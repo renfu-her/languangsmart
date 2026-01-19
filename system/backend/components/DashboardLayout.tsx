@@ -4,6 +4,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { ChevronDown, ChevronRight, User, Menu, Sun, Moon, LogOut } from 'lucide-react';
 import { NAV_ITEMS } from '../constants';
 import { useAuth } from '../contexts/AuthContext';
+import StoreSelector from './StoreSelector';
 
 const SidebarItem: React.FC<{ item: any; isOpenByDefault?: boolean; sidebarOpen: boolean; theme: 'light' | 'dark' }> = ({ 
   item, 
@@ -144,6 +145,9 @@ const DashboardLayout: React.FC = () => {
             />
           ))}
         </nav>
+
+        {/* 商店選擇器 */}
+        <StoreSelector theme={theme} sidebarOpen={sidebarOpen} />
 
         {/* 切換深淺模式按鈕 */}
         <div className={`px-3 pb-3 ${sidebarOpen ? '' : 'px-2'}`}>

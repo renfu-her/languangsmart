@@ -4,6 +4,7 @@ import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizont
 import AddOrderModal from '../components/AddOrderModal';
 import ConvertBookingModal from '../components/ConvertBookingModal';
 import { ordersApi, partnersApi, bookingsApi, rentalPlansApi, scooterModelsApi } from '../lib/api';
+import { useStore } from '../contexts/StoreContext';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
@@ -48,7 +49,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       const [year, month] = selectedMonthString.split('-');
       
       // 1. 從後端獲取 JSON 數據
-      const response = await ordersApi.partnerDailyReport(selectedMonthString, partnerId, 'json');
+      const response = await ordersApi.partnerDailyReport(selectedMonthString, partnerId, 'json', currentStore?.id);
       const reportData = response.data;
       
       // 找到對應的合作商數據
@@ -1202,6 +1203,7 @@ const ChartModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
 
 const OrdersPage: React.FC = () => {
   const navigate = useNavigate();
+  const { currentStore } = useStore();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
   const [isChartModalOpen, setIsChartModalOpen] = useState(false);
@@ -1371,6 +1373,7 @@ const OrdersPage: React.FC = () => {
           month: selectedMonthString,
           search: searchTerm || undefined,
           page: currentPage,
+          store_id: currentStore?.id,
         });
         // API 返回結構: { data: [...], meta: {...} }
         // response 本身就是 { data: [...], meta: {...} }
@@ -1415,7 +1418,7 @@ const OrdersPage: React.FC = () => {
   const fetchStatistics = async () => {
     setStatsLoading(true);
     try {
-      const response = await ordersApi.statistics(selectedMonthString);
+      const response = await ordersApi.statistics(selectedMonthString, currentStore?.id);
       setStats(response.data);
     } catch (error) {
       console.error('Failed to fetch statistics:', error);

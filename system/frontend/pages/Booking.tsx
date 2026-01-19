@@ -46,6 +46,7 @@ const Booking: React.FC = () => {
     email: '',
     lineId: '',
     phone: '',
+    storeId: '',
     appointmentDate: '',
     endDate: '',
     shippingCompany: '',
@@ -54,6 +55,7 @@ const Booking: React.FC = () => {
     children: '',
     note: '',
   });
+  const [stores, setStores] = useState<Array<{ id: number; name: string }>>([]);
   const [scooterItems, setScooterItems] = useState<ScooterItem[]>([
     { id: '1', model: '', type: '', count: 1 }
   ]);
@@ -64,7 +66,17 @@ const Booking: React.FC = () => {
   useEffect(() => {
     fetchScooterModels();
     fetchDefaultShippingCompany();
+    fetchStores();
   }, []);
+
+  const fetchStores = async () => {
+    try {
+      const response = await publicApi.stores.list();
+      setStores(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch stores:', error);
+    }
+  };
 
   const fetchDefaultShippingCompany = async () => {
     try {
@@ -144,6 +156,7 @@ const Booking: React.FC = () => {
         email: formData.email,
         lineId: formData.lineId || undefined,
         phone: formData.phone,
+        storeId: formData.storeId || undefined,
         appointmentDate: formData.appointmentDate,
         endDate: formData.endDate,
         shippingCompany: formData.shippingCompany,
@@ -162,7 +175,8 @@ const Booking: React.FC = () => {
         name: '', 
         email: '',
         lineId: '', 
-        phone: '', 
+        phone: '',
+        storeId: '',
         appointmentDate: '',
         endDate: '',
         shippingCompany: '',
@@ -287,7 +301,25 @@ const Booking: React.FC = () => {
                   value={formData.phone}
                   onChange={e => setFormData({...formData, phone: e.target.value})}
                 />
-            </div>
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
+                  選擇商店
+                </label>
+                <select 
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base"
+                  value={formData.storeId}
+                  onChange={e => setFormData({...formData, storeId: e.target.value})}
+                >
+                  <option value="">請選擇商店（選填）</option>
+                  {stores.map((store) => (
+                    <option key={store.id} value={store.id}>
+                      {store.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">

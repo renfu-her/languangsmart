@@ -23,7 +23,12 @@ class OrderController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Order::with(['partner', 'scooters']);
+        $query = Order::with(['partner', 'scooters', 'store']);
+
+        // Filter by store_id
+        if ($request->has('store_id')) {
+            $query->where('store_id', $request->get('store_id'));
+        }
 
         // Filter by month (format: YYYY-MM)
         if ($request->has('month')) {
@@ -67,6 +72,7 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'partner_id' => 'nullable|exists:partners,id',
+            'store_id' => 'nullable|exists:stores,id',
             'tenant' => 'nullable|string|max:255',
             'appointment_date' => 'required|date',
             'start_time' => 'nullable|date',
@@ -181,6 +187,7 @@ class OrderController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'partner_id' => 'nullable|exists:partners,id',
+            'store_id' => 'nullable|exists:stores,id',
             'tenant' => 'nullable|string|max:255',
             'appointment_date' => 'required|date',
             'start_time' => 'nullable|date',
@@ -400,9 +407,15 @@ class OrderController extends Controller
         $endDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->endOfMonth();
 
         // Get orders for the month
-        $orders = Order::with(['partner', 'scooters'])
-            ->whereBetween('appointment_date', [$startDate, $endDate])
-            ->get();
+        $query = Order::with(['partner', 'scooters', 'store'])
+            ->whereBetween('appointment_date', [$startDate, $endDate]);
+        
+        // Filter by store_id if provided
+        if ($request->has('store_id')) {
+            $query->where('store_id', $request->get('store_id'));
+        }
+        
+        $orders = $query->get();
 
         // Calculate statistics by partner
         $partnerStats = [];
@@ -686,11 +699,12 @@ class OrderController extends Controller
         // ]);
 
         // Step 4: 查詢訂單（只載入基本資訊）
-        $orders = Order::with(['partner'])
+        $orders = Order::with(['partner', 'store'])
             ->whereNotNull('start_time')
             ->whereNotNull('end_time')
             ->whereBetween('start_time', [$monthStartDate, $monthEndDate])
             ->when($partnerId, fn($q) => $q->where('partner_id', $partnerId))
+            ->when($request->has('store_id'), fn($q) => $q->where('store_id', $request->get('store_id')))
             ->get();
 
         // dd('Step 4: 訂單查詢完成', [
@@ -836,6 +850,7 @@ class OrderController extends Controller
             ->whereNotNull('end_time')
             ->whereNotNull('partner_id')
             ->whereBetween('start_time', [$monthStartDate, $monthEndDate])
+            ->when($request->has('store_id'), fn($q) => $q->where('store_id', $request->get('store_id')))
             ->get();
 
         // 步驟 4: 生成完整月份日期列表

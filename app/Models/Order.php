@@ -13,6 +13,7 @@ class Order extends Model
     protected $fillable = [
         'order_number',
         'partner_id',
+        'store_id',
         'tenant',
         'appointment_date',
         'start_time',
@@ -77,6 +78,14 @@ class Order extends Model
     public function partner()
     {
         return $this->belongsTo(Partner::class);
+    }
+
+    /**
+     * Get the store that owns the order.
+     */
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
     }
 
     /**

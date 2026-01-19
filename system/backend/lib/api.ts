@@ -350,12 +350,12 @@ export const ordersApi = {
   update: (id: string | number, data: any) => api.put(`/orders/${id}`, data),
   updateStatus: (id: string | number, status: string) => api.patch(`/orders/${id}/status`, { status }),
   delete: (id: string | number) => api.delete(`/orders/${id}`),
-  statistics: (month: string) => api.get('/orders/statistics', { month }),
-  monthlyReport: (month: string) => api.get('/orders/monthly-report', { month }),
-  partnerDailyReport: (month: string, partnerId?: number, format?: 'excel' | 'json') => 
-    api.get('/orders/partner-daily-report', { month, partner_id: partnerId, format }),
-  partnerMonthlyStatistics: (month: string) =>
-    api.get('/orders/partner-monthly-statistics', { month }),
+  statistics: (month: string, storeId?: number) => api.get('/orders/statistics', { month, store_id: storeId }),
+  monthlyReport: (month: string, storeId?: number) => api.get('/orders/monthly-report', { month, store_id: storeId }),
+  partnerDailyReport: (month: string, partnerId?: number, format?: 'excel' | 'json', storeId?: number) => 
+    api.get('/orders/partner-daily-report', { month, partner_id: partnerId, format, store_id: storeId }),
+  partnerMonthlyStatistics: (month: string, storeId?: number) =>
+    api.get('/orders/partner-monthly-statistics', { month, store_id: storeId }),
   downloadPartnerMonthlyReport: (month: string, partnerId: number, filename?: string) =>
     api.downloadFile('/orders/partner-daily-report', { month, partner_id: partnerId }, filename),
   getYears: () => api.get<number[]>('/orders/years'),

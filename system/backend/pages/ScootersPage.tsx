@@ -29,6 +29,7 @@ interface ScooterModel {
 }
 
 const ScootersPage: React.FC = () => {
+  const { currentStore } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingScooter, setEditingScooter] = useState<Scooter | null>(null);
   const [scooters, setScooters] = useState<Scooter[]>([]);
@@ -104,6 +105,7 @@ const ScootersPage: React.FC = () => {
       const params: any = {};
       if (statusFilter) params.status = statusFilter;
       if (searchTerm) params.search = searchTerm;
+      if (currentStore) params.store_id = currentStore.id;
       const response = await scootersApi.list(Object.keys(params).length > 0 ? params : undefined);
       // API returns { data: [...] }, api.get() returns the whole JSON object
       // So response.data is the array

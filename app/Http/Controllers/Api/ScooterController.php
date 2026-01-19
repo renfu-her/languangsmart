@@ -27,6 +27,11 @@ class ScooterController extends Controller
     {
         $query = Scooter::query();
 
+        // Filter by store_id
+        if ($request->has('store_id')) {
+            $query->where('store_id', $request->get('store_id'));
+        }
+
         // Filter by status
         if ($request->has('status')) {
             $query->where('status', $request->get('status'));

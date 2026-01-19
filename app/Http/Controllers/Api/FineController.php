@@ -24,7 +24,14 @@ class FineController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Fine::with(['scooter', 'order']);
+        $query = Fine::with(['scooter', 'order', 'scooter.store']);
+
+        // Filter by store_id (through scooter)
+        if ($request->has('store_id')) {
+            $query->whereHas('scooter', function ($q) use ($request) {
+                $q->where('store_id', $request->get('store_id'));
+            });
+        }
 
         // Filter by payment status
         if ($request->has('payment_status')) {
