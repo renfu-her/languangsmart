@@ -30,6 +30,7 @@ const RentalPlansPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStoreFilter, setSelectedStoreFilter] = useState<number | ''>('');
+  const [selectedStoreForDisplay, setSelectedStoreForDisplay] = useState<number | ''>('');
   const [formData, setFormData] = useState({
     model: '',
     price: '',
@@ -47,16 +48,21 @@ const RentalPlansPage: React.FC = () => {
 
   useEffect(() => {
     fetchPlans();
-  }, [searchTerm, selectedStoreFilter]);
+  }, [searchTerm, selectedStoreFilter, selectedStoreForDisplay]);
 
   const fetchStores = async () => {
     try {
       const response = await storesApi.list();
       const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
       setStores(sortedStores);
-      // 如果沒有選擇商店，且商店列表不為空，預設選擇第一個商店
-      if (sortedStores.length > 0 && selectedStoreFilter === '' && !currentStore) {
-        setSelectedStoreFilter(sortedStores[0].id);
+      // 如果有很多店家，預設選擇第一個
+      if (sortedStores.length > 0) {
+        if (selectedStoreFilter === '' && !currentStore) {
+          setSelectedStoreFilter(sortedStores[0].id);
+        }
+        if (selectedStoreForDisplay === '') {
+          setSelectedStoreForDisplay(sortedStores[0].id);
+        }
       }
     } catch (error) {
       console.error('Failed to fetch stores:', error);
@@ -68,7 +74,8 @@ const RentalPlansPage: React.FC = () => {
     try {
       const params: any = {};
       if (searchTerm) params.search = searchTerm;
-      const storeId = selectedStoreFilter || currentStore?.id;
+      // 使用 selectedStoreForDisplay 或 selectedStoreFilter 或 currentStore
+      const storeId = selectedStoreForDisplay || selectedStoreFilter || currentStore?.id;
       if (storeId) params.store_id = storeId;
       const response = await rentalPlansApi.list(params);
       setPlans(response.data || []);
@@ -206,23 +213,39 @@ const RentalPlansPage: React.FC = () => {
           />
         </div>
         <div className="relative min-w-[200px]">
-          <select
-            value={selectedStoreFilter}
-            onChange={(e) => setSelectedStoreFilter(e.target.value ? Number(e.target.value) : '')}
-            className={selectClasses}
-          >
-            <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">所有商店</option>
-            {stores.length === 0 ? (
-              <option value="" disabled className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">沒有店家</option>
-            ) : (
-              stores.map(store => (
-                <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
-              ))
-            )}
-          </select>
-          <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M6 9l6 6 6-6" />
-          </svg>
+          <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">店家</label>
+          {stores.length === 0 ? (
+            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-500 dark:text-gray-400">
+              沒有店家
+            </div>
+          ) : (
+            <>
+              <select
+                value={selectedStoreForDisplay}
+                onChange={(e) => {
+                  const storeId = e.target.value ? Number(e.target.value) : '';
+                  setSelectedStoreForDisplay(storeId);
+                  setSelectedStoreFilter(storeId);
+                }}
+                className={selectClasses}
+              >
+                {stores.map(store => (
+                  <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
+                ))}
+              </select>
+              <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+              {selectedStoreForDisplay && (
+                <div className="mt-2">
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1 uppercase tracking-wider">注意事項</label>
+                  <div className="px-4 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 min-h-[60px]">
+                    {stores.find(s => s.id === selectedStoreForDisplay)?.notice || '無'}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
         </div>
       </div>
 
@@ -241,7 +264,6 @@ const RentalPlansPage: React.FC = () => {
               <thead className="bg-gray-50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700">
                 <tr>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">商店</th>
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">注意事項</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">圖片</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">型號</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">價格</th>
@@ -255,9 +277,6 @@ const RentalPlansPage: React.FC = () => {
                   <tr key={plan.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">{plan.store?.name || '沒有店家'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{plan.store?.notice || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       {plan.image_path ? (
