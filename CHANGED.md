@@ -1,5 +1,24 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-20 10:40:41 (Asia/Taipei) - 優化 Excel 導出時 store_name 的處理邏輯
+
+### 變更內容
+
+#### 後端變更
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 優化 Excel 導出時 `partnerData` 的處理，確保正確轉換為數組格式
+  - 添加類型檢查，確保 `store_name` 能正確從 `partnerData` 中獲取
+  - 優化 `dates` 數據的處理，確保正確轉換為數組格式
+
+### 功能說明
+
+- 現在 Excel 導出時會優先使用 `partnerData` 中的 `store_name`（從訂單中獲取的店名）
+- 如果 `partnerData` 中沒有 `store_name`，則使用請求參數中的 `storeName`
+- 確保數據類型正確轉換，避免訪問錯誤
+
+---
+
 ## 2026-01-20 10:35:57 (Asia/Taipei) - 在合作商月報表 API 返回數據中添加 store_id 和 store_name
 
 ### 變更內容

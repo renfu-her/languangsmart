@@ -838,6 +838,11 @@ class OrderController extends Controller
                 ], 404);
             }
 
+            // 確保 partnerData 是數組格式（如果是 Collection 項目，轉換為數組）
+            if (is_object($partnerData) && method_exists($partnerData, 'toArray')) {
+                $partnerData = $partnerData->toArray();
+            }
+
             // 解析年月
             [$year, $monthNum] = explode('-', $month);
             
@@ -849,7 +854,7 @@ class OrderController extends Controller
                 $partnerData['partner_name'],
                 $year,
                 $monthNum,
-                $partnerData['dates']->toArray(),
+                is_array($partnerData['dates']) ? $partnerData['dates'] : $partnerData['dates']->toArray(),
                 $allModels,
                 $excelStoreName
             );
