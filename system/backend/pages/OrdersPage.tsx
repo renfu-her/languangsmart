@@ -66,6 +66,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
 
       const dates = partnerData.dates || [];
       const allModels = reportData.models || [];
+      const storeName = partnerData.store_name || reportData.store_name || null;
 
       // 驗證數據
       if (!Array.isArray(allModels) || allModels.length === 0) {
@@ -176,9 +177,9 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         border: borderStyle
       };
 
-      // 第一行：標題「合作商出租月報表」（合併所有列）
+      // 第一行：標題「合作商機車出租月報表」（合併所有列）
       const titleCell = worksheet.getCell(rowNumber, 1);
-      titleCell.value = `${partnerName}出租月報表`;
+      titleCell.value = `${partnerName}機車出租月報表`;
       worksheet.mergeCells(rowNumber, 1, rowNumber, totalCols);
       titleCell.font = titleStyle.font;
       titleCell.fill = titleStyle.fill;
@@ -191,7 +192,24 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       }
       rowNumber++;
 
-      // 第二行：前面兩欄空白，然後機車型號標題（每個型號佔 4 欄）
+      // 第二行：店家名稱（如果有的話）
+      if (storeName) {
+        const storeNameCell = worksheet.getCell(rowNumber, 1);
+        storeNameCell.value = storeName;
+        worksheet.mergeCells(rowNumber, 1, rowNumber, totalCols);
+        storeNameCell.font = { bold: true, size: 12, color: { argb: 'FF000000' } };
+        storeNameCell.fill = titleStyle.fill;
+        storeNameCell.alignment = titleStyle.alignment;
+        storeNameCell.border = titleStyle.border;
+        // 為店家名稱行的所有單元格設置邊框
+        for (let c = 1; c <= totalCols; c++) {
+          const cell = worksheet.getCell(rowNumber, c);
+          cell.border = borderStyle;
+        }
+        rowNumber++;
+      }
+
+      // 第三行：前面兩欄空白，然後機車型號標題（每個型號佔 4 欄）
       const headerRow2 = worksheet.getRow(rowNumber);
       let colIndex = 1;
       // 為前兩欄設置樣式和邊框
@@ -230,7 +248,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       rowNumber++;
 
-      // 第三行：當日租（1 欄）、跨日租（3 欄）
+      // 第四行：當日租（1 欄）、跨日租（3 欄）
       const headerRow3 = worksheet.getRow(rowNumber);
       colIndex = 1;
       // 為前兩欄設置樣式和邊框
@@ -278,7 +296,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       rowNumber++;
 
-      // 第四行：日期、星期（前兩欄），然後是台數（當日租下）、台數、天數、金額（跨日租下，金額共用）
+      // 第五行：日期、星期（前兩欄），然後是台數（當日租下）、台數、天數、金額（跨日租下，金額共用）
       const headerRow4 = worksheet.getRow(rowNumber);
       colIndex = 1;
       // 為前兩欄設置樣式和邊框（日期和星期）
@@ -312,11 +330,13 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       rowNumber++;
 
-      // 凍結表頭行（第 1-4 行，包含所有文字的表頭）
-      // ySplit: 4 表示凍結前 4 行（0-3 行），從第 5 行開始可以滾動
-      worksheet.views = [{ state: 'frozen', ySplit: 4 }];
+      // 凍結表頭行（根據是否有店家名稱決定）
+      // 如果有店家名稱：凍結前 5 行（標題、店家名稱、機車型號、當日租/跨日租、日期/星期）
+      // 如果沒有店家名稱：凍結前 4 行
+      const frozenRows = storeName ? 5 : 4;
+      worksheet.views = [{ state: 'frozen', ySplit: frozenRows }];
 
-      // 第五行開始：日期、星期、數據
+      // 數據行開始：日期、星期、數據
 
       // 數據行（按 order_number 分開顯示）
       dates.forEach((dateItem: any) => {
@@ -334,7 +354,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
           emptyRow.getCell(1).value = formattedDate;
           emptyRow.getCell(2).value = weekday;
           // 其他欄位為空
-          const isAlternate = (rowNumber - 5) % 2 === 1; // 第 5 行開始是數據行（索引 5，rowNumber 從 1 開始）
+          const dataStartRow = storeName ? 6 : 5; // 數據行開始的行號
+          const isAlternate = (rowNumber - dataStartRow) % 2 === 1;
           const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
           for (let c = 1; c <= totalCols; c++) {
             const cell = emptyRow.getCell(c);
@@ -353,7 +374,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
             dataRow.getCell(cellIndex++).value = orderIndex === 0 ? formattedDate : '';
             dataRow.getCell(cellIndex++).value = orderIndex === 0 ? weekday : '';
 
-            const isAlternate = (rowNumber - 5) % 2 === 1; // 第 5 行開始是數據行
+            const dataStartRow = storeName ? 6 : 5; // 數據行開始的行號
+            const isAlternate = (rowNumber - dataStartRow) % 2 === 1;
             const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
             
             allModels.forEach((model: string) => {
