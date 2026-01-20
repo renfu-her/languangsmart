@@ -69,9 +69,9 @@ class PartnerMonthlyReportExport
         if ($this->storeName) {
             // 在同一個儲存格中換行顯示標題和店名
             // 格式：蘭光智能出租月報表\n{store_name}
-            $titleCell->setValue('蘭光智能出租月報表' . "\n" . $this->storeName);
+            $titleCell->setValue('蘭光智能出租月報表 test' . $this->storeName);
         } else {
-            $titleCell->setValue('蘭光智能出租月報表 test');
+            $titleCell->setValue('蘭光智能出租月報表');
         }
         
         $sheet->mergeCells('A' . $row . ':' . $lastCol . $row);
