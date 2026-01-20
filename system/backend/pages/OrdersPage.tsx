@@ -1423,7 +1423,7 @@ const OrdersPage: React.FC = () => {
     };
 
     fetchOrders();
-  }, [selectedYear, selectedMonth, searchTerm, currentPage]);
+  }, [selectedYear, selectedMonth, searchTerm, currentPage, currentStore]);
 
 
   // 滾動時關閉狀態下拉選單
@@ -1456,7 +1456,7 @@ const OrdersPage: React.FC = () => {
 
   useEffect(() => {
     fetchStatistics();
-  }, [selectedYear, selectedMonth]);
+  }, [selectedYear, selectedMonth, currentStore]);
 
   // 點擊外部關閉下拉菜單（現在通過遮罩層處理）
   // 滾動時關閉下拉菜單
@@ -1694,6 +1694,7 @@ const OrdersPage: React.FC = () => {
         month: selectedMonthString,
         search: searchTerm || undefined,
         page: currentPage,
+        store_id: currentStore?.id,
       });
       const ordersData = response.data || [];
       setOrders(Array.isArray(ordersData) ? ordersData : []);
@@ -1904,6 +1905,7 @@ const OrdersPage: React.FC = () => {
       month: selectedMonthString,
       search: searchTerm || undefined,
       page: currentPage,
+      store_id: currentStore?.id,
     });
     const ordersData = response.data || [];
     setOrders(Array.isArray(ordersData) ? ordersData : []);
@@ -2595,6 +2597,7 @@ const OrdersPage: React.FC = () => {
                 month: selectedMonthString,
                 search: searchTerm || undefined,
                 page: currentPage,
+                store_id: currentStore?.id,
               });
               const ordersData = response.data || [];
               setOrders(Array.isArray(ordersData) ? ordersData : []);
@@ -2695,6 +2698,7 @@ const OrdersPage: React.FC = () => {
                               month: selectedMonthString,
                               search: searchTerm || undefined,
                               page: currentPage,
+                              store_id: currentStore?.id,
                             });
                             const ordersData = response.data || [];
                             setOrders(Array.isArray(ordersData) ? ordersData : []);

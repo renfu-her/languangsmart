@@ -1,5 +1,34 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-20 17:24:20 (Asia/Taipei) - 修復訂單管理頁面切換店家時自動重新載入訂單
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 在 `fetchOrders` 的 `useEffect` 依賴數組中添加 `currentStore`
+  - 在 `fetchStatistics` 的 `useEffect` 依賴數組中添加 `currentStore`
+  - 更新所有重新載入訂單列表的地方，確保都包含 `store_id` 參數：
+    - `handleDelete` 函數中的重新載入
+    - `handleConvertSuccess` 函數中的重新載入
+    - 月份切換時的重新載入
+    - 狀態更新後的重新載入
+
+### 功能說明
+
+- **自動重新載入**：
+  - 當用戶在側邊欄切換店家時，訂單管理頁面會自動根據新的 `store_id` 重新載入訂單列表
+  - 統計數據也會根據選擇的店家自動更新
+  - 所有訂單相關操作（刪除、轉換、狀態更新）後重新載入時，都會保持當前的店家過濾
+
+- **一致性保證**：
+  - 確保所有訂單列表的 API 調用都包含 `store_id` 參數
+  - 確保統計數據的 API 調用也包含 `store_id` 參數
+  - 切換店家時，訂單列表和統計數據會同步更新
+
+---
+
 ## 2026-01-20 17:19:06 (Asia/Taipei) - 改進新增商店時自動創建合作商的邏輯
 
 ### 變更內容
