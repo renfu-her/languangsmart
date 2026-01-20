@@ -1,5 +1,31 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-20 10:28:02 (Asia/Taipei) - 添加合作商月報表 Excel 導出功能並支持店名顯示
+
+### 變更內容
+
+#### 後端變更
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在 `partnerDailyReport` 方法中添加 Excel 導出功能
+  - 添加 `format` 參數驗證（支持 'json' 和 'excel'）
+  - 添加 `store_id` 參數驗證
+  - 當 `format=excel` 且 `partner_id` 存在時，生成 Excel 文件並返回下載
+  - 從 `store_id` 查詢 Store 模型獲取店名
+  - 將店名傳入 `PartnerMonthlyReportExport` 類
+  - 添加必要的 use 語句：`Store`、`PartnerMonthlyReportExport`、`Xlsx`
+  - Excel 文件名格式：`partner_monthly_report_{partner_id}_{month}.xlsx`
+
+### 功能說明
+
+- 現在 `partnerDailyReport` API 支持兩種格式：
+  1. **JSON 格式**（默認）：返回 JSON 數據，用於前端顯示
+  2. **Excel 格式**：當 `format=excel` 且提供 `partner_id` 時，生成並下載 Excel 文件
+- 如果提供了 `store_id`，會自動查詢店名並顯示在 Excel 報表的標題中
+- Excel 文件會自動刪除臨時文件，避免佔用磁盤空間
+
+---
+
 ## 2026-01-20 10:22:26 (Asia/Taipei) - 調整合作商月報表 Export 格式符合圖片要求
 
 ### 變更內容

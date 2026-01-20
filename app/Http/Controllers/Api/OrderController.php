@@ -9,6 +9,9 @@ use App\Models\Scooter;
 use App\Models\PartnerScooterModelTransferFee;
 use App\Models\ScooterModel;
 use App\Models\OrderScooter;
+use App\Models\Store;
+use App\Exports\PartnerMonthlyReportExport;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -637,7 +640,7 @@ class OrderController extends Controller
 
     /**
      * Get partner detailed monthly report for a specific month
-     * Returns Excel file if partner_id is provided, otherwise returns JSON data
+     * Returns Excel file if format=excel and partner_id is provided, otherwise returns JSON data
      */
     public function partnerDailyReport(Request $request)
     {
@@ -645,6 +648,8 @@ class OrderController extends Controller
         $validator = Validator::make($request->all(), [
             'month' => 'required|date_format:Y-m',
             'partner_id' => 'nullable|exists:partners,id',
+            'store_id' => 'nullable|exists:stores,id',
+            'format' => 'nullable|in:json,excel',
         ]);
 
         if ($validator->fails()) {
@@ -656,8 +661,17 @@ class OrderController extends Controller
 
         $month = $request->get('month');
         $partnerId = $request->get('partner_id');
+        $storeId = $request->get('store_id');
+        $format = $request->get('format', 'json');
         $monthStartDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->startOfMonth();
         $monthEndDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->endOfMonth();
+        
+        // 獲取店名（如果有 store_id）
+        $storeName = null;
+        if ($storeId) {
+            $store = Store::find($storeId);
+            $storeName = $store ? $store->name : null;
+        }
 
         // dd('Step 1: 參數驗證完成', [
         //     'month' => $month,
@@ -796,6 +810,45 @@ class OrderController extends Controller
                 'dates' => $dates,
             ];
         })->values();
+
+        // Step 8: 如果 format=excel 且 partner_id 存在，生成 Excel 文件
+        if ($format === 'excel' && $partnerId) {
+            // 找到對應的合作商數據
+            $partnerData = $reportData->firstWhere('partner_id', $partnerId);
+            
+            if (!$partnerData) {
+                return response()->json([
+                    'message' => '找不到合作商數據',
+                ], 404);
+            }
+
+            // 解析年月
+            [$year, $monthNum] = explode('-', $month);
+            
+            // 創建 Export 實例
+            $export = new PartnerMonthlyReportExport(
+                $partnerData['partner_name'],
+                $year,
+                $monthNum,
+                $partnerData['dates']->toArray(),
+                $allModels,
+                $storeName
+            );
+
+            // 生成 Excel
+            $spreadsheet = $export->generate();
+            
+            // 創建臨時文件
+            $filename = 'partner_monthly_report_' . $partnerId . '_' . $month . '.xlsx';
+            $tempFile = tempnam(sys_get_temp_dir(), 'excel_');
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($tempFile);
+
+            // 返回文件下載
+            return response()->download($tempFile, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
+        }
 
         // Step 9: 返回 JSON 數據
         return response()->json([
