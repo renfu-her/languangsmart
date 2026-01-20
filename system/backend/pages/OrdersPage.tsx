@@ -1890,10 +1890,14 @@ const OrdersPage: React.FC = () => {
     try {
       const partnerId = bookingPartners[booking.id] || null;
       
+      // 確保預約的 store_id 被傳遞到訂單轉換
+      const storeId = booking.store_id || booking.store?.id || null;
+      
       // 不傳入 payment_amount，讓後端根據合作商的機車型號費用自動計算調車費用
       await bookingsApi.convertToOrder(booking.id, {
         partner_id: partnerId,
         payment_method: '現金',
+        store_id: storeId, // 確保預約的 store_id 被寫入訂單
       });
       
       await handleConvertSuccess(booking.id);

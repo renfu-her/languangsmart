@@ -594,7 +594,7 @@ class BookingController extends Controller
             DB::beginTransaction();
 
             // 確定 store_id：優先使用請求中的 store_id，其次使用 booking 的 store_id，最後使用 partner 的 store_id
-            // 確保預約的 store_id 被正確帶入訂單
+            // 確保預約的 store_id 被正確帶入訂單並寫入
             $storeId = $request->get('store_id');
             if (!$storeId) {
                 // 如果請求中沒有 store_id，優先使用 booking 的 store_id
@@ -608,10 +608,11 @@ class BookingController extends Controller
                 }
             }
             
+            // 確保 store_id 被寫入訂單（即使為 null 也要明確設置）
             // 創建單一訂單，包含所有需要的機車
             $order = Order::create([
                 'partner_id' => $request->get('partner_id') ?: null,
-                'store_id' => $storeId,
+                'store_id' => $storeId, // 確保預約的 store_id 被寫入訂單
                 'tenant' => $booking->name,
                 'appointment_date' => $bookingDate,
                 'start_time' => $startTime,
