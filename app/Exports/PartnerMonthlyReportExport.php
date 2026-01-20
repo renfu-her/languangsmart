@@ -62,16 +62,19 @@ class PartnerMonthlyReportExport
         
         $lastCol = Coordinate::stringFromColumnIndex($totalCols);
         
-        // 第一行：標題「蘭光智能出租月報表」，下方有店名信息
+        // 第一行：標題使用合作商名稱，下方有店名信息
         $titleCell = $sheet->getCell('A' . $row);
         
         // 設置標題和店名（如果有的話）
+        // 標題格式：{partner_name}機車出租月報表
+        $titleText = $this->partnerName . '機車出租月報表';
+        
         if ($this->storeName) {
             // 在同一個儲存格中換行顯示標題和店名
-            // 格式：蘭光智能出租月報表\n{store_name}
-            $titleCell->setValue('蘭光智能出租月報表 test' . $this->storeName);
+            // 格式：{partner_name}機車出租月報表\n{store_name}
+            $titleCell->setValue($titleText . "\n" . $this->storeName);
         } else {
-            $titleCell->setValue('蘭光智能出租月報表');
+            $titleCell->setValue($titleText);
         }
         
         $sheet->mergeCells('A' . $row . ':' . $lastCol . $row);
