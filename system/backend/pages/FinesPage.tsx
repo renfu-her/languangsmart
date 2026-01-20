@@ -70,21 +70,30 @@ const FinesPage: React.FC = () => {
   const fetchFines = async () => {
     setLoading(true);
     try {
+      // 始終根據 currentStore 過濾罰單列表
+      if (!currentStore) {
+        // 如果沒有選擇商店，返回空列表
+        setFines([]);
+        setAllFines([]);
+        setLoading(false);
+        return;
+      }
+      
       // 獲取所有罰單用於計算計數（根據當前店家過濾）
-      const allParams: any = {};
-      if (currentStore) allParams.store_id = currentStore.id;
-      const allResponse = await finesApi.list(Object.keys(allParams).length > 0 ? allParams : undefined);
+      const allParams: any = { store_id: currentStore.id };
+      const allResponse = await finesApi.list(allParams);
       setAllFines(allResponse.data || []);
       
       // 獲取過濾後的罰單用於顯示
-      const params: any = {};
+      const params: any = { store_id: currentStore.id };
       if (paymentStatusFilter) params.payment_status = paymentStatusFilter;
       if (searchTerm) params.search = searchTerm;
-      if (currentStore) params.store_id = currentStore.id;
-      const response = await finesApi.list(Object.keys(params).length > 0 ? params : undefined);
+      const response = await finesApi.list(params);
       setFines(response.data || []);
     } catch (error) {
       console.error('Failed to fetch fines:', error);
+      setFines([]);
+      setAllFines([]);
     } finally {
       setLoading(false);
     }
@@ -92,13 +101,17 @@ const FinesPage: React.FC = () => {
 
   const fetchScooters = async () => {
     try {
-      // 根據當前店家過濾機車列表
-      const params: any = {};
-      if (currentStore) params.store_id = currentStore.id;
-      const response = await scootersApi.list(Object.keys(params).length > 0 ? params : undefined);
+      // 始終根據 currentStore 過濾機車列表
+      if (!currentStore) {
+        setScooters([]);
+        return;
+      }
+      const params: any = { store_id: currentStore.id };
+      const response = await scootersApi.list(params);
       setScooters(response.data || []);
     } catch (error) {
       console.error('Failed to fetch scooters:', error);
+      setScooters([]);
     }
   };
 
