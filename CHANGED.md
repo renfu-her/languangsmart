@@ -1,5 +1,26 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-20 23:11:37 (Asia/Taipei) - 修復編輯訂單時合作商和商店選擇未顯示的問題
+
+### 變更內容
+
+#### 後端變更
+
+- **OrderResource.php** (`app/Http/Resources/OrderResource.php`)
+  - 添加 `store_id` 字段到 API 響應中
+  - 添加 `store` 關係到 API 響應中（當 `store` 關係被載入時）
+  - 確保編輯訂單時可以獲取到 `store_id` 和 `store` 信息
+
+### 功能說明
+
+- **編輯訂單**：
+  - 修復了編輯訂單時合作商選擇未顯示的問題
+  - 修復了編輯訂單時商店選擇未顯示的問題
+  - 現在 `OrderResource` 會正確返回 `store_id` 和 `store` 信息
+  - 編輯訂單時，合作商和商店選擇會正確顯示當前訂單的值
+
+---
+
 ## 2026-01-20 23:06:23 (Asia/Taipei) - 確保線上預約的 store_id 在轉訂單時被正確帶入
 
 ### 變更內容
