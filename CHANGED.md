@@ -1,5 +1,28 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-20 10:35:57 (Asia/Taipei) - 在合作商月報表 API 返回數據中添加 store_id 和 store_name
+
+### 變更內容
+
+#### 後端變更
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在 `partnerDailyReport` 方法的返回數據中添加 `store_id` 和 `store_name` 字段
+  - 在每個合作商的數據中添加 `store_id` 和 `store_name` 字段
+  - 如果請求中有 `store_id`，使用該 store 的信息
+  - 如果沒有 `store_id`，但訂單中有 store 信息，使用第一個訂單的 store 信息
+  - 在頂層返回數據中也添加 `store_id` 和 `store_name` 字段
+  - 修正 Excel 導出時使用正確的 store_name（優先使用 partnerData 中的 store_name）
+
+### 功能說明
+
+- 現在 API 返回的 JSON 數據中包含：
+  - 頂層：`store_id` 和 `store_name`（如果請求中有提供或從訂單中獲取）
+  - 每個合作商對象中：`store_id` 和 `store_name`（從訂單中獲取或使用請求中的 store_id）
+- 前端可以從返回的數據中獲取店名，用於顯示或導出 Excel
+
+---
+
 ## 2026-01-20 10:28:02 (Asia/Taipei) - 添加合作商月報表 Excel 導出功能並支持店名顯示
 
 ### 變更內容

@@ -758,9 +758,23 @@ class OrderController extends Controller
         // ]);
 
         // Step 7: 處理每個合作商的訂單數據
-        $reportData = $ordersByPartner->map(function ($partnerOrders, $partnerName) use ($transferFeesMap, $allDates) {
+        $reportData = $ordersByPartner->map(function ($partnerOrders, $partnerName) use ($transferFeesMap, $allDates, $storeId, $storeName) {
             $firstOrder = $partnerOrders->first();
             $partnerId = $firstOrder->partner_id;
+
+            // 獲取 store 信息
+            $reportStoreId = $storeId;
+            $reportStoreName = $storeName;
+            
+            // 如果沒有從請求中獲取到 store_id，嘗試從訂單中獲取
+            if (!$reportStoreId) {
+                // 找到第一個有 store_id 的訂單
+                $orderWithStore = $partnerOrders->firstWhere('store_id', '!=', null);
+                if ($orderWithStore && $orderWithStore->store) {
+                    $reportStoreId = $orderWithStore->store_id;
+                    $reportStoreName = $orderWithStore->store->name;
+                }
+            }
 
             // 處理訂單數據
             $datesData = $this->processPartnerOrders($partnerOrders, $transferFeesMap, $partnerId);
@@ -807,6 +821,8 @@ class OrderController extends Controller
             return [
                 'partner_id' => $partnerId,
                 'partner_name' => $partnerName,
+                'store_id' => $reportStoreId,
+                'store_name' => $reportStoreName,
                 'dates' => $dates,
             ];
         })->values();
@@ -825,6 +841,9 @@ class OrderController extends Controller
             // 解析年月
             [$year, $monthNum] = explode('-', $month);
             
+            // 使用 partnerData 中的 store_name（如果有的話），否則使用請求中的 storeName
+            $excelStoreName = $partnerData['store_name'] ?? $storeName;
+            
             // 創建 Export 實例
             $export = new PartnerMonthlyReportExport(
                 $partnerData['partner_name'],
@@ -832,7 +851,7 @@ class OrderController extends Controller
                 $monthNum,
                 $partnerData['dates']->toArray(),
                 $allModels,
-                $storeName
+                $excelStoreName
             );
 
             // 生成 Excel
@@ -856,6 +875,8 @@ class OrderController extends Controller
                 'partners' => $reportData,
                 'models' => $allModels,
                 'month' => $month,
+                'store_id' => $storeId,
+                'store_name' => $storeName,
             ],
         ]);
     }
