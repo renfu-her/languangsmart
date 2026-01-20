@@ -284,7 +284,8 @@ const FinesPage: React.FC = () => {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div className="p-5 bg-gray-50/30 dark:bg-gray-800/50 flex flex-col sm:flex-row justify-between items-center gap-4 border-b border-gray-100 dark:border-gray-700">
+        <div className="p-5 bg-gray-50/30 dark:bg-gray-800/50 flex flex-col gap-4 border-b border-gray-100 dark:border-gray-700">
+          {/* 第一行：狀態過濾按鈕 */}
           <div className="flex items-center space-x-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
             <button
               onClick={() => setPaymentStatusFilter('')}
@@ -317,15 +318,28 @@ const FinesPage: React.FC = () => {
               已處理 {paidCount}
             </button>
           </div>
-          <div className="relative w-full max-w-xs">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="搜尋車牌、承租人..." 
-              className={searchInputClasses}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+          {/* 第二行：顯示當前商店（只讀）和搜尋 */}
+          <div className="flex items-center justify-between gap-4">
+            {currentStore && (
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                  店家：
+                </label>
+                <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                  {currentStore.name}
+                </span>
+              </div>
+            )}
+            <div className="relative w-full max-w-xs">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="搜尋車牌、承租人..." 
+                className={searchInputClasses}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
