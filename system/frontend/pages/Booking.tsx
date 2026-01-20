@@ -68,10 +68,11 @@ const Booking: React.FC = () => {
     fetchStores();
   }, []);
 
-  // 當選擇商店時，重新獲取該商店的機車型號
+  // 當選擇商店時，重新獲取該商店的機車型號和預設合作商
   useEffect(() => {
     if (formData.storeId) {
       fetchScooterModels();
+      fetchDefaultShippingCompany();
       // 清空已選擇的機車項目（因為不同商店可能有不同的機車型號）
       setScooterItems([{ id: '1', model: '', type: '', count: 1 }]);
     } else {
@@ -92,13 +93,24 @@ const Booking: React.FC = () => {
 
   const fetchDefaultShippingCompany = async () => {
     try {
-      const response = await publicApi.partners.list();
+      // 根據選擇的商店獲取該商店的合作商列表
+      const params = formData.storeId ? { store_id: parseInt(formData.storeId) } : undefined;
+      const response = await publicApi.partners.list(params);
       const partners = response.data || [];
+      
+      // 查找該商店的預設合作商（is_default_for_booking = true）
       const defaultPartner = partners.find((p: any) => p.is_default_for_booking === true);
+      
       if (defaultPartner && defaultPartner.default_shipping_company) {
         setFormData(prev => ({
           ...prev,
           shippingCompany: defaultPartner.default_shipping_company,
+        }));
+      } else if (!formData.shippingCompany) {
+        // 如果沒有找到預設合作商，且目前沒有設置船運公司，清空
+        setFormData(prev => ({
+          ...prev,
+          shippingCompany: '',
         }));
       }
     } catch (error) {

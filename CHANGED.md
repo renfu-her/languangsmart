@@ -1,6 +1,31 @@
 # 變更記錄 (Change Log)
 
-## 2026-01-20 22:09:49 (Asia/Taipei) - 修復罰單管理頁面確保列表始終根據 store_id 過濾
+## 2026-01-20 22:23:53 (Asia/Taipei) - 修復前臺線上預約頁面根據選擇的商店自動選擇預設合作商
+
+### 變更內容
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 更新 `fetchDefaultShippingCompany` 方法，根據選擇的商店（`storeId`）獲取該商店的合作商列表
+  - 查找該商店的預設合作商（`is_default_for_booking = true` 且 `store_id` 匹配）
+  - 當選擇商店改變時，自動重新獲取該商店的預設合作商並設置預設船運公司
+  - 更新 `useEffect`，當 `storeId` 改變時同時調用 `fetchDefaultShippingCompany`
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - 更新 `publicApi.partners.list` 方法，支持傳遞 `store_id` 參數
+
+### 功能說明
+
+- **前臺線上預約**：
+  - 當用戶選擇商店時，系統會自動獲取該商店的合作商列表
+  - 自動查找並選擇該商店的預設合作商（`is_default_for_booking = true`）
+  - 自動設置預設合作商的預設船運公司（`default_shipping_company`）
+  - 確保 `store_id` 和預設合作商都與選擇的商店匹配
+
+---
+
+## 2026-01-20 22:10:29 (Asia/Taipei) - 修復罰單管理頁面確保列表始終根據 store_id 過濾並顯示當前商店
 
 ### 變更內容
 
@@ -10,11 +35,13 @@
   - 更新 `fetchFines` 方法：如果沒有選擇商店，返回空列表（確保列表始終根據 store_id 過濾）
   - 更新 `fetchScooters` 方法：如果沒有選擇商店，返回空列表（確保機車列表始終根據 store_id 過濾）
   - 簡化參數構建邏輯，始終傳遞 `store_id` 參數
+  - 添加當前商店的只讀顯示（例如：「店家：蘭光總店」），與其他管理頁面保持一致
 
 ### 功能說明
 
 - **罰單管理列表**：
   - 列表始終根據當前選擇的商店（`currentStore.id`）過濾顯示
+  - 顯示當前商店名稱（只讀），與其他管理頁面保持一致
   - 如果沒有選擇商店，列表為空
   - 統計數據（全部、未繳費、已處理）也根據 `store_id` 過濾計算
 

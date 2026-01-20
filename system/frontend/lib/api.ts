@@ -129,7 +129,7 @@ export const publicApi = {
     models: (params?: { store_id?: number }) => api.get<Array<{ model: string; type: string; label: string }>>('/scooters/models', params),
   },
   partners: {
-    list: () => api.get('/partners'),
+    list: (params?: { store_id?: number }) => api.get('/partners', params),
   },
   captcha: {
     generate: () => api.get('/captcha/generate'),
