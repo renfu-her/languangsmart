@@ -130,9 +130,8 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
   useEffect(() => {
     if (isOpen) {
       const initializeModal = async () => {
-        // 先獲取可用機車、合作商和商店
+        // 先獲取合作商和商店
         await Promise.all([
-          fetchAvailableScooters(),
           fetchPartners(),
           fetchStores()
         ]);
@@ -179,6 +178,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
             
             if (scooterIds.length > 0) {
               // 獲取這些機車的完整信息（包括已租借的）
+              // 注意：這裡不根據 store_id 過濾，因為訂單中的機車可能屬於任何商店
               const orderScooters = await fetchScootersByIds(scooterIds);
               // 將訂單中的機車也加入到可用機車列表中（如果還沒有）
               setAvailableScooters(prev => {
@@ -197,9 +197,10 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
           }
         } else {
           // 新增模式：重置表單
+          const newStoreId = currentStore?.id.toString() || '';
           setFormData({
             partner_id: '',
-            store_id: currentStore?.id.toString() || '',
+            store_id: newStoreId,
             tenant: '',
             appointment_date: '',
             start_time: '',
@@ -231,19 +232,59 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     }
   }, [currentStore, isOpen, formData.store_id]);
 
+  // 當選擇的商店改變時，重新載入機車列表
+  useEffect(() => {
+    if (isOpen) {
+      fetchAvailableScooters();
+      // 如果是在編輯模式下，且商店改變了，需要重新驗證訂單中的機車
+      if (editingOrder && formData.store_id) {
+        // 重新獲取訂單中的機車（根據新的 store_id 過濾）
+        const scooterIds = editingOrder.scooters?.map(s => s.id) || [];
+        if (scooterIds.length > 0) {
+          fetchScootersByIds(scooterIds, true).then(orderScooters => {
+            setAvailableScooters(prev => {
+              const existingIds = new Set(prev.map(s => s.id));
+              const newScooters = orderScooters.filter((s: Scooter) => !existingIds.has(s.id));
+              return [...prev, ...newScooters];
+            });
+            // 只保留在新商店中存在的機車 ID
+            const validScooterIds = orderScooters.map(s => s.id);
+            setSelectedScooterIds(prev => prev.filter(id => validScooterIds.includes(id)));
+          });
+        } else {
+          // 如果訂單中沒有機車，清空選擇
+          setSelectedScooterIds([]);
+        }
+      } else if (!editingOrder) {
+        // 新增模式下，清空已選擇的機車（因為不同店家可能有不同的機車）
+        setSelectedScooterIds([]);
+      }
+    }
+  }, [formData.store_id, isOpen]);
+
   const fetchAvailableScooters = async () => {
     try {
-      const response = await scootersApi.available();
+      // 根據選擇的商店過濾機車列表（只顯示狀態為「待出租」的機車）
+      const params: any = { status: '待出租' };
+      if (formData.store_id) {
+        params.store_id = parseInt(formData.store_id);
+      }
+      const response = await scootersApi.list(params);
       setAvailableScooters(response.data || []);
     } catch (error) {
       console.error('Failed to fetch available scooters:', error);
     }
   };
 
-  const fetchScootersByIds = async (scooterIds: number[]): Promise<Scooter[]> => {
+  const fetchScootersByIds = async (scooterIds: number[], useStoreFilter: boolean = false): Promise<Scooter[]> => {
     try {
       // 獲取所有機車列表（包括已租借的），不傳 status 參數以獲取所有狀態的機車
-      const response = await scootersApi.list();
+      // 如果 useStoreFilter 為 true 且選擇了商店，根據商店過濾
+      const params: any = {};
+      if (useStoreFilter && formData.store_id) {
+        params.store_id = parseInt(formData.store_id);
+      }
+      const response = await scootersApi.list(params);
       const allScooters = response.data || [];
       // 過濾出需要的機車
       const foundScooters = allScooters.filter((s: Scooter) => scooterIds.includes(s.id));

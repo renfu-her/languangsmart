@@ -397,7 +397,7 @@ export const storesApi = {
 };
 
 export const scootersApi = {
-  list: (params?: { status?: string; search?: string }) =>
+  list: (params?: { status?: string; search?: string; store_id?: number }) =>
     api.get('/scooters', params),
   available: () => api.get('/scooters/available'),
   get: (id: string | number) => api.get(`/scooters/${id}`),
