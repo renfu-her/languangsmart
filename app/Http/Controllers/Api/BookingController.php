@@ -371,6 +371,7 @@ class BookingController extends Controller
             'payment_amount' => 'nullable|numeric|min:0',
             'scooter_ids' => 'sometimes|required|array|min:1',
             'scooter_ids.*' => 'required_with:scooter_ids|exists:scooters,id',
+            'store_id' => 'nullable|exists:stores,id',
         ]);
 
         if ($validator->fails()) {
@@ -552,6 +553,7 @@ class BookingController extends Controller
             // 創建單一訂單，包含所有需要的機車
             $order = Order::create([
                 'partner_id' => $request->get('partner_id') ?: null,
+                'store_id' => $request->get('store_id') ?: ($booking->store_id ?: null),
                 'tenant' => $booking->name,
                 'appointment_date' => $bookingDate,
                 'start_time' => $startTime,
