@@ -355,7 +355,7 @@ const Guidelines: React.FC = () => {
                           <div>
                             <p className="font-semibold text-gray-800">{store.name}</p>
                             {store.notice && (
-                              <p className="text-xs text-gray-500 mt-1 line-clamp-1">{store.notice}</p>
+                              <p className="text-xs text-gray-500 mt-1 whitespace-pre-line">{store.notice}</p>
                             )}
                           </div>
                         </div>

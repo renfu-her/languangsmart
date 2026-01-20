@@ -109,12 +109,14 @@ const RentalPlans: React.FC = () => {
           
           <div className="max-w-2xl mx-auto text-center px-4">
             <p className="text-gray-600 text-xs sm:text-sm mb-3 sm:mb-4">隨車附安全帽，並提供衛生帽套供使用</p>
-            <div className="bg-gray-50 rounded-xl p-4 sm:p-6 text-left">
-              <p className="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3">*注意事項：</p>
-              <p className="text-xs sm:text-sm text-gray-600 leading-relaxed">
-                逾時15分以一小時計，每小時以$50/小時計算；逾時6小時以1日計算；連續與國定假日每小時以$100/小時計算（上限$500）
-              </p>
-            </div>
+            {selectedStore?.notice && (
+              <div className="bg-gray-50 rounded-xl p-4 sm:p-6 text-left">
+                <p className="text-xs sm:text-sm font-semibold text-gray-800 mb-2 sm:mb-3">*注意事項：</p>
+                <p className="text-xs sm:text-sm text-gray-600 leading-relaxed whitespace-pre-line">
+                  {selectedStore.notice}
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -223,7 +225,7 @@ const RentalPlans: React.FC = () => {
                           <div>
                             <p className="font-semibold text-gray-800">{store.name}</p>
                             {store.notice && (
-                              <p className="text-xs text-gray-500 mt-1 line-clamp-1">{store.notice}</p>
+                              <p className="text-xs text-gray-500 mt-1 whitespace-pre-line">{store.notice}</p>
                             )}
                           </div>
                         </div>
