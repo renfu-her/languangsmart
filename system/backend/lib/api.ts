@@ -363,7 +363,7 @@ export const ordersApi = {
 };
 
 export const partnersApi = {
-  list: (params?: { search?: string }) => api.get('/partners', params),
+  list: (params?: { search?: string; store_id?: number }) => api.get('/partners', params),
   get: (id: string | number) => api.get(`/partners/${id}`),
   create: (data: any) => api.post('/partners', data),
   update: (id: string | number, data: any) => api.put(`/partners/${id}`, data),

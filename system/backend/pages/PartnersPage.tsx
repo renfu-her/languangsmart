@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Search, Edit3, Trash2, MapPin, Phone, Building, Image as ImageIcon, X, Loader2, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, MapPin, Phone, Building, Image as ImageIcon, X, Loader2, MoreHorizontal, ChevronDown } from 'lucide-react';
 import { partnersApi, scooterModelsApi } from '../lib/api';
-import { inputClasses, labelClasses, searchInputClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
+import { useStore } from '../contexts/StoreContext';
+import { inputClasses, selectClasses, labelClasses, searchInputClasses, chevronDownClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
 
 interface Partner {
   id: number;
@@ -14,6 +15,8 @@ interface Partner {
   color: string | null;
   is_default_for_booking?: boolean;
   default_shipping_company?: string | null;
+  store_id?: number | null;
+  store?: { id: number; name: string } | null;
   transfer_fees?: Array<{
     scooter_model_id: number;
     scooter_model?: {
@@ -35,6 +38,7 @@ interface ScooterModel {
 }
 
 const PartnersPage: React.FC = () => {
+  const { currentStore, stores, setCurrentStore } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -48,6 +52,7 @@ const PartnersPage: React.FC = () => {
     tax_id: '',
     manager: '',
     color: '',
+    store_id: '',
     is_default_for_booking: false,
     transfer_fees: [] as Array<{
       scooter_model_id: number;
@@ -68,7 +73,7 @@ const PartnersPage: React.FC = () => {
   useEffect(() => {
     fetchPartners();
     fetchScooterModels();
-  }, [searchTerm]);
+  }, [searchTerm, currentStore]);
 
   const fetchScooterModels = async () => {
     try {
@@ -82,7 +87,10 @@ const PartnersPage: React.FC = () => {
   const fetchPartners = async () => {
     setLoading(true);
     try {
-      const response = await partnersApi.list(searchTerm ? { search: searchTerm } : undefined);
+      const params: any = {};
+      if (searchTerm) params.search = searchTerm;
+      if (currentStore) params.store_id = currentStore.id;
+      const response = await partnersApi.list(Object.keys(params).length > 0 ? params : undefined);
       // API returns { data: [...] }, api.get() returns the whole JSON object
       // So response.data is the array
       setPartners(response.data || []);
@@ -125,6 +133,7 @@ const PartnersPage: React.FC = () => {
         tax_id: partner.tax_id || '',
         manager: partner.manager || '',
         color: partner.color || '',
+        store_id: partner.store_id ? String(partner.store_id) : '',
         is_default_for_booking: partner.is_default_for_booking || false,
         transfer_fees: transferFees,
       });
@@ -148,6 +157,7 @@ const PartnersPage: React.FC = () => {
         tax_id: '',
         manager: '',
         color: '',
+        store_id: currentStore ? String(currentStore.id) : '',
         is_default_for_booking: false,
         transfer_fees: initialTransferFees,
       });
@@ -175,6 +185,7 @@ const PartnersPage: React.FC = () => {
       tax_id: '',
       manager: '',
       color: '',
+      store_id: '',
       is_default_for_booking: false,
       transfer_fees: initialTransferFees,
     });
@@ -199,6 +210,7 @@ const PartnersPage: React.FC = () => {
         tax_id: formData.tax_id || null,
         manager: formData.manager || null,
         color: formData.color || null,
+        store_id: formData.store_id ? parseInt(formData.store_id) : null,
         is_default_for_booking: formData.is_default_for_booking,
         transfer_fees: transferFees,
       };
@@ -320,16 +332,43 @@ const PartnersPage: React.FC = () => {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-800/50 flex justify-between items-center">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="搜尋合作商名稱、地址或統編..." 
-              className={searchInputClasses}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-800/50 flex flex-col gap-4">
+          {/* 第一行：搜尋 */}
+          <div className="flex justify-between items-center">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="搜尋合作商名稱、地址或統編..." 
+                className={searchInputClasses}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          {/* 第二行：店家選擇器 */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+              店家：
+            </label>
+            <div className="relative flex-1 max-w-xs">
+              <select
+                className={selectClasses}
+                value={currentStore?.id || ''}
+                onChange={(e) => {
+                  const selectedStore = stores.find(s => s.id === parseInt(e.target.value));
+                  setCurrentStore(selectedStore || null);
+                }}
+              >
+                <option value="">全部店家</option>
+                {stores.map(store => (
+                  <option key={store.id} value={store.id}>
+                    {store.name}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown size={18} className={chevronDownClasses} />
+            </div>
           </div>
         </div>
 

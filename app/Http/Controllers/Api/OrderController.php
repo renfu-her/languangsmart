@@ -139,6 +139,14 @@ class OrderController extends Controller
                 $validated['payment_amount'] = $calculatedAmount;
             }
             
+            // 如果沒有提供 store_id，但提供了 partner_id，則從 partner 獲取 store_id
+            if (empty($validated['store_id']) && !empty($validated['partner_id'])) {
+                $partner = Partner::find($validated['partner_id']);
+                if ($partner && $partner->store_id) {
+                    $validated['store_id'] = $partner->store_id;
+                }
+            }
+            
             $order = Order::create($validated);
             $order->scooters()->attach($scooterIds);
 

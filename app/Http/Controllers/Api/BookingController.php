@@ -140,13 +140,19 @@ class BookingController extends Controller
                 $shippingCompany = $defaultPartner->default_shipping_company;
             }
             
+            // 確定 store_id：優先使用請求中的 storeId，如果沒有則使用合作商的 store_id
+            $storeId = $data['storeId'] ?? null;
+            if (!$storeId && $defaultPartner && $defaultPartner->store_id) {
+                $storeId = $defaultPartner->store_id;
+            }
+            
             // 儲存到資料庫
             $booking = Booking::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'line_id' => $data['lineId'] ?? null,
                 'phone' => $data['phone'],
-                'store_id' => $data['storeId'],
+                'store_id' => $storeId,
                 'booking_date' => $data['appointmentDate'],
                 'end_date' => $data['endDate'],
                 'shipping_company' => $shippingCompany,
@@ -550,10 +556,19 @@ class BookingController extends Controller
         try {
             DB::beginTransaction();
 
+            // 確定 store_id：優先使用請求中的 store_id，其次使用 booking 的 store_id，最後使用 partner 的 store_id
+            $storeId = $request->get('store_id') ?: $booking->store_id;
+            if (!$storeId && $request->get('partner_id')) {
+                $partner = Partner::find($request->get('partner_id'));
+                if ($partner && $partner->store_id) {
+                    $storeId = $partner->store_id;
+                }
+            }
+            
             // 創建單一訂單，包含所有需要的機車
             $order = Order::create([
                 'partner_id' => $request->get('partner_id') ?: null,
-                'store_id' => $request->get('store_id') ?: ($booking->store_id ?: null),
+                'store_id' => $storeId,
                 'tenant' => $booking->name,
                 'appointment_date' => $bookingDate,
                 'start_time' => $startTime,
