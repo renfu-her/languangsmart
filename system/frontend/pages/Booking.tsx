@@ -72,7 +72,8 @@ const Booking: React.FC = () => {
   const fetchStores = async () => {
     try {
       const response = await publicApi.stores.list();
-      setStores(response.data || []);
+      const sortedStores = (response.data || []).sort((a, b) => a.id - b.id);
+      setStores(sortedStores);
     } catch (error) {
       console.error('Failed to fetch stores:', error);
     }

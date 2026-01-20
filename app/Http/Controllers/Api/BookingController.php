@@ -337,7 +337,8 @@ class BookingController extends Controller
      */
     public function pending(): JsonResponse
     {
-        $bookings = Booking::where('status', '預約中')
+        $bookings = Booking::with('store')
+            ->where('status', '預約中')
             ->orderBy('created_at', 'desc')
             ->get();
 
