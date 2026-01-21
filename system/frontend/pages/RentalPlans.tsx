@@ -104,11 +104,11 @@ const RentalPlans: React.FC = () => {
             <div className="mb-6 sm:mb-8">
               <button
                 onClick={() => setShowStoreModal(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all text-gray-800 font-medium"
+                className="inline-flex items-center gap-2 px-6 py-3 sm:px-8 sm:py-4 bg-white rounded-full shadow-md hover:shadow-lg transition-all font-medium"
               >
-                <Store size={18} />
-                <span>{selectedStore ? selectedStore.name : '選擇店家'}</span>
-                <ChevronDown size={18} />
+                <Store size={20} className="text-[#0D9488]" />
+                <span className="text-[#0D9488] text-base sm:text-lg">{selectedStore ? selectedStore.name : '選擇店家'}</span>
+                <ChevronDown size={20} className="text-[#0D9488]" />
               </button>
             </div>
           )}

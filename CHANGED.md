@@ -1,5 +1,36 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 17:23:40 (Asia/Taipei) - 前臺租車方案和租車須知頁面的店家 select 按鈕文字改為 #0D9488 並加大
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 將店家選擇按鈕的文字顏色改為 `#0D9488`
+  - 將圖標（Store 和 ChevronDown）顏色改為 `#0D9488`
+  - 增加按鈕的 padding：從 `px-6 py-3` 改為 `px-6 py-3 sm:px-8 sm:py-4`
+  - 增加文字大小：從默認大小改為 `text-base sm:text-lg`
+  - 增加圖標大小：從 `size={18}` 改為 `size={20}`
+  - 移除 `text-gray-800` 類別
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 將店家選擇按鈕的文字顏色改為 `#0D9488`
+  - 將圖標（Store 和 ChevronDown）顏色改為 `#0D9488`
+  - 增加按鈕的 padding：從 `px-6 py-3` 改為 `px-6 py-3 sm:px-8 sm:py-4`
+  - 增加文字大小：從默認大小改為 `text-base sm:text-lg`
+  - 增加圖標大小：從 `size={18}` 改為 `size={20}`
+  - 移除 `text-gray-800` 類別
+
+### 功能說明
+
+- **前臺「租車方案」和「租車須知」頁面的店家選擇按鈕**：
+  - 現在使用品牌色 `#0D9488` 作為文字和圖標顏色
+  - 按鈕和文字更大更明顯，提升視覺效果和用戶體驗
+  - 與品牌色調保持一致
+
+---
+
 ## 2026-01-21 17:15:25 (Asia/Taipei) - 恢復前臺預約頁面商店 select 的原始顏色樣式
 
 ### 變更內容
