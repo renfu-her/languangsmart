@@ -47,13 +47,25 @@ const Guidelines: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [filter, setFilter] = useState('所有問題');
 
+  // 獲取商店列表並從 localStorage 讀取保存的 store_id
   useEffect(() => {
     const fetchStores = async () => {
       try {
         const response = await publicApi.stores.list();
         const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
         setStores(sortedStores);
-        // 如果有很多店家，預設選擇第一個店家
+        
+        // 從 localStorage 讀取保存的 store_id
+        const savedStoreId = localStorage.getItem('selectedStoreId');
+        if (savedStoreId && sortedStores.length > 0) {
+          const savedStore = sortedStores.find(store => store.id === parseInt(savedStoreId));
+          if (savedStore) {
+            setSelectedStore(savedStore);
+            return;
+          }
+        }
+        
+        // 如果沒有保存的店家，預設選擇第一個店家
         if (sortedStores.length > 0 && !selectedStore) {
           setSelectedStore(sortedStores[0]);
         }
@@ -62,6 +74,11 @@ const Guidelines: React.FC = () => {
       }
     };
 
+    fetchStores();
+  }, []);
+
+  // 當 selectedStore 改變時，獲取該商店的相關數據
+  useEffect(() => {
     const fetchGuidelines = async () => {
       try {
         const params = selectedStore ? { store_id: selectedStore.id } : undefined;
@@ -97,8 +114,8 @@ const Guidelines: React.FC = () => {
       }
     };
 
-    fetchStores();
     if (selectedStore) {
+      setLoading(true);
       fetchGuidelines();
       fetchGuesthouses();
       fetchShuttleImages();
@@ -336,6 +353,8 @@ const Guidelines: React.FC = () => {
                       key={store.id}
                       onClick={() => {
                         setSelectedStore(store);
+                        // 保存 store_id 到 localStorage
+                        localStorage.setItem('selectedStoreId', store.id.toString());
                         setShowStoreModal(false);
                         setLoading(true);
                       }}

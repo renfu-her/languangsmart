@@ -1,5 +1,58 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 21:03:33 (Asia/Taipei) - 前臺租車方案和租車須知頁面記住用戶選擇的店家
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 在獲取商店列表時，從 localStorage 讀取保存的 `selectedStoreId`
+  - 如果有保存的 store_id，優先使用該店家
+  - 當用戶選擇店家時，將 store_id 保存到 localStorage
+  - 確保用戶再次訪問頁面時，自動選擇之前選擇的店家
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 重構 useEffect 邏輯，將獲取商店列表和獲取數據分開
+  - 在獲取商店列表時，從 localStorage 讀取保存的 `selectedStoreId`
+  - 如果有保存的 store_id，優先使用該店家
+  - 當用戶選擇店家時，將 store_id 保存到 localStorage
+  - 當 selectedStore 改變時，自動獲取該店家的相關數據（guidelines、guesthouses、shuttleImages）
+  - 確保用戶再次訪問頁面時，自動選擇之前選擇的店家
+
+### 功能說明
+
+- **前臺「租車方案」和「租車須知」頁面**：
+  - 現在會記住用戶選擇的店家（store_id）
+  - 當用戶在租車方案頁面選擇店家後，訪問租車須知頁面時會自動使用相同的店家
+  - 反之亦然，兩個頁面共享同一個 store_id 記憶
+  - 提升用戶體驗，無需每次訪問都重新選擇店家
+  - 使用 localStorage 持久化存儲，即使關閉瀏覽器後重新打開也會記住選擇
+
+---
+
+## 2026-01-21 21:00:26 (Asia/Taipei) - 確認前臺租車方案頁面注意事項部分的字體大小比店家選擇小 2 級
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 確認注意事項部分的字體大小設置
+  - 店家選擇按鈕文字大小為 `text-base sm:text-lg`（16px / 18px）
+  - 注意事項標題和內容字體大小為 `text-xs sm:text-sm`（12px / 14px）
+  - 確保注意事項部分比店家選擇小 2 級（text-base -> text-sm -> text-xs，text-lg -> text-base -> text-sm）
+
+### 功能說明
+
+- **前臺「租車方案」頁面的注意事項部分**：
+  - 現在字體大小比店家選擇按鈕小 2 級
+  - 小屏幕：店家選擇 16px，注意事項 12px（小 2 級）
+  - 大屏幕：店家選擇 18px，注意事項 14px（小 2 級）
+  - 視覺層次更清晰，符合設計規範
+
+---
+
 ## 2026-01-21 17:31:10 (Asia/Taipei) - 減少前臺租車方案頁面中間的空白區域
 
 ### 變更內容

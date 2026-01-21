@@ -33,7 +33,18 @@ const RentalPlans: React.FC = () => {
         const response = await publicApi.stores.list();
         const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
         setStores(sortedStores);
-        // 如果有很多店家，預設選擇第一個店家
+        
+        // 從 localStorage 讀取保存的 store_id
+        const savedStoreId = localStorage.getItem('selectedStoreId');
+        if (savedStoreId && sortedStores.length > 0) {
+          const savedStore = sortedStores.find(store => store.id === parseInt(savedStoreId));
+          if (savedStore) {
+            setSelectedStore(savedStore);
+            return;
+          }
+        }
+        
+        // 如果沒有保存的店家，預設選擇第一個店家
         if (sortedStores.length > 0 && !selectedStore) {
           setSelectedStore(sortedStores[0]);
         }
@@ -210,6 +221,8 @@ const RentalPlans: React.FC = () => {
                       key={store.id}
                       onClick={() => {
                         setSelectedStore(store);
+                        // 保存 store_id 到 localStorage
+                        localStorage.setItem('selectedStoreId', store.id.toString());
                         setShowStoreModal(false);
                         setLoading(true);
                       }}
