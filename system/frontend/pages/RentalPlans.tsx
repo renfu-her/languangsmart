@@ -144,7 +144,7 @@ const RentalPlans: React.FC = () => {
         </section>
       ) : (
         <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
-          <div className="max-w-6xl mx-auto bg-white rounded-[30px] sm:rounded-[35px] md:rounded-[40px] p-6 sm:p-8 md:p-12 shadow-sm">
+          <div className="max-w-6xl mx-auto bg-[#f0f4ff] rounded-[30px] sm:rounded-[35px] md:rounded-[40px] p-6 sm:p-8 md:p-12 shadow-sm">
             <div className="grid md:grid-cols-2 gap-12 sm:gap-16 md:gap-24">
             {plans.map((plan, index) => {
               return (
