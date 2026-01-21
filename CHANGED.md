@@ -1,5 +1,30 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 17:15:25 (Asia/Taipei) - 恢復前臺預約頁面商店 select 的原始顏色樣式
+
+### 變更內容
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 將商店 select 恢復為之前的樣式
+  - 邊框顏色恢復為 `border-gray-200`（從 `border-[#0D9488]` 改回）
+  - focus 狀態恢復為 `focus:border-black focus:ring-0`（從 `focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20` 改回）
+  - padding 恢復為 `px-3 py-2.5 sm:px-4 sm:py-3`（從 `px-4 py-3 sm:px-5 sm:py-4` 改回）
+  - 字體大小恢復為 `text-sm sm:text-base`（從 `text-base sm:text-lg` 改回）
+  - 移除 `font-medium` 和自定義顏色樣式
+  - 移除動態 style 顏色設置
+  - option 元素恢復為默認樣式
+
+### 功能說明
+
+- **前臺「線上預約」頁面的商店選擇器**：
+  - 已恢復為原始的灰色邊框和黑色 focus 狀態
+  - 恢復為原始的大小和樣式
+  - 保持簡潔的設計風格
+
+---
+
 ## 2026-01-21 16:52:02 (Asia/Taipei) - 前臺商店 select 增加顏色並放大，使用顏色 #0D9488
 
 ### 變更內容
