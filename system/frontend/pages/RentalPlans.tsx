@@ -26,6 +26,7 @@ const RentalPlans: React.FC = () => {
   const [showStoreModal, setShowStoreModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // 獲取商店列表
   useEffect(() => {
     const fetchStores = async () => {
       try {
@@ -41,23 +42,28 @@ const RentalPlans: React.FC = () => {
       }
     };
 
-    const fetchPlans = async () => {
-      try {
-        const params = selectedStore ? { store_id: selectedStore.id } : undefined;
-        const response = await publicApi.rentalPlans.list(params);
-        setPlans(response.data || []);
-      } catch (error) {
-        console.error('Failed to fetch rental plans:', error);
-        setPlans([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchStores();
+  }, []);
+
+  // 當 selectedStore 改變時，獲取該商店的租車方案
+  useEffect(() => {
     if (selectedStore) {
+      const fetchPlans = async () => {
+        try {
+          setLoading(true);
+          const params = { store_id: selectedStore.id };
+          const response = await publicApi.rentalPlans.list(params);
+          setPlans(response.data || []);
+        } catch (error) {
+          console.error('Failed to fetch rental plans:', error);
+          setPlans([]);
+        } finally {
+          setLoading(false);
+        }
+      };
       fetchPlans();
     } else {
+      setPlans([]);
       setLoading(false);
     }
   }, [selectedStore]);

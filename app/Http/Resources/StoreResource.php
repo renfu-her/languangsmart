@@ -23,13 +23,16 @@ class StoreResource extends JsonResource
             'photo_path' => $this->photo_path ? asset('storage/' . $this->photo_path) : null,
             'notice' => $this->notice,
             'environment_images' => $this->whenLoaded('environmentImages', function () {
-                return $this->environmentImages->map(function ($image) {
-                    return [
-                        'id' => $image->id,
-                        'image_path' => asset('storage/' . $image->image_path),
-                        'sort_order' => $image->sort_order,
-                    ];
-                });
+                return $this->environmentImages
+                    ->sortBy('sort_order')
+                    ->values()
+                    ->map(function ($image) {
+                        return [
+                            'id' => $image->id,
+                            'image_path' => asset('storage/' . $image->image_path),
+                            'sort_order' => $image->sort_order,
+                        ];
+                    });
             }),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
