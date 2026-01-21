@@ -126,10 +126,16 @@ const GuesthousesPage: React.FC = () => {
     setUploading(true);
 
     try {
+      const fixedStoreId = editingGuesthouse?.store_id || currentStore?.id;
+      if (!fixedStoreId) {
+        alert('請先選擇商店');
+        return;
+      }
+
       const submitData = {
         ...formData,
         sort_order: parseInt(formData.sort_order.toString()),
-        store_id: formData.store_id ? parseInt(formData.store_id.toString()) : (currentStore?.id || null),
+        store_id: fixedStoreId,
       };
 
       if (editingGuesthouse) {
@@ -364,29 +370,13 @@ const GuesthousesPage: React.FC = () => {
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div>
                 <label className={labelClasses}>所屬商店 <span className="text-red-500">*</span></label>
-                {editingGuesthouse ? (
-                  <input
-                    type="text"
-                    value={editingGuesthouse.store?.name || currentStore?.name || '未指定'}
-                    className={inputClasses}
-                    disabled
-                    readOnly
-                  />
-                ) : (
-                  <select
-                    required
-                    value={formData.store_id}
-                    onChange={(e) => setFormData({ ...formData, store_id: e.target.value })}
-                    className={selectClasses}
-                  >
-                    <option value="">請選擇商店</option>
-                    {stores.map((store) => (
-                      <option key={store.id} value={store.id.toString()}>
-                        {store.name}
-                      </option>
-                    ))}
-                  </select>
-                )}
+                <input
+                  type="text"
+                  value={editingGuesthouse?.store?.name || currentStore?.name || '未指定'}
+                  className={inputClasses}
+                  disabled
+                  readOnly
+                />
               </div>
 
               <div>

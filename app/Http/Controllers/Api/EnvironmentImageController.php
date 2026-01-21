@@ -21,9 +21,16 @@ class EnvironmentImageController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        $images = EnvironmentImage::orderBy('sort_order', 'asc')->orderBy('created_at', 'desc')->get();
+        $query = EnvironmentImage::with('store');
+
+        // Filter by store_id
+        if ($request->has('store_id')) {
+            $query->where('store_id', $request->get('store_id'));
+        }
+
+        $images = $query->orderBy('sort_order', 'asc')->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'data' => $images,
@@ -55,6 +62,7 @@ class EnvironmentImageController extends Controller
         $image = EnvironmentImage::create([
             'image_path' => $imagePath,
             'sort_order' => $request->input('sort_order', 0),
+            'store_id' => $request->input('store_id'),
         ]);
 
         return response()->json([
@@ -70,6 +78,7 @@ class EnvironmentImageController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'sort_order' => 'nullable|integer|min:0',
+            'store_id' => 'nullable|exists:stores,id',
         ]);
 
         if ($validator->fails()) {

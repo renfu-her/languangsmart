@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Image as ImageIcon, X, Loader2 } from 'lucide-react';
-import { rentalPlansApi, storesApi } from '../lib/api';
-import { inputClasses, labelClasses, searchInputClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses, selectClasses, chevronDownClasses } from '../styles';
+import { rentalPlansApi } from '../lib/api';
+import { useStore } from '../contexts/StoreContext';
+import { inputClasses, labelClasses, searchInputClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
 
 interface RentalPlan {
   id: number;
@@ -14,20 +15,13 @@ interface RentalPlan {
   store?: { id: number; name: string; notice?: string | null } | null;
 }
 
-interface Store {
-  id: number;
-  name: string;
-  notice?: string | null;
-}
-
 const RentalPlansPage: React.FC = () => {
+  const { currentStore } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPlan, setEditingPlan] = useState<RentalPlan | null>(null);
   const [plans, setPlans] = useState<RentalPlan[]>([]);
-  const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedStoreId, setSelectedStoreId] = useState<number | ''>('');
   const [formData, setFormData] = useState({
     model: '',
     price: '',
@@ -40,42 +34,22 @@ const RentalPlansPage: React.FC = () => {
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
-    fetchStores();
-  }, []);
-
-  // 當 selectedStoreId 改變時，確保它被設置
-  useEffect(() => {
-    if (stores.length > 0 && selectedStoreId === '') {
-      setSelectedStoreId(stores[0].id);
-    }
-  }, [stores, selectedStoreId]);
-
-  useEffect(() => {
     fetchPlans();
-  }, [searchTerm, selectedStoreId]);
-
-  const fetchStores = async () => {
-    try {
-      const response = await storesApi.list();
-      const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
-      setStores(sortedStores);
-      // 如果有很多店家，預設選擇第一個店家
-      if (sortedStores.length > 0 && selectedStoreId === '') {
-        setSelectedStoreId(sortedStores[0].id);
-      }
-    } catch (error) {
-      console.error('Failed to fetch stores:', error);
-    }
-  };
+  }, [searchTerm, currentStore]);
 
   const fetchPlans = async () => {
+    if (!currentStore) {
+      setPlans([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
       const params: any = {};
       if (searchTerm) params.search = searchTerm;
-      // 根據選擇的店家過濾
-      if (selectedStoreId) {
-        params.store_id = selectedStoreId;
+      if (currentStore) {
+        params.store_id = currentStore.id;
       }
       const response = await rentalPlansApi.list(params);
       setPlans(response.data || []);
@@ -90,22 +64,24 @@ const RentalPlansPage: React.FC = () => {
   const handleOpenModal = (plan?: RentalPlan) => {
     if (plan) {
       setEditingPlan(plan);
+      const fixedStoreId = plan.store_id?.toString() || currentStore?.id.toString() || '';
       setFormData({
         model: plan.model,
         price: plan.price.toString(),
         sort_order: plan.sort_order,
         is_active: plan.is_active,
-        store_id: plan.store_id?.toString() || selectedStoreId?.toString() || '',
+        store_id: fixedStoreId,
       });
       setImagePreview(plan.image_path ? `/storage/${plan.image_path}` : null);
     } else {
       setEditingPlan(null);
+      const fixedStoreId = currentStore?.id.toString() || '';
       setFormData({
         model: '',
         price: '',
         sort_order: 0,
         is_active: true,
-        store_id: selectedStoreId?.toString() || '',
+        store_id: fixedStoreId,
       });
       setImagePreview(null);
     }
@@ -116,27 +92,33 @@ const RentalPlansPage: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingPlan(null);
-      setFormData({
-        model: '',
-        price: '',
-        sort_order: 0,
-        is_active: true,
-        store_id: selectedStoreId?.toString() || '',
-      });
+    setFormData({
+      model: '',
+      price: '',
+      sort_order: 0,
+      is_active: true,
+      store_id: '',
+    });
     setImageFile(null);
     setImagePreview(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!currentStore) {
+      alert('請先選擇商店');
+      return;
+    }
+
     setUploading(true);
 
     try {
+      const fixedStoreId = editingPlan?.store_id || currentStore.id;
       const submitData = {
         ...formData,
         price: parseFloat(formData.price),
         sort_order: parseInt(formData.sort_order.toString()),
-        store_id: formData.store_id ? parseInt(formData.store_id.toString()) : (selectedStoreId ? parseInt(selectedStoreId.toString()) : null),
+        store_id: fixedStoreId,
       };
 
       if (editingPlan) {
@@ -201,39 +183,27 @@ const RentalPlansPage: React.FC = () => {
         </button>
       </div>
 
-      <div className="mb-6 flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
+      <div className="mb-6">
+        <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
           <input
             type="text"
-            placeholder="搜尋型號或店家..."
+            placeholder="搜尋型號..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className={searchInputClasses}
           />
         </div>
-        <div className="relative min-w-[200px]">
-          {stores.length === 0 ? (
-            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg text-sm text-gray-500 dark:text-gray-400">
-              沒有店家
-            </div>
-          ) : (
-            <>
-              <select
-                value={selectedStoreId}
-                onChange={(e) => setSelectedStoreId(e.target.value ? Number(e.target.value) : '')}
-                className={selectClasses}
-              >
-                {stores.map(store => (
-                  <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
-                ))}
-              </select>
-              <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </>
-          )}
-        </div>
+        {currentStore && (
+          <div className="mt-2 flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+              當前商店：
+            </label>
+            <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+              {currentStore.name}
+            </span>
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -341,22 +311,14 @@ const RentalPlansPage: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
               <div>
-                <label className={labelClasses}>商店選擇</label>
-                <div className="relative">
-                  <select 
-                    className={selectClasses}
-                    value={formData.store_id}
-                    onChange={(e) => setFormData({ ...formData, store_id: e.target.value })}
-                  >
-                    <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">請選擇商店（非必選）</option>
-                    {stores.map(store => (
-                      <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
-                    ))}
-                  </select>
-                  <svg className="absolute right-3 top-1/2 transform -translate-y-1/2 pointer-events-none" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </div>
+                <label className={labelClasses}>所屬商店</label>
+                <input
+                  type="text"
+                  value={editingPlan?.store?.name || currentStore?.name || '未指定'}
+                  className={inputClasses}
+                  disabled
+                  readOnly
+                />
               </div>
 
               <div>

@@ -551,11 +551,12 @@ export const homeImagesApi = {
 };
 
 export const environmentImagesApi = {
-  list: () => api.get('/environment-images'),
-  create: async (file: File, sortOrder: number) => {
+  list: (params?: { store_id?: number }) => api.get('/environment-images', params),
+  create: async (file: File, sortOrder: number, storeId: number) => {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('sort_order', sortOrder.toString());
+    formData.append('store_id', storeId.toString());
 
     const url = `${API_BASE_URL}/environment-images`;
     const token = localStorage.getItem('auth_token');
@@ -581,17 +582,18 @@ export const environmentImagesApi = {
 
     return data;
   },
-  update: (id: number, data: { alt_text?: string | null; sort_order?: number }) =>
+  update: (id: number, data: { alt_text?: string | null; sort_order?: number; store_id?: number }) =>
     api.put(`/environment-images/${id}`, data),
   delete: (id: number) => api.delete(`/environment-images/${id}`),
 };
 
 export const shuttleImagesApi = {
-  list: () => api.get('/shuttle-images'),
-  create: async (file: File, sortOrder: number) => {
+  list: (params?: { store_id?: number }) => api.get('/shuttle-images', params),
+  create: async (file: File, sortOrder: number, storeId: number) => {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('sort_order', sortOrder.toString());
+    formData.append('store_id', storeId.toString());
 
     const url = `${API_BASE_URL}/shuttle-images`;
     const token = localStorage.getItem('auth_token');
@@ -617,7 +619,7 @@ export const shuttleImagesApi = {
 
     return data;
   },
-  update: (id: number, data: { sort_order: number }) =>
+  update: (id: number, data: { sort_order?: number; store_id?: number }) =>
     api.put(`/shuttle-images/${id}`, data),
   delete: (id: number) => api.delete(`/shuttle-images/${id}`),
 };

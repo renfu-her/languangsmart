@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { Image as ImageIcon, Upload, X, Loader2, Plus, Trash2, ArrowUp, ArrowDown } from 'lucide-react';
 import { environmentImagesApi } from '../lib/api';
-import { labelClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
+import { useStore } from '../contexts/StoreContext';
+import { labelClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses, inputClasses } from '../styles';
 
 interface EnvironmentImage {
   id: number;
   image_path: string;
   sort_order: number;
+  store_id?: number | null;
+  store?: { id: number; name: string } | null;
 }
 
 const EnvironmentImagesPage: React.FC = () => {
+  const { currentStore } = useStore();
   const [images, setImages] = useState<EnvironmentImage[]>([]);
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -19,13 +23,19 @@ const EnvironmentImagesPage: React.FC = () => {
 
   useEffect(() => {
     fetchImages();
-  }, []);
+  }, [currentStore]);
 
   const fetchImages = async () => {
+    if (!currentStore) {
+      setImages([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await environmentImagesApi.list();
-      const fetchedImages = response.data || [];
+      const response = await environmentImagesApi.list({ store_id: currentStore.id });
+      const fetchedImages: EnvironmentImage[] = (response.data || []) as EnvironmentImage[];
       
       // 檢查是否有重複的排序值，如果有則重新分配
       const sortOrders = fetchedImages.map(img => img.sort_order);
@@ -38,7 +48,7 @@ const EnvironmentImagesPage: React.FC = () => {
         );
         await Promise.all(updates);
         // 重新獲取列表
-        const updatedResponse = await environmentImagesApi.list();
+        const updatedResponse = await environmentImagesApi.list({ store_id: currentStore.id });
         setImages(updatedResponse.data || []);
       } else {
         setImages(fetchedImages);
@@ -71,6 +81,10 @@ const EnvironmentImagesPage: React.FC = () => {
 
   const handleUpload = async () => {
     if (!imageFile) return;
+    if (!currentStore) {
+      alert('請先選擇商店');
+      return;
+    }
 
     setUploading(true);
     try {
@@ -80,7 +94,7 @@ const EnvironmentImagesPage: React.FC = () => {
         const maxSortOrder = Math.max(...images.map(img => img.sort_order));
         finalSortOrder = maxSortOrder + 1;
       }
-      await environmentImagesApi.create(imageFile, finalSortOrder);
+      await environmentImagesApi.create(imageFile, finalSortOrder, currentStore.id);
       await fetchImages();
       handleRemovePreview();
     } catch (error: any) {
@@ -154,10 +168,31 @@ const EnvironmentImagesPage: React.FC = () => {
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">管理首頁環境展示圖片，可新增、刪除和調整順序</p>
       </div>
 
+      {currentStore && (
+        <div className="mb-4 flex items-center gap-2">
+          <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+            當前商店：
+          </label>
+          <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+            {currentStore.name}
+          </span>
+        </div>
+      )}
+
       {/* 新增圖片區域 */}
       <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden mb-6">
         <div className="p-6">
           <h2 className="text-lg font-bold text-gray-800 dark:text-gray-100 mb-4">新增圖片</h2>
+          <div className="mb-4">
+            <label className={labelClasses}>所屬商店</label>
+            <input
+              type="text"
+              value={currentStore?.name || '未指定'}
+              className={inputClasses}
+              disabled
+              readOnly
+            />
+          </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
             <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 flex flex-col h-full">
               <label className={labelClasses}>圖片 <span className="text-red-500">*</span></label>

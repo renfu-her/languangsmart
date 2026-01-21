@@ -1,5 +1,153 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 12:32:33 (Asia/Taipei) - 為環境圖片管理添加 store_id 功能
+
+### 變更內容
+
+#### 資料庫變更
+
+- **新增 Migration** (`database/migrations/2026_01_21_123110_add_store_id_to_environment_images_table.php`)
+  - 在 `environment_images` 表中添加 `store_id` 欄位（nullable，外鍵關聯到 `stores` 表）
+  - 設置 `onDelete('set null')`，當商店被刪除時，將 `store_id` 設為 null
+
+#### 後端變更
+
+- **EnvironmentImage.php** (`app/Models/EnvironmentImage.php`)
+  - 在 `$fillable` 中添加 `store_id`
+  - 在 `$casts` 中添加 `store_id => 'integer'`
+  - 添加 `store()` 方法，定義與 `Store` 模型的 `belongsTo` 關係
+
+- **EnvironmentImageController.php** (`app/Http/Controllers/Api/EnvironmentImageController.php`)
+  - `index` 方法：添加 `store_id` 過濾功能，支持通過 `store_id` 參數過濾圖片列表
+  - `index` 方法：使用 `with('store')` 預載入商店關係
+  - `store` 方法：在驗證規則中添加 `store_id => 'required|exists:stores,id'`
+  - `store` 方法：在創建圖片時保存 `store_id`
+  - `update` 方法：在驗證規則中添加 `store_id => 'nullable|exists:stores,id'`（允許更新時修改）
+
+#### 前端變更
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - `environmentImagesApi.list`：添加可選的 `store_id` 參數
+  - `environmentImagesApi.create`：添加 `storeId` 參數，在 FormData 中附加 `store_id`
+  - `environmentImagesApi.update`：允許更新 `store_id`
+
+- **EnvironmentImagesPage.tsx** (`system/backend/pages/EnvironmentImagesPage.tsx`)
+  - 導入 `useStore` hook 和 `inputClasses` 樣式
+  - 在 `EnvironmentImage` 接口中添加 `store_id` 和 `store` 屬性
+  - 使用 `useStore` 獲取 `currentStore`
+  - `useEffect` 依賴項添加 `currentStore`，當商店切換時自動重新獲取數據
+  - `fetchImages`：根據 `currentStore.id` 過濾圖片列表，並添加類型聲明
+  - `handleUpload`：添加 `currentStore` 檢查，並在創建時傳遞 `currentStore.id`
+  - 在頁面頂部顯示當前商店名稱（只讀）
+  - 在新增圖片區域添加「所屬商店」欄位（只讀，顯示當前商店名稱）
+
+### 功能說明
+
+- **環境圖片管理的商店關聯**：
+  - 每個環境圖片現在都與特定商店（`store_id`）關聯
+  - 列表會根據當前選擇的商店（`currentStore`）自動過濾顯示
+  - 新增圖片時，`store_id` 固定為當前商店，不可變更
+  - 使用側邊欄的商店選擇器進行切換，與其他管理頁面保持一致的使用體驗
+  - 確保每個商店的環境圖片都是唯一的，不會混淆
+  - 與機車清單頁面保持一致的操作模式
+
+---
+
+## 2026-01-21 12:30:07 (Asia/Taipei) - 為專車接送圖片管理添加 store_id 功能
+
+### 變更內容
+
+#### 資料庫變更
+
+- **新增 Migration** (`database/migrations/2026_01_21_122835_add_store_id_to_shuttle_images_table.php`)
+  - 在 `shuttle_images` 表中添加 `store_id` 欄位（nullable，外鍵關聯到 `stores` 表）
+  - 設置 `onDelete('set null')`，當商店被刪除時，將 `store_id` 設為 null
+
+#### 後端變更
+
+- **ShuttleImage.php** (`app/Models/ShuttleImage.php`)
+  - 在 `$fillable` 中添加 `store_id`
+  - 在 `$casts` 中添加 `store_id => 'integer'`
+  - 添加 `store()` 方法，定義與 `Store` 模型的 `belongsTo` 關係
+
+- **ShuttleImageController.php** (`app/Http/Controllers/Api/ShuttleImageController.php`)
+  - `index` 方法：添加 `store_id` 過濾功能，支持通過 `store_id` 參數過濾圖片列表
+  - `index` 方法：使用 `with('store')` 預載入商店關係
+  - `store` 方法：在驗證規則中添加 `store_id => 'required|exists:stores,id'`
+  - `store` 方法：在創建圖片時保存 `store_id`
+  - `update` 方法：在驗證規則中添加 `store_id => 'nullable|exists:stores,id'`（允許更新時修改）
+
+#### 前端變更
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - `shuttleImagesApi.list`：添加可選的 `store_id` 參數
+  - `shuttleImagesApi.create`：添加 `storeId` 參數，在 FormData 中附加 `store_id`
+
+- **ShuttleImagesPage.tsx** (`system/backend/pages/ShuttleImagesPage.tsx`)
+  - 導入 `useStore` hook 和 `inputClasses` 樣式
+  - 在 `ShuttleImage` 接口中添加 `store_id` 和 `store` 屬性
+  - 使用 `useStore` 獲取 `currentStore`
+  - `useEffect` 依賴項添加 `currentStore`，當商店切換時自動重新獲取數據
+  - `fetchImages`：根據 `currentStore.id` 過濾圖片列表
+  - `handleUpload`：添加 `currentStore` 檢查，並在創建時傳遞 `currentStore.id`
+  - 在頁面頂部顯示當前商店名稱（只讀）
+  - 在新增圖片區域添加「所屬商店」欄位（只讀，顯示當前商店名稱）
+
+### 功能說明
+
+- **專車接送圖片管理的商店關聯**：
+  - 每個專車接送圖片現在都與特定商店（`store_id`）關聯
+  - 列表會根據當前選擇的商店（`currentStore`）自動過濾顯示
+  - 新增圖片時，`store_id` 固定為當前商店，不可變更
+  - 使用側邊欄的商店選擇器進行切換，與其他管理頁面保持一致的使用體驗
+  - 確保每個商店的專車接送圖片都是唯一的，不會混淆
+
+---
+
+## 2026-01-21 12:25:46 (Asia/Taipei) - 修改網站內容管理頁面改用 currentStore 切換模式
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlansPage.tsx** (`system/backend/pages/RentalPlansPage.tsx`)
+  - 移除 `selectedStoreId` 狀態和下拉選單
+  - 改用 `useStore` 上下文的 `currentStore` 來過濾租車方案列表
+  - 在 `useEffect` 依賴項中添加 `currentStore`，當商店切換時自動重新獲取數據
+  - 移除 `fetchStores` 函數和 `stores` 狀態（改用 StoreContext）
+  - 移除商店選擇下拉選單，改為顯示當前商店名稱（只讀）
+  - 在新增和編輯表單中，`store_id` 固定為 `currentStore.id`（編輯時顯示為只讀，不可變更）
+  - 移除 `storesApi` 導入
+
+- **GuidelinesPage.tsx** (`system/backend/pages/GuidelinesPage.tsx`)
+  - 移除 `selectedStoreFilter` 狀態和下拉選單
+  - 移除 `stores` 狀態和 `fetchStores` 函數（改用 StoreContext）
+  - 改用 `useStore` 上下文的 `currentStore` 來過濾問答列表
+  - 在 `useEffect` 依賴項中添加 `currentStore`，當商店切換時自動重新獲取數據
+  - 移除商店選擇下拉選單，改為顯示當前商店名稱（只讀）
+  - 在新增和編輯表單中，`store_id` 固定為 `currentStore.id`（編輯時顯示為只讀，不可變更）
+  - 移除 `storesApi` 導入和 `Store` 接口定義
+
+- **GuesthousesPage.tsx** (`system/backend/pages/GuesthousesPage.tsx`)
+  - 修改新增時的表單，移除下拉選單，改為固定使用 `currentStore.id`
+  - 新增和編輯時，`store_id` 都顯示為只讀（固定，不可變更）
+  - 確保 `handleSubmit` 中 `store_id` 固定為 `editingGuesthouse?.store_id`（編輯時）或 `currentStore.id`（新增時）
+
+### 功能說明
+
+- **網站內容管理頁面的商店選擇**：
+  - **租車方案管理**：現在使用 `currentStore` 切換模式，與機車清單頁面一致
+    - 列表會根據當前選擇的商店（`currentStore`）自動過濾顯示
+    - 新增和編輯時，`store_id` 固定為當前商店，不可變更
+  - **租車須知管理**：現在使用 `currentStore` 切換模式，與機車清單頁面一致
+    - 列表會根據當前選擇的商店（`currentStore`）自動過濾顯示
+    - 新增和編輯時，`store_id` 固定為當前商店，不可變更
+  - **民宿推薦管理**：新增時也使用固定的 `currentStore`
+    - 新增和編輯時，`store_id` 都固定為當前商店，不可變更
+  - 所有頁面都與機車清單頁面的模式保持一致，使用側邊欄的商店選擇器進行切換
+
+---
+
 ## 2026-01-21 11:06:52 (Asia/Taipei) - 將後台登入頁面左下角的 SIGN OUT 改為登出
 
 ### 變更內容
