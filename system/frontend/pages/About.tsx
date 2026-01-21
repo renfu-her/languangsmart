@@ -214,7 +214,7 @@ const About: React.FC = () => {
       {!loading && stores.length > 0 && (
         <section className="py-12 sm:py-16 md:py-20 bg-[#f0f4ff]">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold serif text-center mb-8 sm:mb-12">我們的環境</h2>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold serif text-center mb-4 sm:mb-6">我們的環境</h2>
             
             <div className="space-y-12 sm:space-y-16">
               {stores.map((store) => (
