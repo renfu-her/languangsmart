@@ -1,5 +1,31 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 09:35:01 (Asia/Taipei) - 修復 sitemap.xml 域名錯誤問題
+
+### 變更內容
+
+#### 網站配置變更
+
+- **sitemap.xml** (`public/sitemap.xml`)
+  - 將所有 URL 中的 `yourdomain.com` 替換為實際域名 `languangsmart.com`
+  - 更新所有頁面的 `lastmod` 日期為 `2026-01-21`
+  - 修復了 Google Search Console 報告的錯誤（無效的 URL）
+
+### 功能說明
+
+- **Sitemap 修復**：
+  - 修復了 sitemap.xml 中所有 URL 使用錯誤域名的問題
+  - 現在所有 URL 都使用正確的域名 `https://languangsmart.com/`
+  - 更新了最後修改日期，確保搜尋引擎能夠正確索引網站內容
+
+### 注意事項
+
+- 修復後，Google Search Console 中的錯誤應該會消失
+- 建議在 Google Search Console 中重新提交 sitemap.xml
+- 建議定期更新 sitemap.xml 中的 lastmod 日期
+
+---
+
 ## 2026-01-21 09:31:09 (Asia/Taipei) - 修復租車方案圖片外框與背景顏色一致的問題
 
 ### 變更內容
