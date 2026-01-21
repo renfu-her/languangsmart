@@ -23,7 +23,12 @@ class GuesthouseController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Guesthouse::query();
+        $query = Guesthouse::with('store');
+
+        // Filter by store_id
+        if ($request->has('store_id')) {
+            $query->where('store_id', $request->get('store_id'));
+        }
 
         // Filter by active status for public API
         if ($request->has('active_only') && $request->get('active_only')) {
@@ -59,6 +64,7 @@ class GuesthouseController extends Controller
             'link' => 'nullable|string|max:255',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'store_id' => 'required|exists:stores,id',
         ]);
 
         if ($validator->fails()) {
@@ -105,6 +111,7 @@ class GuesthouseController extends Controller
             'link' => 'nullable|string|max:255',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'store_id' => 'nullable|exists:stores,id',
         ]);
 
         if ($validator->fails()) {

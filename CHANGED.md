@@ -1,5 +1,54 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 10:38:33 (Asia/Taipei) - 為民宿推薦管理添加 store_id 支援
+
+### 變更內容
+
+#### 後端變更
+
+- **Migration** (`database/migrations/2026_01_21_103655_add_store_id_to_guesthouses_table.php`)
+  - 創建 migration 添加 `store_id` 欄位到 `guesthouses` 表
+  - `store_id` 為可為空的外鍵，關聯到 `stores` 表，刪除時設置為 null
+
+- **Guesthouse.php** (`app/Models/Guesthouse.php`)
+  - 添加 `store_id` 到 `$fillable` 陣列
+  - 添加 `store_id` 到 `$casts` 陣列（integer）
+  - 添加 `store()` 關聯方法，定義 `belongsTo(Store::class)` 關係
+
+- **GuesthouseController.php** (`app/Http/Controllers/Api/GuesthouseController.php`)
+  - `index` 方法：添加 `store_id` 過濾功能，使用 `with('store')` 預載入商店關係
+  - `store` 方法：添加 `store_id` 驗證規則 `'store_id' => 'required|exists:stores,id'`
+  - `update` 方法：添加 `store_id` 驗證規則 `'store_id' => 'nullable|exists:stores,id'`
+
+#### 前端變更
+
+- **GuesthousesPage.tsx** (`system/backend/pages/GuesthousesPage.tsx`)
+  - 導入 `useStore` 上下文獲取當前商店和商店列表
+  - 在 `formData` 中添加 `store_id` 欄位
+  - 更新 `fetchGuesthouses` 根據 `currentStore` 過濾民宿推薦列表
+  - 在 `useEffect` 依賴項中添加 `currentStore`，當商店切換時自動重新獲取數據
+  - 在新增/編輯表單中添加「所屬商店」欄位：
+    - 新增時：顯示下拉選單，可選擇商店
+    - 編輯時：顯示只讀輸入框，顯示當前商店名稱（固定，不可變更）
+  - 在表格中添加「商店」欄位，顯示每個民宿推薦所屬的商店名稱
+  - 更新 `handleOpenModal` 和 `handleCloseModal` 處理 `store_id`
+  - 更新 `handleSubmit` 確保 `store_id` 正確提交
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 更新 `guesthousesApi.list` 方法，添加 `store_id` 參數支援
+
+### 功能說明
+
+- **民宿推薦管理**：
+  - 現在每個民宿推薦都必須關聯到一個商店（`store_id`）
+  - 新增民宿推薦時，必須選擇所屬商店
+  - 編輯民宿推薦時，所屬商店顯示為只讀（固定，不可變更）
+  - 列表會根據當前選擇的商店（`currentStore`）自動過濾顯示
+  - 切換商店時，民宿推薦列表會自動更新
+  - 表格中顯示每個民宿推薦所屬的商店名稱
+
+---
+
 ## 2026-01-21 10:25:52 (Asia/Taipei) - 修改前台關於我們頁面同時顯示全局環境圖片和商店環境圖片
 
 ### 變更內容

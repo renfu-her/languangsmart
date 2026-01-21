@@ -528,7 +528,7 @@ export const locationsApi = {
 };
 
 export const guesthousesApi = {
-  list: (params?: { active_only?: boolean; search?: string }) =>
+  list: (params?: { active_only?: boolean; search?: string; store_id?: number }) =>
     api.get('/guesthouses', params),
   get: (id: string | number) => api.get(`/guesthouses/${id}`),
   create: (data: any) => api.post('/guesthouses', data),

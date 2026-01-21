@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import { guesthousesApi } from '../lib/api';
-import { inputClasses, labelClasses, searchInputClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
+import { useStore } from '../contexts/StoreContext';
+import { inputClasses, labelClasses, searchInputClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses, selectClasses } from '../styles';
 import CKEditorComponent from '../components/CKEditor';
 
 interface Guesthouse {
@@ -14,9 +15,12 @@ interface Guesthouse {
   link: string | null;
   sort_order: number;
   is_active: boolean;
+  store_id?: number | null;
+  store?: { id: number; name: string };
 }
 
 const GuesthousesPage: React.FC = () => {
+  const { currentStore, stores } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingGuesthouse, setEditingGuesthouse] = useState<Guesthouse | null>(null);
   const [guesthouses, setGuesthouses] = useState<Guesthouse[]>([]);
@@ -29,6 +33,7 @@ const GuesthousesPage: React.FC = () => {
     link: '',
     sort_order: 0,
     is_active: true,
+    store_id: '',
   });
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -39,12 +44,21 @@ const GuesthousesPage: React.FC = () => {
 
   useEffect(() => {
     fetchGuesthouses();
-  }, [searchTerm]);
+  }, [searchTerm, currentStore]);
 
   const fetchGuesthouses = async () => {
+    if (!currentStore) {
+      setGuesthouses([]);
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      const response = await guesthousesApi.list(searchTerm ? { search: searchTerm } : undefined);
+      const params: any = {};
+      if (searchTerm) params.search = searchTerm;
+      if (currentStore) params.store_id = currentStore.id;
+      const response = await guesthousesApi.list(params);
       setGuesthouses(response.data || []);
     } catch (error) {
       console.error('Failed to fetch guesthouses:', error);
@@ -64,6 +78,7 @@ const GuesthousesPage: React.FC = () => {
         link: guesthouse.link || '',
         sort_order: guesthouse.sort_order,
         is_active: guesthouse.is_active,
+        store_id: guesthouse.store_id?.toString() || currentStore?.id.toString() || '',
       });
       setImagePreview(guesthouse.image_path ? `/storage/${guesthouse.image_path}` : null);
       setExistingImages(guesthouse.images && Array.isArray(guesthouse.images) ? guesthouse.images.map(img => `/storage/${img}`) : []);
@@ -76,6 +91,7 @@ const GuesthousesPage: React.FC = () => {
         link: '',
         sort_order: 0,
         is_active: true,
+        store_id: currentStore?.id.toString() || '',
       });
       setImagePreview(null);
       setExistingImages([]);
@@ -96,6 +112,7 @@ const GuesthousesPage: React.FC = () => {
       link: '',
       sort_order: 0,
       is_active: true,
+      store_id: '',
     });
     setImageFile(null);
     setImagePreview(null);
@@ -112,6 +129,7 @@ const GuesthousesPage: React.FC = () => {
       const submitData = {
         ...formData,
         sort_order: parseInt(formData.sort_order.toString()),
+        store_id: formData.store_id ? parseInt(formData.store_id.toString()) : (currentStore?.id || null),
       };
 
       if (editingGuesthouse) {
@@ -246,6 +264,7 @@ const GuesthousesPage: React.FC = () => {
                 <tr>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">圖片</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">名稱</th>
+                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">商店</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">簡短說明</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">連結</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">排序</th>
@@ -273,6 +292,9 @@ const GuesthousesPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{guesthouse.name}</span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">{guesthouse.store?.name || '-'}</span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{guesthouse.short_description || '-'}</span>
@@ -340,6 +362,33 @@ const GuesthousesPage: React.FC = () => {
             </div>
 
             <form onSubmit={handleSubmit} className="p-6 space-y-6">
+              <div>
+                <label className={labelClasses}>所屬商店 *</label>
+                {editingGuesthouse ? (
+                  <input
+                    type="text"
+                    value={editingGuesthouse.store?.name || currentStore?.name || '未指定'}
+                    className={inputClasses}
+                    disabled
+                    readOnly
+                  />
+                ) : (
+                  <select
+                    required
+                    value={formData.store_id}
+                    onChange={(e) => setFormData({ ...formData, store_id: e.target.value })}
+                    className={selectClasses}
+                  >
+                    <option value="">請選擇商店</option>
+                    {stores.map((store) => (
+                      <option key={store.id} value={store.id.toString()}>
+                        {store.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
               <div>
                 <label className={labelClasses}>民宿名稱 *</label>
                 <input
