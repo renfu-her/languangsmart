@@ -217,7 +217,7 @@ const About: React.FC = () => {
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold serif text-center mb-4 sm:mb-6">我們的環境</h2>
             
             <div className="space-y-6 sm:space-y-8">
-              {stores.map((store) => (
+              {stores.map((store, index) => (
                 <div key={store.id}>
                   <h3 className="text-xl sm:text-2xl md:text-3xl font-bold serif mb-4 sm:mb-6 text-center">
                     {store.name}
@@ -234,6 +234,10 @@ const About: React.FC = () => {
                         </div>
                       ))}
                     </div>
+                  )}
+                  {/* 在商店之間添加 hr，最後一個商店不添加 */}
+                  {index < stores.length - 1 && (
+                    <hr style={{ borderColor: '#333', borderWidth: '1px', marginTop: '1.5rem', marginBottom: '1.5rem' }} />
                   )}
                 </div>
               ))}
