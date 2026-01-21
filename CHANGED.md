@@ -1,5 +1,27 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 17:31:10 (Asia/Taipei) - 減少前臺租車方案頁面中間的空白區域
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 減少 header 的上下內邊距：從 `py-12 sm:py-16 md:py-20` 改為 `py-8 sm:py-10 md:py-12`
+  - 減少麵包屑的下邊距：從 `mb-6 sm:mb-8` 改為 `mb-4 sm:mb-5`
+  - 減少店家選擇按鈕的下邊距：從 `mb-6 sm:mb-8` 改為 `mb-4 sm:mb-5`
+  - 減少下方 section 的上下內邊距：從 `py-12 sm:py-16 md:py-20` 改為 `py-6 sm:py-8 md:py-10`
+  - 減少 loading 和 empty 狀態的內邊距：從 `py-20` 改為 `py-8 sm:py-10`
+
+### 功能說明
+
+- **前臺「租車方案」頁面**：
+  - 現在 header 和下方內容之間的空白區域已大幅減少
+  - 整體頁面更緊湊，視覺效果更好
+  - 用戶可以更快看到租車方案內容
+
+---
+
 ## 2026-01-21 17:23:40 (Asia/Taipei) - 前臺租車方案和租車須知頁面的店家 select 按鈕文字改為 #0D9488 並加大
 
 ### 變更內容

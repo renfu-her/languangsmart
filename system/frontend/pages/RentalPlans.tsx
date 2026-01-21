@@ -92,16 +92,16 @@ const RentalPlans: React.FC = () => {
         url="/rental"
         structuredData={structuredData}
       />
-      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-[#f0f4ff] text-center">
+      <header className="py-8 sm:py-10 md:py-12 px-4 sm:px-6 bg-[#f0f4ff] text-center">
         <div className="max-w-4xl mx-auto">
           <p className="text-gray-400 tracking-[0.3em] uppercase mb-2 text-xs sm:text-sm">Rental Plans</p>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl serif font-light mb-3 sm:mb-4">租車方案</h1>
           <p className="text-gray-500 max-w-xl mx-auto text-sm sm:text-base mb-4 px-4">蘭光電動機車提供彈性且多樣化的租賃方案，適用於旅遊、通勤與短期移動等多種情境。我們依據不同使用需求，規劃完善的租期與車型選擇，讓顧客能以安心、便利的方式完成每一次出行。</p>
-          <div className="mt-3 sm:mt-4 text-xs text-gray-400 mb-6 sm:mb-8">首頁 &gt; 租車方案</div>
+          <div className="mt-3 sm:mt-4 text-xs text-gray-400 mb-4 sm:mb-5">首頁 &gt; 租車方案</div>
           
           {/* 店家選擇按鈕 */}
           {stores.length > 0 && (
-            <div className="mb-6 sm:mb-8">
+            <div className="mb-4 sm:mb-5">
               <button
                 onClick={() => setShowStoreModal(true)}
                 className="inline-flex items-center gap-2 px-6 py-3 sm:px-8 sm:py-4 bg-white rounded-full shadow-md hover:shadow-lg transition-all font-medium"
@@ -128,14 +128,14 @@ const RentalPlans: React.FC = () => {
       </header>
 
       {loading ? (
-        <section className="py-20 px-6">
+        <section className="py-8 sm:py-10 px-6">
           <div className="flex justify-center items-center">
             <div className="text-gray-400">載入中...</div>
           </div>
         </section>
       ) : plans.length === 0 ? (
-        <section className="py-20 px-6">
-          <div className="flex flex-col items-center justify-center py-20">
+        <section className="py-8 sm:py-10 px-6">
+          <div className="flex flex-col items-center justify-center py-12">
             <div className="text-gray-400 text-center">
               <p className="text-lg mb-2">目前沒有可用的租車方案</p>
               <p className="text-sm">我們正在準備更多優質的租車選擇，請稍後再來查看。</p>
@@ -143,7 +143,7 @@ const RentalPlans: React.FC = () => {
           </div>
         </section>
       ) : (
-        <section className="py-12 sm:py-16 md:py-20 px-4 sm:px-6">
+        <section className="py-6 sm:py-8 md:py-10 px-4 sm:px-6">
           <div className="max-w-6xl mx-auto bg-[#f0f4ff] rounded-[30px] sm:rounded-[35px] md:rounded-[40px] p-6 sm:p-8 md:p-12 shadow-sm">
             <div className="grid md:grid-cols-2 gap-12 sm:gap-16 md:gap-24">
             {plans.map((plan, index) => {
