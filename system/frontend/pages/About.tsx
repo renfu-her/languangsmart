@@ -237,7 +237,7 @@ const About: React.FC = () => {
                   )}
                   {/* 在商店之間添加 hr，最後一個商店不添加 */}
                   {index < stores.length - 1 && (
-                    <hr style={{ borderColor: '#333', borderWidth: '1px', marginTop: '1.5rem', marginBottom: '1.5rem' }} />
+                    <hr style={{ borderColor: '#ccc', borderWidth: '1px', marginTop: '1.5rem', marginBottom: '1.5rem' }} />
                   )}
                 </div>
               ))}
