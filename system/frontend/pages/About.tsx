@@ -199,7 +199,7 @@ const About: React.FC = () => {
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold serif text-center mb-8 sm:mb-12">我們的環境</h2>
             <div className="space-y-12 sm:space-y-16">
               {stores.map((store) => (
-                <div key={store.id} className="bg-white rounded-[30px] sm:rounded-[35px] md:rounded-[40px] p-6 sm:p-8 md:p-12 shadow-sm">
+                <div key={store.id} className="bg-[#f0f4ff] rounded-[30px] sm:rounded-[35px] md:rounded-[40px] p-6 sm:p-8 md:p-12">
                   <h3 className="text-xl sm:text-2xl md:text-3xl font-bold serif mb-6 sm:mb-8 text-center">
                     {store.name}
                   </h3>
