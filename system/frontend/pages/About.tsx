@@ -212,11 +212,14 @@ const About: React.FC = () => {
 
       {/* Environment Images Section */}
       {!loading && stores.length > 0 && (
-        <section className="py-12 sm:py-16 md:py-20 bg-[#f0f4ff]">
+        <section className="py-6 sm:py-8 md:py-10 bg-[#f0f4ff]">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
+            {/* 上方橫線 */}
+            <div className="border-t border-gray-300 dark:border-gray-600 mb-4 sm:mb-6"></div>
+            
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold serif text-center mb-4 sm:mb-6">我們的環境</h2>
             
-            <div className="space-y-12 sm:space-y-16">
+            <div className="space-y-8 sm:space-y-10">
               {stores.map((store) => (
                 <div key={store.id} className="bg-[#f0f4ff] rounded-[30px] sm:rounded-[35px] md:rounded-[40px] p-6 sm:p-8 md:p-12">
                   <h3 className="text-xl sm:text-2xl md:text-3xl font-bold serif mb-6 sm:mb-8 text-center">
@@ -238,6 +241,9 @@ const About: React.FC = () => {
                 </div>
               ))}
             </div>
+            
+            {/* 下方橫線 */}
+            <div className="border-b border-gray-300 dark:border-gray-600 mt-4 sm:mt-6"></div>
           </div>
         </section>
       )}
