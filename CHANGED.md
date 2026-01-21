@@ -1,5 +1,25 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 21:09:12 (Asia/Taipei) - 前臺租車方案頁面注意事項部分的字體大小增加兩級
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 將注意事項標題的字體大小從 `text-xs sm:text-sm` 改為 `text-base sm:text-lg`（增加兩級）
+  - 將注意事項內容的字體大小從 `text-xs sm:text-sm` 改為 `text-base sm:text-lg`（增加兩級）
+  - 現在注意事項部分的字體大小與店家選擇按鈕相同（`text-base sm:text-lg`）
+
+### 功能說明
+
+- **前臺「租車方案」頁面的注意事項部分**：
+  - 字體大小已增加兩級，從 `text-xs sm:text-sm`（12px/14px）改為 `text-base sm:text-lg`（16px/18px）
+  - 現在與店家選擇按鈕的字體大小一致，視覺效果更統一
+  - 提升可讀性，讓注意事項內容更容易閱讀
+
+---
+
 ## 2026-01-21 21:03:33 (Asia/Taipei) - 前臺租車方案和租車須知頁面記住用戶選擇的店家
 
 ### 變更內容
