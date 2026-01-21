@@ -269,7 +269,7 @@ const Booking: React.FC = () => {
               <li>1. 歡迎透過下列表單向店家確認租賃日期</li>
               <li>2. 填寫表單後<span className="text-red-600 font-bold text-base">不代表預約成功</span>，店家將再透過email或電話與您聯絡</li>
               <li>3. 若<span className="text-red-600 font-bold text-base">24小時內</span>未接到我們的回傳mail或聯絡電話，請主動與我們聯絡，不便之處敬請見諒！</li>
-              <li>4. 如需直接訂購，請參閱「聯絡我們」頁面，並撥打您欲前往之店面電話進行訂車</li>
+              <li>4. 如需直接訂購，請參閱「<span className="text-red-600 font-bold">聯絡我們</span>」頁面，並撥打您欲前往之店面電話進行訂車</li>
               <li>5. ID搜尋<span className="text-red-600 font-bold text-base">@623czmsm</span>加入官方LINE更能快速確認訂單</li>
             </ol>
           </div>
