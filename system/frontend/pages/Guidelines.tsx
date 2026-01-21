@@ -77,7 +77,8 @@ const Guidelines: React.FC = () => {
 
     const fetchGuesthouses = async () => {
       try {
-        const response = await publicApi.guesthouses.list({ active_only: true });
+        const params = selectedStore ? { store_id: selectedStore.id, active_only: true } : { active_only: true };
+        const response = await publicApi.guesthouses.list(params);
         setGuesthouses(response.data || []);
       } catch (error) {
         console.error('Failed to fetch guesthouses:', error);
@@ -98,10 +99,10 @@ const Guidelines: React.FC = () => {
     fetchStores();
     if (selectedStore) {
       fetchGuidelines();
+      fetchGuesthouses();
     } else {
       setLoading(false);
     }
-    fetchGuesthouses();
     fetchShuttleImages();
   }, [selectedStore]);
 

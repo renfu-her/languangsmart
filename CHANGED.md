@@ -1,5 +1,26 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 10:55:42 (Asia/Taipei) - 修改前台 Guidelines 頁面民宿推薦根據 store_id 過濾
+
+### 變更內容
+
+#### 前端變更
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 修改 `fetchGuesthouses` 函數，根據選擇的商店（`selectedStore`）過濾民宿推薦
+  - 當 `selectedStore` 存在時，傳遞 `store_id` 參數到 API 調用
+  - 確保當商店選擇改變時，民宿推薦會自動根據 `store_id` 重新過濾
+  - 將 `fetchGuesthouses` 調用移到 `if (selectedStore)` 條件內，確保只在選擇商店時獲取
+
+### 功能說明
+
+- **前台 Guidelines 頁面民宿推薦**：
+  - 現在當用戶在 Guidelines 頁面選擇商店時，頁面底部的「民宿推薦」區塊會自動根據選擇的商店（`store_id`）過濾顯示
+  - 確保顯示的民宿推薦與選擇的商店完全對應
+  - 與 Guesthouses 頁面的行為保持一致
+
+---
+
 ## 2026-01-21 10:42:15 (Asia/Taipei) - 修改前台民宿推薦頁面根據 store_id 過濾顯示
 
 ### 變更內容
