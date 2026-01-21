@@ -136,7 +136,7 @@ const RentalPlansPage: React.FC = () => {
         ...formData,
         price: parseFloat(formData.price),
         sort_order: parseInt(formData.sort_order.toString()),
-        store_id: formData.store_id || selectedStoreId || null,
+        store_id: formData.store_id ? parseInt(formData.store_id.toString()) : (selectedStoreId ? parseInt(selectedStoreId.toString()) : null),
       };
 
       if (editingPlan) {

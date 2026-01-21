@@ -1,5 +1,30 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 10:05:13 (Asia/Taipei) - 修復新增租車方案時 store_id 未寫入的問題
+
+### 變更內容
+
+#### 後端變更
+
+- **RentalPlanController.php** (`app/Http/Controllers/Api/RentalPlanController.php`)
+  - 在 `store` 方法的驗證規則中添加 `store_id` 驗證：`'store_id' => 'nullable|exists:stores,id'`
+  - 確保新增租車方案時，`store_id` 能夠被正確驗證和保存
+
+#### 前端變更
+
+- **RentalPlansPage.tsx** (`system/backend/pages/RentalPlansPage.tsx`)
+  - 修復提交數據時 `store_id` 的類型轉換問題
+  - 確保 `store_id` 被正確轉換為整數類型（如果存在），否則為 `null`
+
+### 功能說明
+
+- **新增租車方案**：
+  - 修復了新增租車方案時 `store_id` 未寫入資料庫的問題
+  - 現在當選擇商店後新增租車方案，`store_id` 會被正確保存到資料庫
+  - 確保租車方案與商店的正確關聯
+
+---
+
 ## 2026-01-21 09:57:12 (Asia/Taipei) - 調整前端租車方案機車圖片背景為白色
 
 ### 變更內容
