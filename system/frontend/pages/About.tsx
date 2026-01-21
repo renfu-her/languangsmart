@@ -223,21 +223,21 @@ const About: React.FC = () => {
                     {store.name}
                   </h3>
                   {store.environmentImages && store.environmentImages.length > 0 && (
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
-                      {store.environmentImages.map((image) => (
-                        <div key={image.id} className="aspect-square rounded-[30px] overflow-hidden">
-                          <img
-                            src={`/storage/${image.image_path}`}
-                            alt={`${store.name} 環境圖片`}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {/* 在商店之間添加 hr，最後一個商店不添加 */}
-                  {index < stores.length - 1 && (
-                    <hr style={{ borderColor: '#ccc', borderWidth: '1px', marginTop: '1.5rem', marginBottom: '1.5rem' }} />
+                    <>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
+                        {store.environmentImages.map((image) => (
+                          <div key={image.id} className="aspect-square rounded-[30px] overflow-hidden">
+                            <img
+                              src={`/storage/${image.image_path}`}
+                              alt={`${store.name} 環境圖片`}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      {/* 每個圖片區塊下方添加細的 hr */}
+                      <hr style={{ borderColor: '#ccc', borderWidth: '0.5px', borderTop: 'none', borderLeft: 'none', borderRight: 'none', marginTop: '1rem', marginBottom: '1rem' }} />
+                    </>
                   )}
                 </div>
               ))}
