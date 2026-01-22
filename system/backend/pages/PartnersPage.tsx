@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Search, Edit3, Trash2, MapPin, Phone, Building, Image as ImageIcon, X, Loader2, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, MapPin, Phone, Building, Image as ImageIcon, X, Loader2, MoreHorizontal, ChevronDown } from 'lucide-react';
 import { partnersApi, scooterModelsApi } from '../lib/api';
-import { inputClasses, labelClasses, searchInputClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
+import { useStore } from '../contexts/StoreContext';
+import { inputClasses, selectClasses, labelClasses, searchInputClasses, chevronDownClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
 
 interface Partner {
   id: number;
@@ -14,6 +15,8 @@ interface Partner {
   color: string | null;
   is_default_for_booking?: boolean;
   default_shipping_company?: string | null;
+  store_id?: number | null;
+  store?: { id: number; name: string } | null;
   transfer_fees?: Array<{
     scooter_model_id: number;
     scooter_model?: {
@@ -35,6 +38,7 @@ interface ScooterModel {
 }
 
 const PartnersPage: React.FC = () => {
+  const { currentStore, stores, setCurrentStore } = useStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPartner, setEditingPartner] = useState<Partner | null>(null);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -48,6 +52,7 @@ const PartnersPage: React.FC = () => {
     tax_id: '',
     manager: '',
     color: '',
+    store_id: '',
     is_default_for_booking: false,
     transfer_fees: [] as Array<{
       scooter_model_id: number;
@@ -68,7 +73,7 @@ const PartnersPage: React.FC = () => {
   useEffect(() => {
     fetchPartners();
     fetchScooterModels();
-  }, [searchTerm]);
+  }, [searchTerm, currentStore]);
 
   const fetchScooterModels = async () => {
     try {
@@ -82,7 +87,18 @@ const PartnersPage: React.FC = () => {
   const fetchPartners = async () => {
     setLoading(true);
     try {
-      const response = await partnersApi.list(searchTerm ? { search: searchTerm } : undefined);
+      // 始終根據 currentStore 過濾合作商列表
+      const params: any = {};
+      if (searchTerm) params.search = searchTerm;
+      if (currentStore) {
+        params.store_id = currentStore.id;
+      } else {
+        // 如果沒有選擇商店，返回空列表
+        setPartners([]);
+        setLoading(false);
+        return;
+      }
+      const response = await partnersApi.list(params);
       // API returns { data: [...] }, api.get() returns the whole JSON object
       // So response.data is the array
       setPartners(response.data || []);
@@ -118,6 +134,9 @@ const PartnersPage: React.FC = () => {
           }))
         : [];
       
+      // 編輯模式：store_id 固定為合作商的 store_id
+      const fixedStoreId = partner.store_id ? String(partner.store_id) : (currentStore ? String(currentStore.id) : '');
+      
       setFormData({
         name: partner.name,
         address: partner.address || '',
@@ -125,6 +144,7 @@ const PartnersPage: React.FC = () => {
         tax_id: partner.tax_id || '',
         manager: partner.manager || '',
         color: partner.color || '',
+        store_id: fixedStoreId,
         is_default_for_booking: partner.is_default_for_booking || false,
         transfer_fees: transferFees,
       });
@@ -141,6 +161,9 @@ const PartnersPage: React.FC = () => {
           }))
         : [];
       
+      // 新增模式：store_id 固定為 currentStore
+      const fixedStoreId = currentStore ? String(currentStore.id) : '';
+      
       setFormData({
         name: '',
         address: '',
@@ -148,6 +171,7 @@ const PartnersPage: React.FC = () => {
         tax_id: '',
         manager: '',
         color: '',
+        store_id: fixedStoreId,
         is_default_for_booking: false,
         transfer_fees: initialTransferFees,
       });
@@ -175,6 +199,7 @@ const PartnersPage: React.FC = () => {
       tax_id: '',
       manager: '',
       color: '',
+      store_id: '',
       is_default_for_booking: false,
       transfer_fees: initialTransferFees,
     });
@@ -199,6 +224,7 @@ const PartnersPage: React.FC = () => {
         tax_id: formData.tax_id || null,
         manager: formData.manager || null,
         color: formData.color || null,
+        store_id: formData.store_id ? parseInt(formData.store_id) : null,
         is_default_for_booking: formData.is_default_for_booking,
         transfer_fees: transferFees,
       };
@@ -320,17 +346,31 @@ const PartnersPage: React.FC = () => {
       </div>
 
       <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-        <div className="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-800/50 flex justify-between items-center">
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-            <input 
-              type="text" 
-              placeholder="搜尋合作商名稱、地址或統編..." 
-              className={searchInputClasses}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="p-5 border-b border-gray-100 dark:border-gray-700 bg-gray-50/30 dark:bg-gray-800/50 flex flex-col gap-4">
+          {/* 第一行：搜尋 */}
+          <div className="flex justify-between items-center">
+            <div className="relative w-full max-w-sm">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <input 
+                type="text" 
+                placeholder="搜尋合作商名稱、地址或統編..." 
+                className={searchInputClasses}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
           </div>
+          {/* 第二行：顯示當前商店（只讀） */}
+          {currentStore && (
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                店家：
+              </label>
+              <span className="text-sm font-semibold text-gray-800 dark:text-gray-200">
+                {currentStore.name}
+              </span>
+            </div>
+          )}
         </div>
 
         {loading ? (
@@ -350,13 +390,14 @@ const PartnersPage: React.FC = () => {
                   <th className="px-6 py-5">聯絡電話</th>
                   <th className="px-6 py-5">合作商統編</th>
                   <th className="px-6 py-5">商店主管</th>
+                  <th className="px-6 py-5">所屬商店</th>
                   <th className="px-6 py-5 text-center">操作</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {partners.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-gray-500">
+                    <td colSpan={9} className="px-6 py-12 text-center text-gray-500">
                       目前沒有合作商資料
                     </td>
                   </tr>
@@ -407,6 +448,7 @@ const PartnersPage: React.FC = () => {
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium tracking-wide">{partner.phone || '-'}</td>
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-bold">{partner.tax_id || '-'}</td>
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-black">{partner.manager || '-'}</td>
+                    <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{partner.store?.name || '-'}</td>
                     <td className="px-6 py-5 text-center">
                       <div className="relative">
                         <button 
@@ -491,7 +533,20 @@ const PartnersPage: React.FC = () => {
                     onChange={(e) => setFormData({ ...formData, tax_id: e.target.value })}
                   />
                 </div>
-                <div className="col-span-2">
+                <div>
+                  <label className={`${labelClasses} flex items-center`}>
+                    <Building size={14} className="mr-1.5" /> 所屬商店
+                  </label>
+                  <input
+                    type="text"
+                    className={`${inputClasses} bg-gray-50 dark:bg-gray-700/50 cursor-not-allowed`}
+                    value={formData.store_id ? stores.find(s => s.id === parseInt(formData.store_id))?.name || '未知商店' : '未選擇商店'}
+                    readOnly
+                    disabled
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">所屬商店已固定，無法修改</p>
+                </div>
+                <div>
                   <label className={labelClasses}>
                     商店主管
                   </label>

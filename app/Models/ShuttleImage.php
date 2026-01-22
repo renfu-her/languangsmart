@@ -12,9 +12,19 @@ class ShuttleImage extends Model
     protected $fillable = [
         'image_path',
         'sort_order',
+        'store_id',
     ];
 
     protected $casts = [
         'sort_order' => 'integer',
+        'store_id' => 'integer',
     ];
+
+    /**
+     * Get the store that owns the shuttle image.
+     */
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
+    }
 }

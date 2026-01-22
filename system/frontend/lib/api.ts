@@ -96,10 +96,10 @@ export const publicApi = {
     list: () => api.get('/home-images'),
   },
   environmentImages: {
-    list: () => api.get('/environment-images'),
+    list: (params?: { store_id?: number }) => api.get('/environment-images', params),
   },
   shuttleImages: {
-    list: () => api.get('/shuttle-images'),
+    list: (params?: { store_id?: number }) => api.get('/shuttle-images', params),
   },
   rentalPlans: {
     list: (params?: { store_id?: number }) => api.get('/rental-plans', { active_only: true, ...params }),
@@ -111,7 +111,7 @@ export const publicApi = {
     list: () => api.get('/locations', { active_only: true }),
   },
   guesthouses: {
-    list: () => api.get('/guesthouses', { active_only: true }),
+    list: (params?: { store_id?: number; active_only?: boolean }) => api.get('/guesthouses', { active_only: true, ...params }),
     get: (id: string | number) => api.get(`/guesthouses/${id}`),
   },
   contact: {
@@ -126,10 +126,10 @@ export const publicApi = {
     list: () => api.get('/stores'),
   },
   scooters: {
-    models: () => api.get<Array<{ model: string; type: string; label: string }>>('/scooters/models'),
+    models: (params?: { store_id?: number }) => api.get<Array<{ model: string; type: string; label: string }>>('/scooters/models', params),
   },
   partners: {
-    list: () => api.get('/partners'),
+    list: (params?: { store_id?: number }) => api.get('/partners', params),
   },
   captcha: {
     generate: () => api.get('/captcha/generate'),

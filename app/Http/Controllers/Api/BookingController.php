@@ -31,7 +31,7 @@ class BookingController extends Controller
             'email' => 'required|email|max:255',
             'lineId' => 'nullable|string|max:255', // 改為可選
             'phone' => 'required|string|max:20',
-            'storeId' => 'nullable|exists:stores,id',
+            'storeId' => 'required|exists:stores,id',
             'appointmentDate' => 'required|date',
             'endDate' => 'required|date|after_or_equal:appointmentDate',
             'shippingCompany' => 'nullable|in:泰富,藍白,聯營,大福,公船', // 改為可選，如果沒有提供會使用預設值
@@ -68,8 +68,21 @@ class BookingController extends Controller
                 ];
             }, $data['scooters']);
             
-            // 獲取預設線上預約合作商
-            $defaultPartner = Partner::where('is_default_for_booking', true)->first();
+            // 獲取預設線上預約合作商（根據 store_id）
+            $storeId = $data['storeId'] ?? null;
+            $defaultPartner = null;
+            if ($storeId) {
+                // 查找該商店的預設合作商
+                $defaultPartner = Partner::where('store_id', $storeId)
+                    ->where('is_default_for_booking', true)
+                    ->first();
+            }
+            // 如果該商店沒有預設合作商，嘗試使用全局預設合作商（沒有 store_id 的）
+            if (!$defaultPartner) {
+                $defaultPartner = Partner::whereNull('store_id')
+                    ->where('is_default_for_booking', true)
+                    ->first();
+            }
 
             // 計算租期天數與調車費用總金額（只算調車費用）
             $bookingDateCarbon = Carbon::parse($data['appointmentDate'])->startOfDay();
@@ -140,13 +153,19 @@ class BookingController extends Controller
                 $shippingCompany = $defaultPartner->default_shipping_company;
             }
             
+            // 確定 store_id：優先使用請求中的 storeId，如果沒有則使用合作商的 store_id
+            $storeId = $data['storeId'] ?? null;
+            if (!$storeId && $defaultPartner && $defaultPartner->store_id) {
+                $storeId = $defaultPartner->store_id;
+            }
+            
             // 儲存到資料庫
             $booking = Booking::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
                 'line_id' => $data['lineId'] ?? null,
                 'phone' => $data['phone'],
-                'store_id' => $data['storeId'] ?? null,
+                'store_id' => $storeId,
                 'booking_date' => $data['appointmentDate'],
                 'end_date' => $data['endDate'],
                 'shipping_company' => $shippingCompany,
@@ -323,9 +342,16 @@ class BookingController extends Controller
     /**
      * Get count of pending bookings (status = '預約中')
      */
-    public function pendingCount(): JsonResponse
+    public function pendingCount(Request $request): JsonResponse
     {
-        $count = Booking::where('status', '預約中')->count();
+        $query = Booking::where('status', '預約中');
+        
+        // Filter by store_id
+        if ($request->has('store_id')) {
+            $query->where('store_id', $request->get('store_id'));
+        }
+        
+        $count = $query->count();
 
         return response()->json([
             'count' => $count,
@@ -335,11 +361,17 @@ class BookingController extends Controller
     /**
      * Get list of pending bookings (status = '預約中')
      */
-    public function pending(): JsonResponse
+    public function pending(Request $request): JsonResponse
     {
-        $bookings = Booking::where('status', '預約中')
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Booking::with('store')
+            ->where('status', '預約中');
+        
+        // Filter by store_id
+        if ($request->has('store_id')) {
+            $query->where('store_id', $request->get('store_id'));
+        }
+        
+        $bookings = $query->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'data' => $bookings,
@@ -370,6 +402,7 @@ class BookingController extends Controller
             'payment_amount' => 'nullable|numeric|min:0',
             'scooter_ids' => 'sometimes|required|array|min:1',
             'scooter_ids.*' => 'required_with:scooter_ids|exists:scooters,id',
+            'store_id' => 'nullable|exists:stores,id',
         ]);
 
         if ($validator->fails()) {
@@ -389,9 +422,21 @@ class BookingController extends Controller
         $partnerId = $request->get('partner_id');
         $partner = $partnerId ? Partner::find($partnerId) : ($booking->partner_id ? Partner::find($booking->partner_id) : null);
         
-        // 如果沒有合作商，嘗試使用預設線上預約合作商
+        // 如果沒有合作商，根據 booking 的 store_id 查找該商店的預設線上預約合作商
         if (!$partner) {
-            $partner = Partner::where('is_default_for_booking', true)->first();
+            $storeId = $booking->store_id;
+            if ($storeId) {
+                // 查找該商店的預設合作商
+                $partner = Partner::where('store_id', $storeId)
+                    ->where('is_default_for_booking', true)
+                    ->first();
+            }
+            // 如果該商店沒有預設合作商，嘗試使用全局預設合作商（沒有 store_id 的）
+            if (!$partner) {
+                $partner = Partner::whereNull('store_id')
+                    ->where('is_default_for_booking', true)
+                    ->first();
+            }
         }
 
         // 計算租期天數與調車費用總金額（只算調車費用）
@@ -548,9 +593,26 @@ class BookingController extends Controller
         try {
             DB::beginTransaction();
 
+            // 確定 store_id：優先使用請求中的 store_id，其次使用 booking 的 store_id，最後使用 partner 的 store_id
+            // 確保預約的 store_id 被正確帶入訂單並寫入
+            $storeId = $request->get('store_id');
+            if (!$storeId) {
+                // 如果請求中沒有 store_id，優先使用 booking 的 store_id
+                $storeId = $booking->store_id;
+            }
+            // 如果還是沒有 store_id，嘗試從 partner 獲取（但這不應該發生，因為預約應該有 store_id）
+            if (!$storeId && $request->get('partner_id')) {
+                $partner = Partner::find($request->get('partner_id'));
+                if ($partner && $partner->store_id) {
+                    $storeId = $partner->store_id;
+                }
+            }
+            
+            // 確保 store_id 被寫入訂單（即使為 null 也要明確設置）
             // 創建單一訂單，包含所有需要的機車
             $order = Order::create([
                 'partner_id' => $request->get('partner_id') ?: null,
+                'store_id' => $storeId, // 確保預約的 store_id 被寫入訂單
                 'tenant' => $booking->name,
                 'appointment_date' => $bookingDate,
                 'start_time' => $startTime,

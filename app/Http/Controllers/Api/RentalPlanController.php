@@ -63,6 +63,7 @@ class RentalPlanController extends Controller
             'price' => 'required|numeric|min:0',
             'sort_order' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'store_id' => 'nullable|exists:stores,id',
         ]);
 
         if ($validator->fails()) {

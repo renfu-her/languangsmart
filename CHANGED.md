@@ -1,5 +1,2268 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-21 21:42:29 (Asia/Taipei) - 前臺租車方案頁面「隨車附安全帽」和「注意事項」文字大小再增加一級
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 將「隨車附安全帽，並提供衛生帽套供使用」文字大小從 `text-sm sm:text-base` 改為 `text-base sm:text-lg`（再增加一級）
+  - 將「注意事項」標題字體大小從 `text-sm sm:text-base` 改為 `text-base sm:text-lg`（再增加一級）
+  - 將「注意事項」內容字體大小從 `text-sm sm:text-base` 改為 `text-base sm:text-lg`（再增加一級）
+  - 現在「隨車附安全帽」和「注意事項」文字與店家選擇大小相同
+
+### 功能說明
+
+- **前臺「租車方案」頁面**：
+  - 「隨車附安全帽，並提供衛生帽套供使用」文字大小為 `text-base sm:text-lg`（16px/18px）
+  - 「注意事項」標題和內容文字大小為 `text-base sm:text-lg`（16px/18px）
+  - 店家選擇按鈕文字大小為 `text-base sm:text-lg`（16px/18px）
+  - 現在所有文字大小一致，視覺效果更統一
+
+---
+
+## 2026-01-21 21:34:03 (Asia/Taipei) - 前臺租車方案頁面「隨車附安全帽」和「注意事項」文字大小增加一級
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 將「隨車附安全帽，並提供衛生帽套供使用」文字大小從 `text-xs sm:text-sm` 改為 `text-sm sm:text-base`（增加一級）
+  - 將「注意事項」標題字體大小從 `text-xs sm:text-sm` 改為 `text-sm sm:text-base`（增加一級）
+  - 將「注意事項」內容字體大小從 `text-xs sm:text-sm` 改為 `text-sm sm:text-base`（增加一級）
+  - 現在「隨車附安全帽」和「注意事項」文字比店家選擇小一級（而不是小兩級）
+
+### 功能說明
+
+- **前臺「租車方案」頁面**：
+  - 「隨車附安全帽，並提供衛生帽套供使用」文字大小為 `text-sm sm:text-base`（14px/16px）
+  - 「注意事項」標題和內容文字大小為 `text-sm sm:text-base`（14px/16px）
+  - 店家選擇按鈕文字大小為 `text-base sm:text-lg`（16px/18px）
+  - 現在相關文字比店家選擇小一級，可讀性更好
+
+---
+
+## 2026-01-21 21:15:55 (Asia/Taipei) - 前臺租車方案頁面「隨車附安全帽」和「注意事項」文字比店家選擇小 2 級
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 確認「隨車附安全帽，並提供衛生帽套供使用」文字大小為 `text-xs sm:text-sm`（比店家選擇小 2 級）
+  - 將「注意事項」標題字體大小從 `text-base sm:text-lg` 改為 `text-xs sm:text-sm`（比店家選擇小 2 級）
+  - 將「注意事項」內容字體大小從 `text-base sm:text-lg` 改為 `text-xs sm:text-sm`（比店家選擇小 2 級）
+  - 店家選擇按鈕文字大小為 `text-base sm:text-lg`（16px/18px）
+  - 所有相關文字現在統一為 `text-xs sm:text-sm`（12px/14px），比店家選擇小 2 級
+
+### 功能說明
+
+- **前臺「租車方案」頁面**：
+  - 「隨車附安全帽，並提供衛生帽套供使用」文字比店家選擇小 2 級
+  - 「注意事項」標題和內容文字都比店家選擇小 2 級
+  - 字體大小層次清晰：店家選擇（16px/18px）> 相關說明文字（12px/14px）
+  - 視覺層次更清晰，符合設計規範
+
+---
+
+## 2026-01-21 21:09:12 (Asia/Taipei) - 前臺租車方案頁面注意事項部分的字體大小增加兩級
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 將注意事項標題的字體大小從 `text-xs sm:text-sm` 改為 `text-base sm:text-lg`（增加兩級）
+  - 將注意事項內容的字體大小從 `text-xs sm:text-sm` 改為 `text-base sm:text-lg`（增加兩級）
+  - 現在注意事項部分的字體大小與店家選擇按鈕相同（`text-base sm:text-lg`）
+
+### 功能說明
+
+- **前臺「租車方案」頁面的注意事項部分**：
+  - 字體大小已增加兩級，從 `text-xs sm:text-sm`（12px/14px）改為 `text-base sm:text-lg`（16px/18px）
+  - 現在與店家選擇按鈕的字體大小一致，視覺效果更統一
+  - 提升可讀性，讓注意事項內容更容易閱讀
+
+---
+
+## 2026-01-21 21:03:33 (Asia/Taipei) - 前臺租車方案和租車須知頁面記住用戶選擇的店家
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 在獲取商店列表時，從 localStorage 讀取保存的 `selectedStoreId`
+  - 如果有保存的 store_id，優先使用該店家
+  - 當用戶選擇店家時，將 store_id 保存到 localStorage
+  - 確保用戶再次訪問頁面時，自動選擇之前選擇的店家
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 重構 useEffect 邏輯，將獲取商店列表和獲取數據分開
+  - 在獲取商店列表時，從 localStorage 讀取保存的 `selectedStoreId`
+  - 如果有保存的 store_id，優先使用該店家
+  - 當用戶選擇店家時，將 store_id 保存到 localStorage
+  - 當 selectedStore 改變時，自動獲取該店家的相關數據（guidelines、guesthouses、shuttleImages）
+  - 確保用戶再次訪問頁面時，自動選擇之前選擇的店家
+
+### 功能說明
+
+- **前臺「租車方案」和「租車須知」頁面**：
+  - 現在會記住用戶選擇的店家（store_id）
+  - 當用戶在租車方案頁面選擇店家後，訪問租車須知頁面時會自動使用相同的店家
+  - 反之亦然，兩個頁面共享同一個 store_id 記憶
+  - 提升用戶體驗，無需每次訪問都重新選擇店家
+  - 使用 localStorage 持久化存儲，即使關閉瀏覽器後重新打開也會記住選擇
+
+---
+
+## 2026-01-21 21:00:26 (Asia/Taipei) - 確認前臺租車方案頁面注意事項部分的字體大小比店家選擇小 2 級
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 確認注意事項部分的字體大小設置
+  - 店家選擇按鈕文字大小為 `text-base sm:text-lg`（16px / 18px）
+  - 注意事項標題和內容字體大小為 `text-xs sm:text-sm`（12px / 14px）
+  - 確保注意事項部分比店家選擇小 2 級（text-base -> text-sm -> text-xs，text-lg -> text-base -> text-sm）
+
+### 功能說明
+
+- **前臺「租車方案」頁面的注意事項部分**：
+  - 現在字體大小比店家選擇按鈕小 2 級
+  - 小屏幕：店家選擇 16px，注意事項 12px（小 2 級）
+  - 大屏幕：店家選擇 18px，注意事項 14px（小 2 級）
+  - 視覺層次更清晰，符合設計規範
+
+---
+
+## 2026-01-21 17:31:10 (Asia/Taipei) - 減少前臺租車方案頁面中間的空白區域
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 減少 header 的上下內邊距：從 `py-12 sm:py-16 md:py-20` 改為 `py-8 sm:py-10 md:py-12`
+  - 減少麵包屑的下邊距：從 `mb-6 sm:mb-8` 改為 `mb-4 sm:mb-5`
+  - 減少店家選擇按鈕的下邊距：從 `mb-6 sm:mb-8` 改為 `mb-4 sm:mb-5`
+  - 減少下方 section 的上下內邊距：從 `py-12 sm:py-16 md:py-20` 改為 `py-6 sm:py-8 md:py-10`
+  - 減少 loading 和 empty 狀態的內邊距：從 `py-20` 改為 `py-8 sm:py-10`
+
+### 功能說明
+
+- **前臺「租車方案」頁面**：
+  - 現在 header 和下方內容之間的空白區域已大幅減少
+  - 整體頁面更緊湊，視覺效果更好
+  - 用戶可以更快看到租車方案內容
+
+---
+
+## 2026-01-21 17:23:40 (Asia/Taipei) - 前臺租車方案和租車須知頁面的店家 select 按鈕文字改為 #0D9488 並加大
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 將店家選擇按鈕的文字顏色改為 `#0D9488`
+  - 將圖標（Store 和 ChevronDown）顏色改為 `#0D9488`
+  - 增加按鈕的 padding：從 `px-6 py-3` 改為 `px-6 py-3 sm:px-8 sm:py-4`
+  - 增加文字大小：從默認大小改為 `text-base sm:text-lg`
+  - 增加圖標大小：從 `size={18}` 改為 `size={20}`
+  - 移除 `text-gray-800` 類別
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 將店家選擇按鈕的文字顏色改為 `#0D9488`
+  - 將圖標（Store 和 ChevronDown）顏色改為 `#0D9488`
+  - 增加按鈕的 padding：從 `px-6 py-3` 改為 `px-6 py-3 sm:px-8 sm:py-4`
+  - 增加文字大小：從默認大小改為 `text-base sm:text-lg`
+  - 增加圖標大小：從 `size={18}` 改為 `size={20}`
+  - 移除 `text-gray-800` 類別
+
+### 功能說明
+
+- **前臺「租車方案」和「租車須知」頁面的店家選擇按鈕**：
+  - 現在使用品牌色 `#0D9488` 作為文字和圖標顏色
+  - 按鈕和文字更大更明顯，提升視覺效果和用戶體驗
+  - 與品牌色調保持一致
+
+---
+
+## 2026-01-21 17:15:25 (Asia/Taipei) - 恢復前臺預約頁面商店 select 的原始顏色樣式
+
+### 變更內容
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 將商店 select 恢復為之前的樣式
+  - 邊框顏色恢復為 `border-gray-200`（從 `border-[#0D9488]` 改回）
+  - focus 狀態恢復為 `focus:border-black focus:ring-0`（從 `focus:border-[#0D9488] focus:ring-2 focus:ring-[#0D9488]/20` 改回）
+  - padding 恢復為 `px-3 py-2.5 sm:px-4 sm:py-3`（從 `px-4 py-3 sm:px-5 sm:py-4` 改回）
+  - 字體大小恢復為 `text-sm sm:text-base`（從 `text-base sm:text-lg` 改回）
+  - 移除 `font-medium` 和自定義顏色樣式
+  - 移除動態 style 顏色設置
+  - option 元素恢復為默認樣式
+
+### 功能說明
+
+- **前臺「線上預約」頁面的商店選擇器**：
+  - 已恢復為原始的灰色邊框和黑色 focus 狀態
+  - 恢復為原始的大小和樣式
+  - 保持簡潔的設計風格
+
+---
+
+## 2026-01-21 16:52:02 (Asia/Taipei) - 前臺商店 select 增加顏色並放大，使用顏色 #0D9488
+
+### 變更內容
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 將商店 select 的邊框顏色改為 `#0D9488`（使用 `border-2` 增加邊框寬度）
+  - 設置 focus 狀態時的邊框顏色為 `#0D9488`，並添加 focus ring 效果（`focus:ring-2 focus:ring-[#0D9488]/20`）
+  - 增加 select 的 padding：從 `px-3 py-2.5 sm:px-4 sm:py-3` 改為 `px-4 py-3 sm:px-5 sm:py-4`
+  - 增加字體大小：從 `text-sm sm:text-base` 改為 `text-base sm:text-lg`
+  - 添加字體粗細：`font-medium`
+  - 設置選中項目的文字顏色為 `#0D9488`
+  - 使用動態樣式設置 select 文字顏色：未選擇時為灰色，選擇後為 `#0D9488`
+
+### 功能說明
+
+- **前臺「線上預約」頁面的商店選擇器**：
+  - 現在使用品牌色 `#0D9488` 作為邊框和文字顏色
+  - select 元素更大更明顯，提升用戶體驗
+  - 視覺效果更突出，與品牌色調一致
+
+---
+
+## 2026-01-21 16:46:20 (Asia/Taipei) - 在所有圖片區塊下方添加細的 hr 分隔線，顏色為 #ccc
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 將 hr 標籤移到每個商店的圖片區塊下方（而不是商店之間）
+  - 所有有環境圖片的商店，圖片區塊下方都會顯示 hr 分隔線
+  - 將 hr 的邊框寬度從 `1px` 改為 `0.5px`，讓線條更細
+  - 設置 hr 只顯示底部邊框（`borderTop: 'none', borderLeft: 'none', borderRight: 'none'`）
+  - 保持顏色為 `#ccc`（淺灰色）
+  - 設置適當的上下邊距（`marginTop: '1rem', marginBottom: '1rem'`）
+
+### 功能說明
+
+- **前臺「關於我們」頁面的「我們的環境」區塊**：
+  - 現在每個商店的圖片區塊下方都有細的灰色分隔線（`#ccc`）
+  - 分隔線更細（`0.5px`），視覺效果更精緻
+  - 提供清晰的視覺分隔，區分每個商店的圖片區域
+
+---
+
+## 2026-01-21 16:42:58 (Asia/Taipei) - 將「我們的環境」區塊中 hr 標籤的顏色從 #333 改為 #ccc
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 將商店之間的 `<hr>` 標籤顏色從 `#333`（深灰色）改為 `#ccc`（淺灰色）
+  - 使分隔線顏色更柔和，視覺效果更輕盈
+
+### 功能說明
+
+- **前臺「關於我們」頁面的「我們的環境」區塊**：
+  - 商店之間的分隔線現在使用更淺的灰色（`#ccc`）
+  - 視覺效果更柔和，不會過於突兀
+
+---
+
+## 2026-01-21 16:40:24 (Asia/Taipei) - 在「我們的環境」區塊的商店之間添加 hr 標籤，顏色設為 #333
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 在商店列表的 map 函數中添加索引參數
+  - 在每個商店之後（除了最後一個）添加 `<hr>` 標籤
+  - 設置 `<hr>` 的顏色為 `#333`，邊框寬度為 `1px`
+  - 設置適當的上下邊距（`marginTop: '1.5rem', marginBottom: '1.5rem'`）
+
+### 功能說明
+
+- **前臺「關於我們」頁面的「我們的環境」區塊**：
+  - 現在在每個商店之間都有深灰色（`#333`）的 `<hr>` 分隔線
+  - 最後一個商店之後不會顯示分隔線
+  - 分隔線提供清晰的視覺分隔，區分不同的商店區域
+
+---
+
+## 2026-01-21 16:36:08 (Asia/Taipei) - 刪除前臺「我們的環境」區塊中的所有橫線
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 刪除「我們的環境」區塊上方的橫線（`border-t`）
+  - 刪除每個商店圖片區域下方的橫線和淡色背景區域
+  - 刪除「我們的環境」區塊下方的橫線（`border-b`）
+  - 移除所有與橫線相關的 div 元素和樣式
+
+### 功能說明
+
+- **前臺「關於我們」頁面的「我們的環境」區塊**：
+  - 現在完全沒有任何橫線，視覺更簡潔
+  - 只保留標題和圖片內容，沒有任何分隔線
+  - 整體設計更加簡約
+
+---
+
+## 2026-01-21 16:32:57 (Asia/Taipei) - 移除紅色部分並讓圖片區塊下方顯示顏色更淡
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 確保所有橫線都使用淡灰色（`border-gray-200`），移除任何可能的紅色樣式
+  - 將所有橫線顏色從 `border-gray-300` 改為更淡的 `border-gray-200`
+  - 在每個商店的環境圖片區域下方添加非常淡的背景區域（`bg-gray-50/20`）
+  - 將橫線放置在淡色背景區域內，讓整體視覺效果更柔和
+  - 上方和下方的橫線也改為更淡的灰色
+
+### 功能說明
+
+- **前臺「關於我們」頁面的「我們的環境」區塊**：
+  - 已移除所有紅色相關的樣式，確保橫線都是淡灰色
+  - 圖片區域下方現在有非常淡的背景色區域，視覺效果更柔和
+  - 所有橫線顏色都改為更淡的灰色（`border-gray-200`），與整體設計更協調
+  - 圖片區域下方的顯示顏色更淡，提供更好的視覺層次
+
+---
+
+## 2026-01-21 16:27:23 (Asia/Taipei) - 修改前臺「我們的環境」區塊樣式：移除大背景區域，改為上下橫線分隔，每個圖片區域下方添加灰色橫線
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 移除整個「我們的環境」section的背景色（`bg-[#f0f4ff]`），讓它不再是大的背景色塊
+  - 移除每個商店容器的背景色、圓角和padding，改為簡潔的結構
+  - 在每個商店的環境圖片區域下方添加灰色橫線（`border-b border-gray-300`）
+  - 減少圖片區域的下邊距：將商店列表間距從 `space-y-8 sm:space-y-10` 改為 `space-y-6 sm:space-y-8`
+  - 減少圖片網格的下邊距：從 `mb-6 sm:mb-8` 改為 `mb-3 sm:mb-4`
+  - 保留「我們的環境」區塊上方和下方的橫線作為視覺分隔
+
+### 功能說明
+
+- **前臺「關於我們」頁面的「我們的環境」區塊**：
+  - 現在不再是大的背景色塊，而是使用上下橫線作為視覺分隔
+  - 每個商店的環境圖片區域下方都有灰色橫線，提供清晰的視覺分隔
+  - 圖片區域的下邊距已減少，讓整體更緊湊
+  - 整體設計更簡潔，視覺層次更清晰
+
+---
+
+## 2026-01-21 16:13:35 (Asia/Taipei) - 為前臺「我們的環境」區塊添加上下橫線並減少空白
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 在「我們的環境」區塊上方添加橫線（`border-t`）
+  - 在「我們的環境」區塊下方添加橫線（`border-b`）
+  - 減少區塊的上下內邊距：從 `py-12 sm:py-16 md:py-20` 改為 `py-6 sm:py-8 md:py-10`
+  - 減少商店列表之間的間距：從 `space-y-12 sm:space-y-16` 改為 `space-y-8 sm:space-y-10`
+  - 橫線使用 `border-gray-300 dark:border-gray-600` 樣式，並設置適當的上下邊距（`mb-4 sm:mb-6` 和 `mt-4 sm:mt-6`）
+
+### 功能說明
+
+- **前臺「關於我們」頁面的「我們的環境」區塊**：
+  - 現在有上方和下方的橫線作為視覺分隔
+  - 空白區域已減少，讓內容更緊湊
+  - 橫線提供清晰的視覺邊界，區分「我們的環境」區塊與其他內容
+
+---
+
+## 2026-01-21 16:09:56 (Asia/Taipei) - 減少前臺「我們的環境」標題下方的空白
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 減少「我們的環境」標題下方的空白間距
+  - 將標題的 `mb-8 sm:mb-12`（下邊距）改為 `mb-4 sm:mb-6`，減少標題與內容之間的空白
+
+### 功能說明
+
+- **前臺「關於我們」頁面的「我們的環境」區塊**：
+  - 標題下方的空白已減少，讓標題與商店列表之間的間距更緊湊
+  - 改善視覺效果，減少不必要的空白區域
+
+---
+
+## 2026-01-21 16:02:11 (Asia/Taipei) - 前臺線上預約注意事項第四點「聯絡我們」改為紅色
+
+### 變更內容
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 在注意事項第四點中，將「聯絡我們」文字改為紅色（`text-red-600 font-bold`）
+  - 與其他注意事項中的紅色強調文字保持一致（如「不代表預約成功」、「24小時內」、「@623czmsm」）
+
+### 功能說明
+
+- **前臺「線上預約」頁面**：
+  - 注意事項第四點中的「聯絡我們」現在以紅色粗體顯示，更加醒目
+  - 提醒用戶可以通過「聯絡我們」頁面直接訂購
+
+---
+
+## 2026-01-21 15:53:42 (Asia/Taipei) - 前臺「我們的環境」改為直接顯示所有商店列表
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 移除商店選擇按鈕和 Modal（不再使用下拉選單）
+  - 移除 `selectedStore` 和 `showStoreModal` 相關的 state
+  - 移除 `ChevronDown`、`Store`、`X` 圖標的導入（不再需要）
+  - 修改數據獲取邏輯：
+    - 同時獲取所有商店列表和所有環境圖片
+    - 為每個商店分配對應的環境圖片（根據 `store_id` 匹配）
+    - 只顯示有環境圖片的商店
+  - 改為直接以列表形式顯示所有商店：
+    - 每個商店顯示其名稱（作為標題）
+    - 每個商店下方顯示該商店的環境圖片網格
+    - 所有商店垂直排列，每個商店一個區塊
+
+### 功能說明
+
+- **前臺「我們的環境」頁面**：
+  - 現在直接顯示所有有環境圖片的商店列表
+  - 每個商店顯示其名稱和對應的環境圖片
+  - 不再需要通過下拉選單切換商店
+  - 所有商店的環境圖片一目了然，用戶可以直接瀏覽所有商店的環境
+
+---
+
+## 2026-01-21 14:14:11 (Asia/Taipei) - 前臺專車接送圖片添加 store_id 過濾並統一圖片高度
+
+### 變更內容
+
+#### 前端變更
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 修改 `fetchShuttleImages` 函數，根據 `selectedStore` 過濾專車接送圖片
+  - 當 `selectedStore` 改變時，自動重新獲取該商店的專車接送圖片
+  - 將 `fetchShuttleImages` 調用移到 `if (selectedStore)` 條件內，確保只有在選擇商店後才獲取圖片
+  - 修改專車接送圖片顯示，設置固定高度：`h-[300px] sm:h-[350px] md:h-[400px]`，確保所有圖片高度一致
+  - 使用 `object-cover` 確保圖片在固定高度容器內正確顯示
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - `publicApi.shuttleImages.list`：添加可選的 `store_id` 參數，支持根據商店過濾專車接送圖片
+
+### 功能說明
+
+- **前臺「租車須知」頁面的專車接送圖片**：
+  - 現在會根據選擇的商店（`selectedStore`）自動過濾並顯示該商店的專車接送圖片
+  - 當用戶切換商店時，專車接送圖片會自動更新
+  - 所有專車接送圖片現在使用固定高度，確保視覺一致性
+  - 後臺的專車接送圖片管理頁面已經支持 `store_id`，會根據當前選擇的商店（`currentStore`）自動切換顯示
+
+---
+
+## 2026-01-21 14:04:19 (Asia/Taipei) - 前臺環境圖片添加商店選擇器，後臺移除商店環境圖片管理
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 添加商店選擇器（類似租車方案頁面），可以選擇商店來過濾顯示的環境圖片
+  - 移除 `StoreEnvironmentImage` 接口和相關代碼
+  - 移除全局環境圖片和商店環境圖片的混合顯示邏輯
+  - 改為根據選擇的商店（`selectedStore`）過濾顯示環境圖片
+  - 添加商店選擇按鈕和 Modal（與租車方案頁面一致）
+  - 當 `selectedStore` 改變時，自動獲取該商店的環境圖片
+  - 移除 `stores.environment_images` 相關的顯示邏輯
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - `publicApi.environmentImages.list`：添加可選的 `store_id` 參數，支持根據商店過濾環境圖片
+
+#### 後端變更
+
+- **StoresPage.tsx** (`system/backend/pages/StoresPage.tsx`)
+  - 移除 `EnvironmentImage` 接口定義
+  - 移除 `Store` 接口中的 `environment_images` 屬性
+  - 移除 `environmentImages` state
+  - 移除 `uploadingEnvironmentImage` state
+  - 移除 `environmentImageInputRef` ref
+  - 移除 `handleEnvironmentImageChange` 函數（上傳環境圖片）
+  - 移除 `handleDeleteEnvironmentImage` 函數（刪除環境圖片）
+  - 移除 `handleMoveEnvironmentImage` 函數（移動環境圖片排序）
+  - 在 `handleOpenModal` 中移除 `setEnvironmentImages` 相關代碼
+  - 在 `handleCloseModal` 中移除 `setEnvironmentImages` 相關代碼
+  - 移除 UI 中的環境圖片管理區塊（包括上傳、刪除、排序功能）
+  - 移除 `ArrowUp` 和 `ArrowDown` 圖標的導入（如果只用在環境圖片的話）
+
+### 功能說明
+
+- **前臺「我們的環境」頁面**：
+  - 現在可以通過商店選擇器選擇不同的商店
+  - 根據選擇的商店，自動過濾並顯示該商店的環境圖片
+  - 與租車方案頁面保持一致的用戶體驗
+  - 不再顯示全局環境圖片和商店環境圖片的混合內容
+
+- **後臺商店管理頁面**：
+  - 移除了商店環境圖片的管理功能
+  - 環境圖片現在統一在「環境圖片管理」頁面進行管理（根據 `store_id` 過濾）
+  - 簡化了商店管理頁面的功能，專注於商店基本資訊的管理
+
+---
+
+## 2026-01-21 12:32:33 (Asia/Taipei) - 為環境圖片管理添加 store_id 功能
+
+### 變更內容
+
+#### 資料庫變更
+
+- **新增 Migration** (`database/migrations/2026_01_21_123110_add_store_id_to_environment_images_table.php`)
+  - 在 `environment_images` 表中添加 `store_id` 欄位（nullable，外鍵關聯到 `stores` 表）
+  - 設置 `onDelete('set null')`，當商店被刪除時，將 `store_id` 設為 null
+
+#### 後端變更
+
+- **EnvironmentImage.php** (`app/Models/EnvironmentImage.php`)
+  - 在 `$fillable` 中添加 `store_id`
+  - 在 `$casts` 中添加 `store_id => 'integer'`
+  - 添加 `store()` 方法，定義與 `Store` 模型的 `belongsTo` 關係
+
+- **EnvironmentImageController.php** (`app/Http/Controllers/Api/EnvironmentImageController.php`)
+  - `index` 方法：添加 `store_id` 過濾功能，支持通過 `store_id` 參數過濾圖片列表
+  - `index` 方法：使用 `with('store')` 預載入商店關係
+  - `store` 方法：在驗證規則中添加 `store_id => 'required|exists:stores,id'`
+  - `store` 方法：在創建圖片時保存 `store_id`
+  - `update` 方法：在驗證規則中添加 `store_id => 'nullable|exists:stores,id'`（允許更新時修改）
+
+#### 前端變更
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - `environmentImagesApi.list`：添加可選的 `store_id` 參數
+  - `environmentImagesApi.create`：添加 `storeId` 參數，在 FormData 中附加 `store_id`
+  - `environmentImagesApi.update`：允許更新 `store_id`
+
+- **EnvironmentImagesPage.tsx** (`system/backend/pages/EnvironmentImagesPage.tsx`)
+  - 導入 `useStore` hook 和 `inputClasses` 樣式
+  - 在 `EnvironmentImage` 接口中添加 `store_id` 和 `store` 屬性
+  - 使用 `useStore` 獲取 `currentStore`
+  - `useEffect` 依賴項添加 `currentStore`，當商店切換時自動重新獲取數據
+  - `fetchImages`：根據 `currentStore.id` 過濾圖片列表，並添加類型聲明
+  - `handleUpload`：添加 `currentStore` 檢查，並在創建時傳遞 `currentStore.id`
+  - 在頁面頂部顯示當前商店名稱（只讀）
+  - 在新增圖片區域添加「所屬商店」欄位（只讀，顯示當前商店名稱）
+
+### 功能說明
+
+- **環境圖片管理的商店關聯**：
+  - 每個環境圖片現在都與特定商店（`store_id`）關聯
+  - 列表會根據當前選擇的商店（`currentStore`）自動過濾顯示
+  - 新增圖片時，`store_id` 固定為當前商店，不可變更
+  - 使用側邊欄的商店選擇器進行切換，與其他管理頁面保持一致的使用體驗
+  - 確保每個商店的環境圖片都是唯一的，不會混淆
+  - 與機車清單頁面保持一致的操作模式
+
+---
+
+## 2026-01-21 12:30:07 (Asia/Taipei) - 為專車接送圖片管理添加 store_id 功能
+
+### 變更內容
+
+#### 資料庫變更
+
+- **新增 Migration** (`database/migrations/2026_01_21_122835_add_store_id_to_shuttle_images_table.php`)
+  - 在 `shuttle_images` 表中添加 `store_id` 欄位（nullable，外鍵關聯到 `stores` 表）
+  - 設置 `onDelete('set null')`，當商店被刪除時，將 `store_id` 設為 null
+
+#### 後端變更
+
+- **ShuttleImage.php** (`app/Models/ShuttleImage.php`)
+  - 在 `$fillable` 中添加 `store_id`
+  - 在 `$casts` 中添加 `store_id => 'integer'`
+  - 添加 `store()` 方法，定義與 `Store` 模型的 `belongsTo` 關係
+
+- **ShuttleImageController.php** (`app/Http/Controllers/Api/ShuttleImageController.php`)
+  - `index` 方法：添加 `store_id` 過濾功能，支持通過 `store_id` 參數過濾圖片列表
+  - `index` 方法：使用 `with('store')` 預載入商店關係
+  - `store` 方法：在驗證規則中添加 `store_id => 'required|exists:stores,id'`
+  - `store` 方法：在創建圖片時保存 `store_id`
+  - `update` 方法：在驗證規則中添加 `store_id => 'nullable|exists:stores,id'`（允許更新時修改）
+
+#### 前端變更
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - `shuttleImagesApi.list`：添加可選的 `store_id` 參數
+  - `shuttleImagesApi.create`：添加 `storeId` 參數，在 FormData 中附加 `store_id`
+
+- **ShuttleImagesPage.tsx** (`system/backend/pages/ShuttleImagesPage.tsx`)
+  - 導入 `useStore` hook 和 `inputClasses` 樣式
+  - 在 `ShuttleImage` 接口中添加 `store_id` 和 `store` 屬性
+  - 使用 `useStore` 獲取 `currentStore`
+  - `useEffect` 依賴項添加 `currentStore`，當商店切換時自動重新獲取數據
+  - `fetchImages`：根據 `currentStore.id` 過濾圖片列表
+  - `handleUpload`：添加 `currentStore` 檢查，並在創建時傳遞 `currentStore.id`
+  - 在頁面頂部顯示當前商店名稱（只讀）
+  - 在新增圖片區域添加「所屬商店」欄位（只讀，顯示當前商店名稱）
+
+### 功能說明
+
+- **專車接送圖片管理的商店關聯**：
+  - 每個專車接送圖片現在都與特定商店（`store_id`）關聯
+  - 列表會根據當前選擇的商店（`currentStore`）自動過濾顯示
+  - 新增圖片時，`store_id` 固定為當前商店，不可變更
+  - 使用側邊欄的商店選擇器進行切換，與其他管理頁面保持一致的使用體驗
+  - 確保每個商店的專車接送圖片都是唯一的，不會混淆
+
+---
+
+## 2026-01-21 12:25:46 (Asia/Taipei) - 修改網站內容管理頁面改用 currentStore 切換模式
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlansPage.tsx** (`system/backend/pages/RentalPlansPage.tsx`)
+  - 移除 `selectedStoreId` 狀態和下拉選單
+  - 改用 `useStore` 上下文的 `currentStore` 來過濾租車方案列表
+  - 在 `useEffect` 依賴項中添加 `currentStore`，當商店切換時自動重新獲取數據
+  - 移除 `fetchStores` 函數和 `stores` 狀態（改用 StoreContext）
+  - 移除商店選擇下拉選單，改為顯示當前商店名稱（只讀）
+  - 在新增和編輯表單中，`store_id` 固定為 `currentStore.id`（編輯時顯示為只讀，不可變更）
+  - 移除 `storesApi` 導入
+
+- **GuidelinesPage.tsx** (`system/backend/pages/GuidelinesPage.tsx`)
+  - 移除 `selectedStoreFilter` 狀態和下拉選單
+  - 移除 `stores` 狀態和 `fetchStores` 函數（改用 StoreContext）
+  - 改用 `useStore` 上下文的 `currentStore` 來過濾問答列表
+  - 在 `useEffect` 依賴項中添加 `currentStore`，當商店切換時自動重新獲取數據
+  - 移除商店選擇下拉選單，改為顯示當前商店名稱（只讀）
+  - 在新增和編輯表單中，`store_id` 固定為 `currentStore.id`（編輯時顯示為只讀，不可變更）
+  - 移除 `storesApi` 導入和 `Store` 接口定義
+
+- **GuesthousesPage.tsx** (`system/backend/pages/GuesthousesPage.tsx`)
+  - 修改新增時的表單，移除下拉選單，改為固定使用 `currentStore.id`
+  - 新增和編輯時，`store_id` 都顯示為只讀（固定，不可變更）
+  - 確保 `handleSubmit` 中 `store_id` 固定為 `editingGuesthouse?.store_id`（編輯時）或 `currentStore.id`（新增時）
+
+### 功能說明
+
+- **網站內容管理頁面的商店選擇**：
+  - **租車方案管理**：現在使用 `currentStore` 切換模式，與機車清單頁面一致
+    - 列表會根據當前選擇的商店（`currentStore`）自動過濾顯示
+    - 新增和編輯時，`store_id` 固定為當前商店，不可變更
+  - **租車須知管理**：現在使用 `currentStore` 切換模式，與機車清單頁面一致
+    - 列表會根據當前選擇的商店（`currentStore`）自動過濾顯示
+    - 新增和編輯時，`store_id` 固定為當前商店，不可變更
+  - **民宿推薦管理**：新增時也使用固定的 `currentStore`
+    - 新增和編輯時，`store_id` 都固定為當前商店，不可變更
+  - 所有頁面都與機車清單頁面的模式保持一致，使用側邊欄的商店選擇器進行切換
+
+---
+
+## 2026-01-21 11:06:52 (Asia/Taipei) - 將後台登入頁面左下角的 SIGN OUT 改為登出
+
+### 變更內容
+
+#### 前端變更
+
+- **DashboardLayout.tsx** (`system/backend/components/DashboardLayout.tsx`)
+  - 將側邊欄底部使用者資訊區域的 "Sign Out" 文字改為 "登出"
+  - 位置在登入後的主界面左下角，使用者資訊區域
+
+### 功能說明
+
+- **後台登出按鈕**：
+  - 現在後台主界面左下角的登出按鈕顯示為中文 "登出" 而不是英文 "Sign Out"
+  - 提高中文用戶的使用體驗
+
+---
+
+## 2026-01-21 11:04:37 (Asia/Taipei) - 將後端表單必填欄位的 * 號改為紅色
+
+### 變更內容
+
+#### 前端變更
+
+- **所有後端表單頁面**
+  - 將所有必填欄位標籤中的 `*` 號改為紅色顯示
+  - 使用 `<span className="text-red-500">*</span>` 包裹 `*` 號，使其顯示為紅色
+  - 修改的頁面包括：
+    - **GuesthousesPage.tsx**: 所屬商店、民宿名稱
+    - **EnvironmentImagesPage.tsx**: 圖片
+    - **RentalPlansPage.tsx**: 型號、價錢
+    - **GuidelinesPage.tsx**: 分類、問題、答案
+    - **LocationsPage.tsx**: 門市名稱
+    - **ContactInfosPage.tsx**: 店名
+    - **ShuttleImagesPage.tsx**: 圖片
+    - **BookingsPage.tsx**: 姓名、預約日期、狀態
+    - **BannersPage.tsx**: 標題、圖片
+    - **ContactsPage.tsx**: 姓名、LINE ID、訊息內容、狀態
+    - **FinesPage.tsx**: 車牌號碼、承租人、罰鍰金額、違規事由/類型、繳費狀態（已使用紅色）
+    - **AccessoriesPage.tsx**: 所屬商店、配件完整名稱、所屬類別、初始庫存量、每日加購租金（已使用紅色）
+
+### 功能說明
+
+- **後端表單必填欄位標記**：
+  - 現在所有後端表單中標記為必填的欄位（帶有 `*` 號）都會以紅色顯示
+  - 使用統一的樣式 `<span className="text-red-500">*</span>` 來標記必填欄位
+  - 提高用戶體驗，讓必填欄位更加醒目和易於識別
+
+---
+
+## 2026-01-21 10:55:42 (Asia/Taipei) - 修改前台 Guidelines 頁面民宿推薦根據 store_id 過濾
+
+### 變更內容
+
+#### 前端變更
+
+- **Guidelines.tsx** (`system/frontend/pages/Guidelines.tsx`)
+  - 修改 `fetchGuesthouses` 函數，根據選擇的商店（`selectedStore`）過濾民宿推薦
+  - 當 `selectedStore` 存在時，傳遞 `store_id` 參數到 API 調用
+  - 確保當商店選擇改變時，民宿推薦會自動根據 `store_id` 重新過濾
+  - 將 `fetchGuesthouses` 調用移到 `if (selectedStore)` 條件內，確保只在選擇商店時獲取
+
+### 功能說明
+
+- **前台 Guidelines 頁面民宿推薦**：
+  - 現在當用戶在 Guidelines 頁面選擇商店時，頁面底部的「民宿推薦」區塊會自動根據選擇的商店（`store_id`）過濾顯示
+  - 確保顯示的民宿推薦與選擇的商店完全對應
+  - 與 Guesthouses 頁面的行為保持一致
+
+---
+
+## 2026-01-21 10:42:15 (Asia/Taipei) - 修改前台民宿推薦頁面根據 store_id 過濾顯示
+
+### 變更內容
+
+#### 前端變更
+
+- **Guesthouses.tsx** (`system/frontend/pages/Guesthouses.tsx`)
+  - 添加商店選擇器功能，類似於租車方案頁面
+  - 添加 `stores` 和 `selectedStore` 狀態管理
+  - 添加商店選擇模態框，用戶可以選擇不同的商店
+  - 在頁面標題下方顯示當前選擇的商店按鈕
+  - 根據選擇的商店（`selectedStore`）過濾民宿推薦列表
+  - 使用 `useEffect` 監聽 `selectedStore` 變化，自動重新獲取對應商店的民宿推薦
+  - 預設選擇第一個商店
+  - 導入 `Store` 和 `X` 圖標用於商店選擇器 UI
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - 更新 `publicApi.guesthouses.list` 方法，添加 `store_id` 參數支援
+  - 保持 `active_only: true` 作為預設參數，同時支援可選的 `store_id` 參數
+
+### 功能說明
+
+- **前台民宿推薦顯示**：
+  - 現在前台「民宿推薦」頁面會根據選擇的商店（`store_id`）過濾顯示
+  - 用戶可以通過商店選擇器切換不同的商店，查看對應商店的民宿推薦
+  - 預設顯示第一個商店的民宿推薦
+  - 確保前台顯示的民宿推薦與後台管理的內容完全對應（根據 `store_id` 過濾）
+
+---
+
+## 2026-01-21 10:38:33 (Asia/Taipei) - 為民宿推薦管理添加 store_id 支援
+
+### 變更內容
+
+#### 後端變更
+
+- **Migration** (`database/migrations/2026_01_21_103655_add_store_id_to_guesthouses_table.php`)
+  - 創建 migration 添加 `store_id` 欄位到 `guesthouses` 表
+  - `store_id` 為可為空的外鍵，關聯到 `stores` 表，刪除時設置為 null
+
+- **Guesthouse.php** (`app/Models/Guesthouse.php`)
+  - 添加 `store_id` 到 `$fillable` 陣列
+  - 添加 `store_id` 到 `$casts` 陣列（integer）
+  - 添加 `store()` 關聯方法，定義 `belongsTo(Store::class)` 關係
+
+- **GuesthouseController.php** (`app/Http/Controllers/Api/GuesthouseController.php`)
+  - `index` 方法：添加 `store_id` 過濾功能，使用 `with('store')` 預載入商店關係
+  - `store` 方法：添加 `store_id` 驗證規則 `'store_id' => 'required|exists:stores,id'`
+  - `update` 方法：添加 `store_id` 驗證規則 `'store_id' => 'nullable|exists:stores,id'`
+
+#### 前端變更
+
+- **GuesthousesPage.tsx** (`system/backend/pages/GuesthousesPage.tsx`)
+  - 導入 `useStore` 上下文獲取當前商店和商店列表
+  - 在 `formData` 中添加 `store_id` 欄位
+  - 更新 `fetchGuesthouses` 根據 `currentStore` 過濾民宿推薦列表
+  - 在 `useEffect` 依賴項中添加 `currentStore`，當商店切換時自動重新獲取數據
+  - 在新增/編輯表單中添加「所屬商店」欄位：
+    - 新增時：顯示下拉選單，可選擇商店
+    - 編輯時：顯示只讀輸入框，顯示當前商店名稱（固定，不可變更）
+  - 在表格中添加「商店」欄位，顯示每個民宿推薦所屬的商店名稱
+  - 更新 `handleOpenModal` 和 `handleCloseModal` 處理 `store_id`
+  - 更新 `handleSubmit` 確保 `store_id` 正確提交
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 更新 `guesthousesApi.list` 方法，添加 `store_id` 參數支援
+
+### 功能說明
+
+- **民宿推薦管理**：
+  - 現在每個民宿推薦都必須關聯到一個商店（`store_id`）
+  - 新增民宿推薦時，必須選擇所屬商店
+  - 編輯民宿推薦時，所屬商店顯示為只讀（固定，不可變更）
+  - 列表會根據當前選擇的商店（`currentStore`）自動過濾顯示
+  - 切換商店時，民宿推薦列表會自動更新
+  - 表格中顯示每個民宿推薦所屬的商店名稱
+
+---
+
+## 2026-01-21 10:25:52 (Asia/Taipei) - 修改前台關於我們頁面同時顯示全局環境圖片和商店環境圖片
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 同時獲取全局環境圖片（`EnvironmentImage`）和商店環境圖片（`StoreEnvironmentImage`）
+  - 使用 `Promise.all` 同時調用 `publicApi.environmentImages.list()` 和 `publicApi.stores.list()`
+  - 先顯示全局環境圖片，然後顯示各個商店的環境圖片
+  - 全局環境圖片顯示在「我們的環境」標題下方
+  - 商店環境圖片按商店分組顯示，每個商店有自己的標題和圖片網格
+  - 過濾掉沒有環境圖片的商店，只顯示有環境圖片的商店
+  - 商店按 ID 排序顯示
+
+### 功能說明
+
+- **前台環境圖片顯示**：
+  - 現在前台「關於我們」頁面同時顯示：
+    1. **全局環境圖片**：從後台「環境圖片管理」頁面管理的全局環境圖片
+    2. **商店環境圖片**：從各個商店的環境圖片管理功能管理的商店特定環境圖片
+  - 全局環境圖片顯示在「我們的環境」標題下方
+  - 商店環境圖片按商店分組顯示，每個商店有自己的標題（商店名稱）
+  - 圖片按照後台設定的排序順序（`sort_order`）顯示
+  - 確保前台顯示的環境圖片與後台管理的內容完全對應
+
+---
+
+## 2026-01-21 10:23:27 (Asia/Taipei) - 修改前台關於我們頁面顯示全局環境圖片
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 將環境圖片顯示從商店特定的環境圖片（`StoreEnvironmentImage`）改為全局環境圖片（`EnvironmentImage`）
+  - 使用 `publicApi.environmentImages.list()` 獲取全局環境圖片
+  - 移除商店相關的邏輯，直接顯示全局環境圖片
+  - 將環境圖片顯示在「我們的環境」標題下方（紅框標示的位置）
+  - 按照 `sort_order` 排序顯示圖片
+  - 使用 `/storage/${image.image_path}` 作為圖片路徑
+
+### 功能說明
+
+- **前台環境圖片顯示**：
+  - 現在前台「關於我們」頁面顯示的是後台「環境圖片管理」頁面管理的全局環境圖片
+  - 圖片會顯示在「我們的環境」標題下方
+  - 圖片按照後台設定的排序順序（`sort_order`）顯示
+  - 確保前台顯示的環境圖片與後台管理的內容完全對應
+
+---
+
+## 2026-01-21 10:14:09 (Asia/Taipei) - 修復關於我們頁面環境圖片外框顏色
+
+### 變更內容
+
+#### 前端變更
+
+- **About.tsx** (`system/frontend/pages/About.tsx`)
+  - 將環境圖片容器的背景顏色從 `bg-white` 改為 `bg-[#f0f4ff]`
+  - 移除 `shadow-sm` 陰影，使容器與背景顏色完全融合
+  - 確保環境圖片外框（容器背景）與頁面背景顏色一致
+
+### 功能說明
+
+- **關於我們頁面環境圖片**：
+  - 修復了環境圖片容器的外框（背景）顏色問題
+  - 現在環境圖片容器的背景與頁面背景顏色（`#f0f4ff`）一致
+  - 消除了視覺上的白色框線，使整體設計更加統一
+
+---
+
+## 2026-01-21 10:05:13 (Asia/Taipei) - 修復新增租車方案時 store_id 未寫入的問題
+
+### 變更內容
+
+#### 後端變更
+
+- **RentalPlanController.php** (`app/Http/Controllers/Api/RentalPlanController.php`)
+  - 在 `store` 方法的驗證規則中添加 `store_id` 驗證：`'store_id' => 'nullable|exists:stores,id'`
+  - 確保新增租車方案時，`store_id` 能夠被正確驗證和保存
+
+#### 前端變更
+
+- **RentalPlansPage.tsx** (`system/backend/pages/RentalPlansPage.tsx`)
+  - 修復提交數據時 `store_id` 的類型轉換問題
+  - 確保 `store_id` 被正確轉換為整數類型（如果存在），否則為 `null`
+
+### 功能說明
+
+- **新增租車方案**：
+  - 修復了新增租車方案時 `store_id` 未寫入資料庫的問題
+  - 現在當選擇商店後新增租車方案，`store_id` 會被正確保存到資料庫
+  - 確保租車方案與商店的正確關聯
+
+---
+
+## 2026-01-21 09:57:12 (Asia/Taipei) - 調整前端租車方案機車圖片背景為白色
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 將機車圖片容器的背景顏色從 `bg-[#f0f4ff]` 改回 `bg-white`
+  - 確保機車圖片所在層的背景使用白色
+
+### 功能說明
+
+- **租車方案機車圖片顯示**：
+  - 機車圖片所在的容器層背景現在使用白色
+  - 與機車圖片和價格標籤保持一致的白色背景
+  - 確保機車顯示區域有清晰的白色背景層
+
+---
+
+## 2026-01-21 09:53:34 (Asia/Taipei) - 修復前端租車方案機車圖片白底問題
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 為機車圖片容器添加背景顏色 `bg-[#f0f4ff]`
+  - 使機車圖片容器的背景與頁面背景顏色一致，消除圖片白底的視覺問題
+
+### 功能說明
+
+- **租車方案機車圖片顯示**：
+  - 修復了機車圖片顯示時有白色背景的問題
+  - 現在機車圖片容器的背景與頁面背景顏色（`#f0f4ff`）一致
+  - 即使圖片本身有白色背景，容器背景也會與頁面背景融合，視覺更加統一
+
+---
+
+## 2026-01-21 09:48:53 (Asia/Taipei) - 修復前端租車方案頁面白色容器背景顏色
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 將租車方案卡片容器的背景顏色從 `bg-white` 改為 `bg-[#f0f4ff]`
+  - 使容器背景與頁面背景顏色一致，消除視覺上的白色區域
+
+### 功能說明
+
+- **租車方案頁面樣式**：
+  - 修復了租車方案卡片容器區域的白色背景問題
+  - 現在容器背景與頁面背景顏色（`#f0f4ff`）一致，視覺更加統一
+  - 提升了頁面的整體視覺效果和一致性
+
+---
+
+## 2026-01-21 09:43:39 (Asia/Taipei) - 優化問答管理頁面表格樣式：表頭不換行、答案字體縮小
+
+### 變更內容
+
+#### 前端變更
+
+- **GuidelinesPage.tsx** (`system/backend/pages/GuidelinesPage.tsx`)
+  - 為所有表頭（`<th>`）添加 `whitespace-nowrap` 類，確保表頭文字不換行
+  - 將答案欄位的字體大小從 `text-sm` 改為 `text-xs`，使答案文字更小更緊湊
+
+### 功能說明
+
+- **表頭樣式**：
+  - 所有表頭（分類、問題、答案、商店、排序、狀態、操作）現在都不會換行
+  - 表頭文字始終保持單行顯示，提升表格整齊度
+
+- **答案欄位樣式**：
+  - 答案欄位的字體大小從 `text-sm`（14px）縮小為 `text-xs`（12px）
+  - 使答案內容更緊湊，節省空間，同時保持可讀性
+
+---
+
+## 2026-01-21 09:35:01 (Asia/Taipei) - 修復 sitemap.xml 域名錯誤問題
+
+### 變更內容
+
+#### 網站配置變更
+
+- **sitemap.xml** (`public/sitemap.xml`)
+  - 將所有 URL 中的 `yourdomain.com` 替換為實際域名 `languangsmart.com`
+  - 更新所有頁面的 `lastmod` 日期為 `2026-01-21`
+  - 修復了 Google Search Console 報告的錯誤（無效的 URL）
+
+### 功能說明
+
+- **Sitemap 修復**：
+  - 修復了 sitemap.xml 中所有 URL 使用錯誤域名的問題
+  - 現在所有 URL 都使用正確的域名 `https://languangsmart.com/`
+  - 更新了最後修改日期，確保搜尋引擎能夠正確索引網站內容
+
+### 注意事項
+
+- 修復後，Google Search Console 中的錯誤應該會消失
+- 建議在 Google Search Console 中重新提交 sitemap.xml
+- 建議定期更新 sitemap.xml 中的 lastmod 日期
+
+---
+
+## 2026-01-21 09:31:09 (Asia/Taipei) - 修復租車方案圖片外框與背景顏色一致的問題
+
+### 變更內容
+
+#### 前端變更
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 為租車方案圖片容器添加白色邊框（`border-4 border-white`）
+  - 使圖片外框與背景顏色有更好的對比，讓圖片邊界更加明顯
+
+### 功能說明
+
+- **租車方案圖片顯示**：
+  - 修復了圖片外框與背景顏色一致導致邊界不明顯的問題
+  - 現在圖片容器有明顯的白色邊框，與背景形成清晰的對比
+  - 提升了視覺效果的清晰度和層次感
+
+---
+
+## 2026-01-21 09:26:44 (Asia/Taipei) - 修復問答管理頁面表格欄位換行問題
+
+### 變更內容
+
+#### 前端變更
+
+- **GuidelinesPage.tsx** (`system/backend/pages/GuidelinesPage.tsx`)
+  - 修改表格欄位樣式：除了答案欄位之外，所有欄位都設置為不換行（`whitespace-nowrap`）
+  - 答案欄位設置為可以換行（`whitespace-normal`），並移除了 `line-clamp-2` 限制
+  - 確保分類、問題、商店、排序、狀態、操作等欄位都不換行，只有答案內容可以換行
+
+### 功能說明
+
+- **問答管理頁面表格**：
+  - 分類欄位：不換行
+  - 問題欄位：不換行
+  - 答案欄位：可以換行（完整顯示答案內容）
+  - 商店欄位：不換行
+  - 排序欄位：不換行
+  - 狀態欄位：不換行
+  - 操作欄位：不換行
+
+---
+
+## 2026-01-21 09:15:24 (Asia/Taipei) - 修復前端顯示問題：租車方案、環境圖片排序、線上預約注意事項
+
+### 變更內容
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 修改線上預約注意事項第四點文字為：「如需直接訂購，請參閱「聯絡我們」頁面，並撥打您欲前往之店面電話進行訂車」
+
+- **RentalPlans.tsx** (`system/frontend/pages/RentalPlans.tsx`)
+  - 修復租車方案顯示問題：分離商店列表獲取和方案獲取的邏輯
+  - 當選擇商店時，正確獲取該商店的租車方案
+  - 確保蘭光總店的方案能正確顯示在前端
+
+#### 後端變更
+
+- **StoreResource.php** (`app/Http/Resources/StoreResource.php`)
+  - 修復環境圖片排序問題：在返回環境圖片時，按照 `sort_order` 排序
+  - 確保環境圖片顯示順序與後台設置一致
+
+### 功能說明
+
+- **租車方案顯示**：
+  - 修復了租車方案頁面中，當選擇商店時無法正確顯示該商店方案的問題
+  - 現在當選擇商店（如蘭光總店）時，會正確顯示該商店的租車方案
+
+- **環境圖片排序**：
+  - 修復了關於我們頁面中環境圖片顯示順序與後台不符的問題
+  - 現在環境圖片會按照後台設置的 `sort_order` 正確排序顯示
+
+- **線上預約注意事項**：
+  - 更新了第四點的文字內容，改為引導用戶參閱「聯絡我們」頁面並撥打店面電話
+
+### 待處理問題
+
+- **民宿推薦圖片、專車接送圖片同步問題**：
+  - 目前 `Guesthouse` 和 `ShuttleImage` 模型沒有 `store_id` 字段，它們是全局顯示的
+  - 如果需要根據 `store_id` 過濾，需要添加 `store_id` 字段到這兩個模型
+  - 目前這兩個功能是全局同步的（所有商店共用），如果需要商店特定的圖片，需要進一步開發
+
+---
+
+## 2026-01-20 23:11:37 (Asia/Taipei) - 修復編輯訂單時合作商和商店選擇未顯示的問題
+
+### 變更內容
+
+#### 後端變更
+
+- **OrderResource.php** (`app/Http/Resources/OrderResource.php`)
+  - 添加 `store_id` 字段到 API 響應中
+  - 添加 `store` 關係到 API 響應中（當 `store` 關係被載入時）
+  - 確保編輯訂單時可以獲取到 `store_id` 和 `store` 信息
+
+### 功能說明
+
+- **編輯訂單**：
+  - 修復了編輯訂單時合作商選擇未顯示的問題
+  - 修復了編輯訂單時商店選擇未顯示的問題
+  - 現在 `OrderResource` 會正確返回 `store_id` 和 `store` 信息
+  - 編輯訂單時，合作商和商店選擇會正確顯示當前訂單的值
+
+---
+
+## 2026-01-20 23:06:23 (Asia/Taipei) - 確保線上預約的 store_id 在轉訂單時被正確帶入
+
+### 變更內容
+
+#### 後端變更
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 優化 `convertToOrder` 方法中的 `store_id` 處理邏輯
+  - 明確優先使用請求中的 `store_id`，如果沒有則使用 `booking->store_id`
+  - 確保預約的 `store_id` 被正確帶入訂單，避免遺失
+
+#### 前端變更
+
+- **ConvertBookingModal.tsx** (`system/backend/components/ConvertBookingModal.tsx`)
+  - 明確提取 `store_id` 變數，確保預約的 `store_id` 被正確傳遞到訂單轉換 API
+  - 添加註釋說明確保預約的 `store_id` 被帶入訂單
+
+### 功能說明
+
+- **線上預約轉訂單**：
+  - 當將線上預約轉換為訂單時，系統會確保預約的 `store_id` 被正確帶入訂單
+  - 優先使用請求中傳遞的 `store_id`（來自預約的 `store_id`）
+  - 如果請求中沒有 `store_id`，則使用 `booking->store_id`
+  - 確保訂單的 `store_id` 與預約的 `store_id` 保持一致
+
+---
+
+## 2026-01-20 22:49:34 (Asia/Taipei) - 修復訂單管理的預約訂單轉換時自動使用店家的預設合作商
+
+### 變更內容
+
+#### 後端變更
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 更新 `send` 方法：根據 `storeId` 查找該商店的預設合作商（`is_default_for_booking = true` 且 `store_id` 匹配），如果該商店沒有預設合作商，則使用全局預設合作商（沒有 `store_id` 的）
+  - 更新 `convertToOrder` 方法：當轉換預約為訂單時，如果沒有提供 `partner_id` 且預約沒有 `partner_id`，則根據 `booking->store_id` 查找該商店的預設合作商，如果該商店沒有預設合作商，則使用全局預設合作商
+
+#### 前端變更
+
+- **ConvertBookingModal.tsx** (`system/backend/components/ConvertBookingModal.tsx`)
+  - 更新 `useEffect`：根據 `booking.store_id` 獲取該商店的合作商列表（傳遞 `store_id` 參數給 `partnersApi.list`）
+  - 更新預設合作商選擇邏輯：優先使用 `booking.partner_id`，否則使用該商店的預設合作商（`is_default_for_booking = true`）
+
+### 功能說明
+
+- **訂單管理的預約訂單轉換**：
+  - 當將預約轉換為訂單時，系統會自動根據預約的 `store_id` 查找該商店的預設合作商
+  - 如果該商店有預設合作商（`is_default_for_booking = true` 且 `store_id` 匹配），則自動使用該合作商
+  - 如果該商店沒有預設合作商，則使用全局預設合作商（沒有 `store_id` 的）
+  - 確保店家的預設合作商與訂單管理的預約訂單正確關聯
+
+---
+
+## 2026-01-20 22:23:53 (Asia/Taipei) - 修復前臺線上預約頁面根據選擇的商店自動選擇預設合作商
+
+### 變更內容
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 更新 `fetchDefaultShippingCompany` 方法，根據選擇的商店（`storeId`）獲取該商店的合作商列表
+  - 查找該商店的預設合作商（`is_default_for_booking = true` 且 `store_id` 匹配）
+  - 當選擇商店改變時，自動重新獲取該商店的預設合作商並設置預設船運公司
+  - 更新 `useEffect`，當 `storeId` 改變時同時調用 `fetchDefaultShippingCompany`
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - 更新 `publicApi.partners.list` 方法，支持傳遞 `store_id` 參數
+
+### 功能說明
+
+- **前臺線上預約**：
+  - 當用戶選擇商店時，系統會自動獲取該商店的合作商列表
+  - 自動查找並選擇該商店的預設合作商（`is_default_for_booking = true`）
+  - 自動設置預設合作商的預設船運公司（`default_shipping_company`）
+  - 確保 `store_id` 和預設合作商都與選擇的商店匹配
+
+---
+
+## 2026-01-20 22:10:29 (Asia/Taipei) - 修復罰單管理頁面確保列表始終根據 store_id 過濾並顯示當前商店
+
+### 變更內容
+
+#### 前端變更
+
+- **FinesPage.tsx** (`system/backend/pages/FinesPage.tsx`)
+  - 更新 `fetchFines` 方法：如果沒有選擇商店，返回空列表（確保列表始終根據 store_id 過濾）
+  - 更新 `fetchScooters` 方法：如果沒有選擇商店，返回空列表（確保機車列表始終根據 store_id 過濾）
+  - 簡化參數構建邏輯，始終傳遞 `store_id` 參數
+  - 添加當前商店的只讀顯示（例如：「店家：蘭光總店」），與其他管理頁面保持一致
+
+### 功能說明
+
+- **罰單管理列表**：
+  - 列表始終根據當前選擇的商店（`currentStore.id`）過濾顯示
+  - 顯示當前商店名稱（只讀），與其他管理頁面保持一致
+  - 如果沒有選擇商店，列表為空
+  - 統計數據（全部、未繳費、已處理）也根據 `store_id` 過濾計算
+
+- **新增罰單**：
+  - 機車選擇列表只顯示屬於當前商店的機車（根據 `store_id` 過濾）
+
+---
+
+## 2026-01-20 22:05:40 (Asia/Taipei) - 修復訂單新增/編輯時機車選擇列表在 dark mode 下的可見性
+
+### 變更內容
+
+#### 前端變更
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 改進機車選擇列表在 dark mode 下的視覺效果
+  - 選中的機車在 dark mode 下使用深色背景（`dark:bg-orange-900/30`）和橙色邊框（`dark:border-orange-800`）
+  - 選中機車的文字顏色在 dark mode 下使用橙色（`dark:text-orange-300`），確保清晰可見
+  - 選中機車的類型標籤在 dark mode 下使用深色背景（`dark:bg-orange-800`）和淺色文字（`dark:text-orange-200`）
+  - 選中機車的型號文字在 dark mode 下使用橙色（`dark:text-orange-400`）
+  - 改進 hover 狀態在 dark mode 下的樣式（`dark:hover:bg-gray-700`）
+
+### 功能說明
+
+- **機車選擇列表**：
+  - 選中的機車在 light mode 下：淺橙色背景（`bg-orange-50`）+ 深色文字
+  - 選中的機車在 dark mode 下：深橙色背景（`dark:bg-orange-900/30`）+ 橙色邊框 + 橙色文字，對比度更高，更容易識別
+  - 未選中的機車在 dark mode 下：深灰色背景 hover 效果，文字清晰可見
+
+---
+
+## 2026-01-20 22:00:58 (Asia/Taipei) - 修復機車管理頁面移除商店選擇器，且新增/編輯時所屬商店固定
+
+### 變更內容
+
+#### 前端變更
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - 移除商店選擇下拉選單，改為只讀顯示當前商店名稱
+  - 更新 `fetchScooters` 方法：如果沒有選擇商店，返回空列表（確保列表始終根據 store_id 過濾）
+  - 修改 `handleOpenModal` 方法：
+    - 新增模式：`store_id` 固定為 `currentStore.id`
+    - 編輯模式：`store_id` 固定為機車的原始 `store_id`
+  - 將新增/編輯表單中的「所屬商店」欄位改為只讀輸入框，顯示商店名稱並提示「所屬商店已固定，無法修改」
+  - 更新 `filteredScootersForCount`：如果沒有選擇商店，返回空數組
+
+### 功能說明
+
+- **機車管理列表**：
+  - 列表始終根據當前選擇的商店（`currentStore.id`）過濾顯示
+  - 移除商店選擇器，改為只讀顯示當前商店名稱（例如：「店家：蘭光總店」）
+  - 如果沒有選擇商店，列表為空
+
+- **新增機車**：
+  - `store_id` 固定為當前選擇的商店（`currentStore.id`），無法修改
+  - 所屬商店欄位顯示為只讀，提示「所屬商店已固定，無法修改」
+
+- **編輯機車**：
+  - `store_id` 固定為機車的原始 `store_id`，無法修改
+  - 所屬商店欄位顯示為只讀，顯示機車所屬的商店名稱
+
+---
+
+## 2026-01-20 21:58:57 (Asia/Taipei) - 修復機車配件管理頁面移除商店選擇器，且新增/編輯時所屬商店固定
+
+### 變更內容
+
+#### 前端變更
+
+- **AccessoriesPage.tsx** (`system/backend/pages/AccessoriesPage.tsx`)
+  - 移除商店選擇下拉選單，改為只讀顯示當前商店名稱
+  - 更新 `fetchAccessories` 方法：如果沒有選擇商店，返回空列表（確保列表始終根據 store_id 過濾）
+  - 修改 `handleOpenModal` 方法：
+    - 新增模式：`store_id` 固定為 `currentStore.id`
+    - 編輯模式：`store_id` 固定為配件的原始 `store_id`
+  - 將新增/編輯表單中的「所屬商店」欄位改為只讀輸入框，顯示商店名稱並提示「所屬商店已固定，無法修改」
+
+### 功能說明
+
+- **機車配件管理列表**：
+  - 列表始終根據當前選擇的商店（`currentStore.id`）過濾顯示
+  - 移除商店選擇器，改為只讀顯示當前商店名稱（例如：「店家：蘭光總店」）
+  - 如果沒有選擇商店，列表為空
+
+- **新增配件**：
+  - `store_id` 固定為當前選擇的商店（`currentStore.id`），無法修改
+  - 所屬商店欄位顯示為只讀，提示「所屬商店已固定，無法修改」
+
+- **編輯配件**：
+  - `store_id` 固定為配件的原始 `store_id`，無法修改
+  - 所屬商店欄位顯示為只讀，顯示配件所屬的商店名稱
+
+---
+
+## 2026-01-20 21:50:02 (Asia/Taipei) - 修復 dark mode 下商店選擇器選中狀態的可見性
+
+### 變更內容
+
+#### 前端變更
+
+- **StoreSelector.tsx** (`system/backend/components/StoreSelector.tsx`)
+  - 改進選中商店的視覺效果：添加橙色邊框（`border-2 border-orange-500`）和圓角（`rounded-lg`）
+  - 在 dark mode 下，選中的商店現在有明顯的橙色邊框，更容易識別
+  - 改進文字顏色對比度，確保在 dark mode 下文字清晰可見
+  - 統一選中狀態的樣式：同時使用背景色和邊框來突出顯示
+
+### 功能說明
+
+- **商店選擇器**：
+  - 選中的商店現在有明顯的橙色邊框（2px），在 dark mode 和 light mode 下都清晰可見
+  - 選中的商店有圓角背景，視覺效果更明顯
+  - 改進了文字顏色，確保在 dark mode 下有足夠的對比度
+
+---
+
+## 2026-01-20 21:48:47 (Asia/Taipei) - 修復合作商管理頁面以 store_id 為主直接呈現，且新增/編輯時所屬商店固定
+
+### 變更內容
+
+#### 前端變更
+
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 移除商店選擇下拉選單，改為只讀顯示當前商店名稱
+  - 更新 `fetchPartners` 方法：如果沒有選擇商店，返回空列表（確保列表始終根據 store_id 過濾）
+  - 修改 `handleOpenModal` 方法：
+    - 新增模式：`store_id` 固定為 `currentStore.id`
+    - 編輯模式：`store_id` 固定為合作商的原始 `store_id`
+  - 將新增/編輯表單中的「所屬商店」欄位改為只讀輸入框，顯示商店名稱並提示「所屬商店已固定，無法修改」
+
+### 功能說明
+
+- **合作商管理列表**：
+  - 列表始終根據當前選擇的商店（`currentStore.id`）過濾顯示
+  - 移除商店選擇器，改為只讀顯示當前商店名稱（例如：「店家：蘭光總店」）
+  - 如果沒有選擇商店，列表為空
+
+- **新增合作商**：
+  - `store_id` 固定為當前選擇的商店（`currentStore.id`），無法修改
+  - 所屬商店欄位顯示為只讀，提示「所屬商店已固定，無法修改」
+
+- **編輯合作商**：
+  - `store_id` 固定為合作商的原始 `store_id`，無法修改
+  - 所屬商店欄位顯示為只讀，顯示合作商所屬的商店名稱
+
+---
+
+## 2026-01-20 21:46:14 (Asia/Taipei) - 修復訂單新增和編輯時合作商列表根據 store_id 過濾
+
+### 變更內容
+
+#### 前端變更
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 更新 `fetchPartners` 方法，根據 `fixedStoreId` 過濾合作商列表
+  - 將合作商載入邏輯移到 `useEffect` 中，當 `fixedStoreId` 確定後才載入
+  - 當載入合作商列表後，自動選擇該商店的預設合作商（如果存在且尚未選擇）
+  - 簡化初始化邏輯，移除在初始化時載入合作商的步驟
+
+### 功能說明
+
+- **新增訂單**：
+  - 合作商列表只顯示屬於當前商店（`currentStore.id`）的合作商
+  - 如果該商店有預設合作商，會自動選擇該預設合作商
+
+- **編輯訂單**：
+  - 合作商列表只顯示屬於訂單商店（訂單的 `store_id`）的合作商
+  - 保持訂單原有的合作商選擇
+
+---
+
+## 2026-01-20 21:44:29 (Asia/Taipei) - 修復訂單新增和編輯時 store_id 固定且機車列表根據 store_id 過濾
+
+### 變更內容
+
+#### 前端變更
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 引入 `fixedStoreId` 概念：新增模式使用 `currentStore.id`，編輯模式使用訂單的 `store_id`
+  - 移除商店選擇下拉選單的修改功能，改為只讀顯示
+  - 更新 `fetchAvailableScooters` 方法，始終根據 `fixedStoreId` 過濾機車列表
+  - 更新 `fetchScootersByIds` 方法，根據 `fixedStoreId` 過濾機車（用於編輯模式下載入訂單中的機車）
+  - 簡化 `useEffect` 邏輯，當 `fixedStoreId` 確定後載入機車列表
+  - 提交訂單時使用 `fixedStoreId` 而不是 `formData.store_id`
+
+### 功能說明
+
+- **新增訂單**：
+  - `store_id` 固定為當前選擇的商店（`currentStore.id`），無法修改
+  - 機車列表只顯示該商店狀態為「待出租」的機車
+  - 商店選擇欄位顯示為只讀，提示「商店選擇已固定，無法修改」
+
+- **編輯訂單**：
+  - `store_id` 固定為訂單的原始 `store_id`，無法修改
+  - 機車列表只顯示該商店的機車（包括已租借的，以便查看訂單中的機車）
+  - 商店選擇欄位顯示為只讀，顯示訂單所屬的商店名稱
+
+---
+
+## 2026-01-20 21:42:27 (Asia/Taipei) - 修復訂單管理的預約訂單過濾和合作商管理的預設邏輯
+
+### 變更內容
+
+#### 後端變更
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 更新 `pending()` 方法，支持根據 `store_id` 參數過濾預約訂單
+  - 更新 `pendingCount()` 方法，支持根據 `store_id` 參數過濾預約訂單數量
+
+- **PartnerController.php** (`app/Http/Controllers/Api/PartnerController.php`)
+  - 修改 `store()` 方法：當設置 `is_default_for_booking = true` 時，只取消同一 `store_id` 下其他合作商的預設狀態
+  - 修改 `update()` 方法：當設置 `is_default_for_booking = true` 時，只取消同一 `store_id` 下其他合作商的預設狀態
+  - 確保每個 `store_id` 都有一個預設的合作商（`is_default_for_booking = true`）
+
+- **StoreController.php** (`app/Http/Controllers/Api/StoreController.php`)
+  - 修改創建新商店時的邏輯：檢查該商店是否已有預設合作商，而不是檢查整個系統
+  - 確保每個新創建的商店都有一個預設的合作商
+
+#### 前端變更
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 更新 `bookingsApi.pending()` 和 `pendingCount()` 方法，支持傳遞 `store_id` 參數
+  - 更新 `ordersApi.list()` 的類型定義，添加 `store_id` 參數支持
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `fetchPendingBookings()` 方法，根據 `currentStore` 過濾預約訂單
+  - 更新 `useEffect` 依賴，當 `currentStore` 改變時重新載入預約訂單
+  - 修改預設合作商的查找邏輯，根據預約訂單的 `store_id` 查找該商店的預設合作商
+
+### 功能說明
+
+- **訂單管理的預約訂單**：
+  - 當選擇不同的商店時，預約訂單列表會根據該商店的 `store_id` 自動過濾
+  - 只顯示屬於該商店的預約訂單（`status = '預約中'`）
+  - 預設合作商的選擇會根據預約訂單的 `store_id` 自動匹配該商店的預設合作商
+
+- **合作商管理的預設邏輯**：
+  - 每個 `store_id` 都有一個預設的合作商（`is_default_for_booking = true`）
+  - 當設置一個合作商為預設時，只取消同一 `store_id` 下其他合作商的預設狀態
+  - 不同商店的預設合作商互不影響
+  - 創建新商店時，會自動創建一個預設的合作商「蘭光智能」
+
+---
+
+## 2026-01-20 17:43:15 (Asia/Taipei) - 修復線上預約頁面根據選擇的商店動態更新機車型號列表
+
+### 變更內容
+
+#### 後端變更
+
+- **ScooterController.php** (`app/Http/Controllers/Api/ScooterController.php`)
+  - 更新 `models` 方法，支持根據 `store_id` 參數過濾機車型號
+  - 當提供 `store_id` 時，只返回該商店實際擁有的機車型號（通過 `Scooter` 表查找）
+  - 當沒有提供 `store_id` 時，返回所有機車型號（保持向後兼容）
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 添加 `useEffect` 監聽 `formData.storeId` 變化
+  - 當選擇商店改變時，自動重新獲取該商店的機車型號列表
+  - 切換商店時，清空已選擇的機車項目（因為不同商店可能有不同的機車型號）
+  - 更新 `fetchScooterModels` 方法，根據選擇的商店傳遞 `store_id` 參數
+
+### 功能說明
+
+- **線上預約頁面**：
+  - 當用戶選擇不同的商店時，所需租車類型下拉選單會自動更新
+  - 只顯示該商店實際擁有的機車型號
+  - 如果沒有選擇商店，顯示所有機車型號
+  - 切換商店時，會清空已選擇的機車項目，避免選擇不屬於新商店的機車型號
+
+---
+
+## 2026-01-20 17:38:18 (Asia/Taipei) - 修復新增和編輯訂單時根據選擇的商店過濾機車列表
+
+### 變更內容
+
+#### 前端變更
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 添加 `useEffect` 監聽 `formData.store_id` 變化，當選擇商店改變時重新載入機車列表
+  - 更新 `fetchAvailableScooters` 方法，根據選擇的商店（`store_id`）過濾機車列表
+  - 更新 `fetchScootersByIds` 方法，根據選擇的商店過濾機車（用於編輯模式下載入訂單中的機車）
+  - 在新增模式下，切換商店時清空已選擇的機車
+  - 在編輯模式下，切換商店時重新驗證訂單中的機車是否屬於新商店
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 更新 `scootersApi.list` 的類型定義，添加 `store_id` 參數支持
+
+### 功能說明
+
+- **新增訂單**：
+  - 當選擇商店後，機車清單會根據選擇的商店的 `store_id` 自動過濾
+  - 只顯示該商店狀態為「待出租」的機車
+  - 切換商店時，會清空已選擇的機車並重新載入機車列表
+
+- **編輯訂單**：
+  - 當選擇商店後，機車清單會根據選擇的商店的 `store_id` 自動過濾
+  - 訂單中已選擇的機車如果屬於新商店，會保留在列表中
+  - 如果訂單中的機車不屬於新商店，會從已選擇列表中移除
+
+---
+
+## 2026-01-20 17:30:48 (Asia/Taipei) - 修改線上預約顯示所有機車型號
+
+### 變更內容
+
+#### 後端變更
+
+- **ScooterController.php** (`app/Http/Controllers/Api/ScooterController.php`)
+  - 修改 `models` 方法，移除根據 `store_id` 和可用性過濾的邏輯
+  - 改為返回所有機車型號（從 ScooterModel 表），不根據是否有可用機車過濾
+  - 這樣用戶在線上預約時可以看到所有可選的機車類型
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 修改 `fetchScooterModels` 方法，移除 `store_id` 參數
+  - 改為在初始化時獲取所有機車型號，不依賴店家選擇
+  - 移除切換店家時清空已選擇機車型號的邏輯（因為所有店家都有相同的機車型號選項）
+
+### 功能說明
+
+- **線上預約機車型號顯示**：
+  - 現在線上預約表單會顯示所有機車型號（從機車清單中的類型）
+  - 不根據店家是否有可用機車來過濾型號選項
+  - 用戶可以選擇任何機車類型進行預約，即使該店家目前沒有可用機車
+  - 切換店家時，機車型號選項保持不變（因為所有店家都有相同的型號選項）
+
+---
+
+## 2026-01-20 17:28:36 (Asia/Taipei) - 修復罰單管理頁面切換店家時自動重新載入和過濾
+
+### 變更內容
+
+#### 前端變更
+
+- **FinesPage.tsx** (`system/backend/pages/FinesPage.tsx`)
+  - 在 `fetchFines` 的 `useEffect` 依賴數組中添加 `currentStore`
+  - 更新 `fetchFines` 方法，確保 `allFines`（用於計算計數）也根據 `currentStore` 過濾
+  - 更新 `fetchScooters` 方法，根據當前店家過濾機車列表（用於選擇機車時只顯示該店家的機車）
+
+### 功能說明
+
+- **罰單管理頁面**：
+  - 當切換店家時，罰單列表會根據新的 `store_id` 自動重新載入
+  - 統計數據（全部、未繳費、已處理）會根據選擇的店家過濾
+  - 新增罰單時選擇機車，只會顯示該店家的機車
+
+- **已確認實現的頁面**：
+  - ✅ **機車清單 (ScootersPage)**：已實現，切換店家時會重新載入並過濾機車
+  - ✅ **機車配件 (AccessoriesPage)**：已實現，切換店家時會重新載入並過濾配件
+  - ✅ **合作商管理 (PartnersPage)**：已實現，切換店家時會重新載入並過濾合作商
+  - ✅ **訂單管理 (OrdersPage)**：已實現，切換店家時會重新載入並過濾訂單
+  - ✅ **罰單管理 (FinesPage)**：已修復，切換店家時會重新載入並過濾罰單
+
+---
+
+## 2026-01-20 17:24:20 (Asia/Taipei) - 修復訂單管理頁面切換店家時自動重新載入訂單
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 在 `fetchOrders` 的 `useEffect` 依賴數組中添加 `currentStore`
+  - 在 `fetchStatistics` 的 `useEffect` 依賴數組中添加 `currentStore`
+  - 更新所有重新載入訂單列表的地方，確保都包含 `store_id` 參數：
+    - `handleDelete` 函數中的重新載入
+    - `handleConvertSuccess` 函數中的重新載入
+    - 月份切換時的重新載入
+    - 狀態更新後的重新載入
+
+### 功能說明
+
+- **自動重新載入**：
+  - 當用戶在側邊欄切換店家時，訂單管理頁面會自動根據新的 `store_id` 重新載入訂單列表
+  - 統計數據也會根據選擇的店家自動更新
+  - 所有訂單相關操作（刪除、轉換、狀態更新）後重新載入時，都會保持當前的店家過濾
+
+- **一致性保證**：
+  - 確保所有訂單列表的 API 調用都包含 `store_id` 參數
+  - 確保統計數據的 API 調用也包含 `store_id` 參數
+  - 切換店家時，訂單列表和統計數據會同步更新
+
+---
+
+## 2026-01-20 17:19:06 (Asia/Taipei) - 改進新增商店時自動創建合作商的邏輯
+
+### 變更內容
+
+#### 後端變更
+
+- **StoreController.php** (`app/Http/Controllers/Api/StoreController.php`)
+  - 改進自動創建合作商的邏輯
+  - 在創建商店時，檢查系統中是否已有預設線上預約合作商
+  - 如果沒有其他預設合作商，則將新創建的「蘭光智能」合作商自動設為預設（`is_default_for_booking = true`）
+  - 確保新創建的商店和合作商可以立即用於線上預約流程
+
+### 功能說明
+
+- **自動預設合作商**：
+  - 當新增第一個商店時，系統會自動創建「蘭光智能」合作商並設為預設
+  - 後續新增的商店，如果系統中已有預設合作商，則新創建的合作商不會設為預設
+  - 這樣可以確保線上預約流程始終有一個可用的預設合作商
+
+- **線上預約流程**：
+  - 線上預約會自動使用預設合作商（`is_default_for_booking = true`）
+  - 預設合作商會用於計算調車費用
+  - 如果預設合作商有關聯的商店（`store_id`），會自動設置預訂的 `store_id`
+
+---
+
+## 2026-01-20 17:17:45 (Asia/Taipei) - 合作商添加 store_id 功能及前臺線上預約根據店家過濾機車型號
+
+### 變更內容
+
+#### 資料庫變更
+
+- **新增 Migration** (`database/migrations/2026_01_20_170200_add_store_id_to_partners_table.php`)
+  - 為 `partners` 表添加 `store_id` 欄位
+  - 設置為可為空的外鍵，關聯到 `stores` 表
+  - 使用 `onDelete('set null')` 當商店被刪除時設為 null
+
+#### 後端變更
+
+- **Partner.php** (`app/Models/Partner.php`)
+  - 在 `$fillable` 中添加 `store_id`
+  - 添加 `store()` 關聯方法，關聯到 `Store` 模型
+
+- **PartnerController.php** (`app/Http/Controllers/Api/PartnerController.php`)
+  - 在 `index` 方法中添加 `store_id` 過濾功能
+  - 在查詢中使用 `with('store')` 預載入 store 關聯
+  - 在 `store` 和 `update` 方法中添加 `store_id` 驗證規則
+
+- **PartnerResource.php** (`app/Http/Resources/PartnerResource.php`)
+  - 在返回數據中添加 `store_id` 和 `store` 信息
+
+- **BookingController.php** (`app/Http/Controllers/Api/BookingController.php`)
+  - 在創建預訂時，如果沒有提供 `store_id`，則從合作商的 `store_id` 獲取
+  - 在轉換預訂為訂單時，優先使用請求中的 `store_id`，其次使用預訂的 `store_id`，最後使用合作商的 `store_id`
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在創建訂單時，如果沒有提供 `store_id`，但提供了 `partner_id`，則從合作商的 `store_id` 獲取
+
+- **ScooterController.php** (`app/Http/Controllers/Api/ScooterController.php`)
+  - 更新 `models` 方法支持 `store_id` 參數
+  - 如果提供了 `store_id`，只返回該商店有可用機車（狀態為「待出租」）的型號
+
+- **StoreController.php** (`app/Http/Controllers/Api/StoreController.php`)
+  - 在創建商店時，自動創建一個名為「蘭光智能」的合作商
+  - 新創建的合作商會自動關聯到新創建的商店（`store_id`）
+  - 使用資料庫事務確保商店和合作商同時創建成功
+
+#### 前端變更
+
+- **PartnersPage.tsx** (`system/backend/pages/PartnersPage.tsx`)
+  - 添加 `useStore` hook 獲取 `currentStore`、`stores` 和 `setCurrentStore`
+  - 在過濾區域添加店家選擇器（位於搜尋框下方）
+  - 修改 `fetchPartners` 方法，根據選擇的店家過濾合作商列表
+  - 在表格中添加「所屬商店」欄位
+  - 在新增/編輯表單中添加「所屬商店」選擇器
+  - 更新 `formData` 添加 `store_id` 欄位
+  - 更新 `handleOpenModal` 和 `handleCloseModal` 處理 `store_id`
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 更新 `partnersApi.list` 添加 `store_id` 參數
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 修改 `fetchScooterModels` 方法，根據選擇的 `storeId` 過濾機車型號
+  - 添加 `useEffect` 監聽 `formData.storeId` 變化，當選擇店家改變時重新獲取機車型號
+  - 當選擇店家改變時，清空已選擇的機車型號（因為不同店家可能有不同的機車型號）
+
+- **api.ts** (`system/frontend/lib/api.ts`)
+  - 更新 `publicApi.scooters.models` 添加 `store_id` 參數支持
+
+### 功能說明
+
+- 現在合作商管理頁面支持店家功能：
+  - 可以選擇特定店家來過濾合作商列表
+  - 新增/編輯合作商時可以選擇所屬商店
+  - 表格中顯示每個合作商的所屬商店
+
+- 前臺線上預約功能增強：
+  - 當用戶選擇店家時，只顯示該店家有可用機車的型號
+  - 不同店家可能有不同的機車型號和數量
+  - 切換店家時會自動清空已選擇的機車型號，避免選擇不存在的型號
+
+- 自動創建合作商：
+  - 當新增一個商店時，系統會自動創建一個名為「蘭光智能」的合作商
+  - 該合作商會自動關聯到新創建的商店
+  - 預設不設為線上預約的預設合作商（`is_default_for_booking` 為 false）
+
+- 預訂和訂單的 store_id 處理：
+  - 創建預訂時，如果沒有提供 `store_id`，會從合作商的 `store_id` 獲取
+  - 創建訂單時，如果沒有提供 `store_id`，會從合作商的 `store_id` 獲取
+  - 轉換預訂為訂單時，會優先使用請求中的 `store_id`，其次使用預訂的 `store_id`，最後使用合作商的 `store_id`
+
+---
+
+## 2026-01-20 17:05:00 (Asia/Taipei) - 修復機車配件創建時 store_id 驗證問題
+
+### 變更內容
+
+#### 後端變更
+
+- **AccessoryController.php** (`app/Http/Controllers/Api/AccessoryController.php`)
+  - 在 `store` 方法（創建配件）的驗證規則中添加 `store_id` 為必填欄位
+  - 從 `'store_id' => 'nullable|exists:stores,id'` 改為 `'store_id' => 'required|exists:stores,id'`
+  - 確保創建配件時必須指定所屬商店
+
+### 功能說明
+
+- 現在創建配件時，`store_id` 是必填欄位，與更新配件時的驗證規則保持一致
+- 前端表單已經正確處理了 `store_id` 的驗證和提交
+
+---
+
+## 2026-01-20 17:00:00 (Asia/Taipei) - 修復構建錯誤：移除重複的 stores 聲明
+
+### 變更內容
+
+#### 前端變更
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - 移除了本地的 `const [stores, setStores] = useState<Store[]>([]);` 聲明（與 `useStore()` 提供的 `stores` 衝突）
+  - 移除了本地的 `fetchStores` 函數（`StoreContext` 已提供）
+  - 移除了 `useEffect` 中對 `fetchStores()` 的調用
+  - 移除了未使用的 `storesApi` import
+
+- **AccessoriesPage.tsx** (`system/backend/pages/AccessoriesPage.tsx`)
+  - 移除了未使用的 `storesApi` import
+
+### 問題說明
+
+- 構建錯誤：`The symbol "stores" has already been declared`
+- 原因：`ScootersPage` 中同時從 `useStore()` 獲取 `stores` 和聲明本地 `stores` state
+- 解決：移除本地聲明，統一使用 `StoreContext` 提供的 `stores`
+
+---
+
+## 2026-01-20 16:56:19 (Asia/Taipei) - 機車配件管理頁面添加店家（store_id）功能
+
+### 變更內容
+
+#### 資料庫變更
+
+- **新增 Migration** (`database/migrations/2026_01_20_165400_add_store_id_to_accessories_table.php`)
+  - 為 `accessories` 表添加 `store_id` 欄位
+  - 設置為可為空的外鍵，關聯到 `stores` 表
+  - 使用 `onDelete('set null')` 當商店被刪除時設為 null
+
+#### 後端變更
+
+- **Accessory.php** (`app/Models/Accessory.php`)
+  - 在 `$fillable` 中添加 `store_id`
+  - 在 `$casts` 中添加 `store_id` 為 integer
+  - 添加 `store()` 關聯方法，關聯到 `Store` 模型
+
+- **AccessoryController.php** (`app/Http/Controllers/Api/AccessoryController.php`)
+  - 在 `index` 方法中添加 `store_id` 過濾功能
+  - 在查詢中使用 `with('store')` 預載入 store 關聯
+  - 在 `store` 和 `update` 方法中添加 `store_id` 驗證規則
+  - 修改 `statistics` 方法，添加 `store_id` 參數支持，統計數據會根據選擇的店家過濾
+
+- **AccessoryResource.php** (`app/Http/Resources/AccessoryResource.php`)
+  - 在返回數據中添加 `store_id` 和 `store` 信息
+
+#### 前端變更
+
+- **AccessoriesPage.tsx** (`system/backend/pages/AccessoriesPage.tsx`)
+  - 添加 `useStore` hook 獲取 `currentStore`、`stores` 和 `setCurrentStore`
+  - 在過濾區域添加店家選擇器（位於搜尋框下方）
+  - 添加 `allAccessories` 狀態用於儲存所有配件（用於計算計數）
+  - 修改 `fetchAccessories` 方法，根據選擇的店家過濾配件列表
+  - 修改 `fetchStatistics` 方法，傳入 `store_id` 參數進行統計
+  - 在表格中添加「所屬商店」欄位
+  - 在新增/編輯表單中添加「所屬商店」選擇器（必填欄位）
+  - 更新 `formData` 添加 `store_id` 欄位
+  - 更新 `handleOpenModal` 和 `handleCloseModal` 處理 `store_id`
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 更新 `accessoriesApi.list` 添加 `store_id` 參數
+  - 更新 `accessoriesApi.statistics` 添加 `store_id` 參數支持
+
+### 功能說明
+
+- 現在機車配件管理頁面支持店家功能：
+  - 可以選擇特定店家來過濾配件列表
+  - 統計數據（配件類別、總庫存量、缺貨品項、低庫存預警）會根據選擇的店家過濾
+  - 新增/編輯配件時必須選擇所屬商店
+  - 表格中顯示每個配件的所屬商店
+
+---
+
+## 2026-01-20 16:53:37 (Asia/Taipei) - 機車管理頁面總台數和狀態計數加入店家過濾
+
+### 變更內容
+
+#### 前端變更
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - 修改總台數計算邏輯，加入店家（store_id）過濾
+  - 修改狀態計數（全部、待出租、出租中、保養中）計算邏輯，加入店家（store_id）過濾
+  - 新增 `filteredScootersForCount` 變數，根據選擇的店家過濾機車
+  - 當選擇特定店家時，總台數和狀態計數只計算該店家的機車
+  - 當選擇「全部店家」時，計算所有店家的機車
+
+### 功能說明
+
+- 現在機車管理頁面的總台數統計會根據選擇的店家進行過濾
+- 狀態計數（全部、待出租、出租中、保養中）也會根據選擇的店家進行過濾
+- 選擇特定店家時，只顯示該店家的統計數據
+- 選擇「全部店家」時，顯示所有店家的統計數據
+
+---
+
+## 2026-01-20 16:50:58 (Asia/Taipei) - 在機車管理頁面添加店家選擇器
+
+### 變更內容
+
+#### 前端變更
+
+- **ScootersPage.tsx** (`system/backend/pages/ScootersPage.tsx`)
+  - 在機車管理頁面的過濾區域添加店家選擇器
+  - 使用 `useStore` hook 獲取 `stores` 和 `setCurrentStore`
+  - 在狀態篩選按鈕下方添加店家下拉選單
+  - 可以選擇「全部店家」或特定店家來過濾機車列表
+  - 當選擇店家時，只顯示該店家的機車
+  - 當選擇「全部店家」時，顯示所有機車
+  - 添加 `currentStore` 到 `useEffect` 依賴項，當店家選擇改變時自動重新載入機車列表
+
+### 功能說明
+
+- 現在用戶可以在機車管理頁面選擇要查看哪個店家的機車
+- 店家選擇器位於過濾區域的第二行，標籤為「店家：」
+- 選擇店家後，機車列表會自動過濾顯示該店家的機車
+- 選擇「全部店家」可以查看所有店家的機車
+
+---
+
+## 2026-01-20 11:16:23 (Asia/Taipei) - 恢復前端生成 Excel 並在標題下方顯示店家名稱
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 恢復前端使用 ExcelJS 生成 Excel（完全由前端產生，不需要後端介入）
+  - 在標題「{partnerName}機車出租月報表」下方添加店家名稱行
+  - 從 `partnerData.store_name` 或 `reportData.store_name` 獲取店家名稱
+  - 店家名稱顯示在標題下方（第二行），合併所有列，使用淺藍色背景，粗體字體
+  - 調整凍結行數：如果有店家名稱則凍結前 5 行，否則凍結前 4 行
+  - 調整數據行開始行號的計算邏輯
+
+### 功能說明
+
+- 現在 Excel 完全由前端使用 ExcelJS 生成，不需要後端介入
+- 標題格式：`{partnerName}機車出租月報表`（例如：「蘭光智能機車出租月報表」）
+- 店家名稱顯示在標題下方（第二行），如果有的話
+- 格式完全符合圖片要求
+
+---
+
+## 2026-01-20 11:00:46 (Asia/Taipei) - 修改 Excel 報表標題使用合作商名稱而非固定文字
+
+### 變更內容
+
+#### 後端變更
+
+- **PartnerMonthlyReportExport.php** (`app/Exports/PartnerMonthlyReportExport.php`)
+  - 修改標題從固定的「蘭光智能出租月報表」改為使用合作商名稱動態生成
+  - 標題格式改為：`{partner_name}機車出租月報表`
+  - 例如：「蘭光智能機車出租月報表」、「嘿城寶機車出租月報表」、「77GO機車出租月報表」等
+  - 店名顯示在標題下方（同一列，換行顯示）
+  - 格式為：`{partner_name}機車出租月報表\n{store_name}`
+
+### 功能說明
+
+- 現在每個合作商的月報表都會使用對應的合作商名稱作為標題
+- 不再固定使用「蘭光智能」，而是根據實際的合作商動態顯示
+- 符合「每個合作商的月報表」的需求，而非「蘭光的月報表」
+
+---
+
+## 2026-01-20 10:49:54 (Asia/Taipei) - 調整 Excel 報表中店名格式，僅顯示 store_name
+
+### 變更內容
+
+#### 後端變更
+
+- **PartnerMonthlyReportExport.php** (`app/Exports/PartnerMonthlyReportExport.php`)
+  - 調整店名顯示格式，移除「店名：」前綴，僅顯示 `store_name` 本身
+  - 格式從「蘭光智能出租月報表\n店名：{store_name}」改為「蘭光智能出租月報表\n{store_name}」
+  - 店名直接從 JSON 數據中的 `store_name` 字段獲取（如「蘭光小琉球店」）
+
+### 功能說明
+
+- Excel 導出時會參照 JSON 格式中的 `store_name` 字段
+- 店名顯示在標題「蘭光智能出租月報表」的下方（同一列，換行顯示）
+- 格式為：「蘭光智能出租月報表\n蘭光小琉球店」（僅顯示店名，無前綴）
+
+---
+
+## 2026-01-20 10:46:50 (Asia/Taipei) - 調整 Excel 報表中店名顯示在標題下方
+
+### 變更內容
+
+#### 後端變更
+
+- **PartnerMonthlyReportExport.php** (`app/Exports/PartnerMonthlyReportExport.php`)
+  - 調整店名顯示位置，店名顯示在標題「蘭光智能出租月報表」的下方（同一列，換行顯示）
+  - 標題和店名合併在同一個儲存格中，使用換行符 `\n` 分隔
+  - 格式為：「蘭光智能出租月報表\n店家：{店名}」
+  - 啟用 `wrapText` 屬性，確保文字自動換行顯示
+  - 標題和店名都居中對齊，垂直居中
+  - 標題字體大小 14，粗體
+
+### 功能說明
+
+- 現在 Excel 報表中，店名會顯示在標題「蘭光智能出租月報表」的下方
+- 店名和標題在同一個合併的儲存格中，通過換行符分隔
+- 格式為：「蘭光智能出租月報表\n店家：{店名}」，例如「蘭光智能出租月報表\n店家：蘭光小琉球店」
+
+---
+
+## 2026-01-20 10:40:41 (Asia/Taipei) - 優化 Excel 導出時 store_name 的處理邏輯
+
+### 變更內容
+
+#### 後端變更
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 優化 Excel 導出時 `partnerData` 的處理，確保正確轉換為數組格式
+  - 添加類型檢查，確保 `store_name` 能正確從 `partnerData` 中獲取
+  - 優化 `dates` 數據的處理，確保正確轉換為數組格式
+
+### 功能說明
+
+- 現在 Excel 導出時會優先使用 `partnerData` 中的 `store_name`（從訂單中獲取的店名）
+- 如果 `partnerData` 中沒有 `store_name`，則使用請求參數中的 `storeName`
+- 確保數據類型正確轉換，避免訪問錯誤
+
+---
+
+## 2026-01-20 10:35:57 (Asia/Taipei) - 在合作商月報表 API 返回數據中添加 store_id 和 store_name
+
+### 變更內容
+
+#### 後端變更
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在 `partnerDailyReport` 方法的返回數據中添加 `store_id` 和 `store_name` 字段
+  - 在每個合作商的數據中添加 `store_id` 和 `store_name` 字段
+  - 如果請求中有 `store_id`，使用該 store 的信息
+  - 如果沒有 `store_id`，但訂單中有 store 信息，使用第一個訂單的 store 信息
+  - 在頂層返回數據中也添加 `store_id` 和 `store_name` 字段
+  - 修正 Excel 導出時使用正確的 store_name（優先使用 partnerData 中的 store_name）
+
+### 功能說明
+
+- 現在 API 返回的 JSON 數據中包含：
+  - 頂層：`store_id` 和 `store_name`（如果請求中有提供或從訂單中獲取）
+  - 每個合作商對象中：`store_id` 和 `store_name`（從訂單中獲取或使用請求中的 store_id）
+- 前端可以從返回的數據中獲取店名，用於顯示或導出 Excel
+
+---
+
+## 2026-01-20 10:28:02 (Asia/Taipei) - 添加合作商月報表 Excel 導出功能並支持店名顯示
+
+### 變更內容
+
+#### 後端變更
+
+- **OrderController.php** (`app/Http/Controllers/Api/OrderController.php`)
+  - 在 `partnerDailyReport` 方法中添加 Excel 導出功能
+  - 添加 `format` 參數驗證（支持 'json' 和 'excel'）
+  - 添加 `store_id` 參數驗證
+  - 當 `format=excel` 且 `partner_id` 存在時，生成 Excel 文件並返回下載
+  - 從 `store_id` 查詢 Store 模型獲取店名
+  - 將店名傳入 `PartnerMonthlyReportExport` 類
+  - 添加必要的 use 語句：`Store`、`PartnerMonthlyReportExport`、`Xlsx`
+  - Excel 文件名格式：`partner_monthly_report_{partner_id}_{month}.xlsx`
+
+### 功能說明
+
+- 現在 `partnerDailyReport` API 支持兩種格式：
+  1. **JSON 格式**（默認）：返回 JSON 數據，用於前端顯示
+  2. **Excel 格式**：當 `format=excel` 且提供 `partner_id` 時，生成並下載 Excel 文件
+- 如果提供了 `store_id`，會自動查詢店名並顯示在 Excel 報表的標題中
+- Excel 文件會自動刪除臨時文件，避免佔用磁盤空間
+
+---
+
+## 2026-01-20 10:22:26 (Asia/Taipei) - 調整合作商月報表 Export 格式符合圖片要求
+
+### 變更內容
+
+#### 後端變更
+
+- **PartnerMonthlyReportExport.php** (`app/Exports/PartnerMonthlyReportExport.php`)
+  - 修改標題為「蘭光智能出租月報表」，並在標題右側顯示店名（同欄位換行）
+  - 調整報表結構以符合圖片格式：
+    1. Row 1: 標題「蘭光智能出租月報表」（合併多列），右側有店名信息（同欄位、換行、店名：某家店名）
+    2. Row 2: 各個機車型號（每個型號跨4列），使用淺藍色背景
+    3. Row 3: 每個型號下分為「當日租」（1列）和「跨日租」（3列合併），使用淺藍色背景
+    4. Row 4: 日期、星期，然後每個型號下：當日租只有「台數」（1列），跨日租有「台數」、「天數」、「金額」（3列），使用淺藍色背景
+  - 移除原本的「當日租 200/台」、「跨日租 300/台」列
+  - 調整總列數計算：日期(1) + 星期(1) + 每個型號(4列)
+  - 添加數據處理邏輯，支持處理 `orders` 數組格式的數據，並合併為 `models` 格式
+  - 為所有標題行添加淺藍色背景（#D9E1F2）和粗體字體
+  - 為所有儲存格添加邊框
+  - 設置第一行高度為 40，支持換行顯示店名
+  - 調整列寬：日期列 15，星期列 10，其他列 12
+  - 構造函數新增可選參數 `$storeName`，用於顯示店名
+
+### 功能說明
+
+- 報表格式現在完全符合圖片要求：
+  - 標題為「蘭光智能出租月報表」，店名顯示在標題右側（同欄位換行）
+  - 各個機車型號在第二行顯示，每個型號跨4列
+  - 第三行顯示「當日租」和「跨日租」分類
+  - 第四行顯示「日期」、「星期」以及各型號的詳細欄位（台數、天數、金額）
+  - 所有標題行使用淺藍色背景，增強視覺效果
+  - 支持處理後端返回的 `orders` 數組格式，自動合併為 `models` 格式進行統計
+
+---
+
+## 2026-01-20 09:40:00 (Asia/Taipei) - 線上預約商店選擇改為必填
+
+### 變更內容
+
+#### 前端變更
+
+- **線上預約頁面更新** (`system/frontend/pages/Booking.tsx`)：
+  - 「選擇商店」標籤添加必填標記（紅色 *）
+  - `select` 元素添加 `required` 屬性
+  - 更新 placeholder 文字，從「請選擇商店（選填）」改為「請選擇商店」
+  - 在 `handleSubmit` 中添加商店選擇驗證
+  - 更新提交按鈕的 `disabled` 條件，包含商店選擇驗證
+
+#### 後端變更
+
+- **BookingController 更新** (`app/Http/Controllers/Api/BookingController.php`)：
+  - 將 `storeId` 驗證規則從 `nullable|exists:stores,id` 改為 `required|exists:stores,id`
+  - 移除 `store_id` 賦值時的 `?? null` 處理，因為現在是必填欄位
+
+### 功能說明
+
+1. **前端驗證**：
+   - HTML5 原生驗證：`required` 屬性確保表單提交前必須選擇商店
+   - JavaScript 驗證：在 `handleSubmit` 中檢查商店是否已選擇
+   - UI 反饋：提交按鈕在未選擇商店時會被禁用
+
+2. **後端驗證**：
+   - Laravel 驗證規則確保 `storeId` 必須存在且有效
+   - 如果未提供或無效，返回 422 錯誤和驗證錯誤訊息
+
+---
+
+## 2026-01-20 09:25:00 (Asia/Taipei) - 關於我們頁面顯示商店環境圖片
+
+### 變更內容
+
+#### 前端變更
+
+- **關於我們頁面更新** (`system/frontend/pages/About.tsx`)：
+  - 移除原本的通用環境圖片顯示（`environmentImages` API）
+  - 改為從商店 API 獲取商店列表（包含環境圖片）
+  - 過濾出有環境圖片的商店（只顯示 `environment_images` 不為空的商店）
+  - 按商店 ID 排序
+  - 在「我們的環境」區塊中：
+    - 為每個商店創建一個獨立的卡片區塊
+    - 顯示商店名稱作為標題
+    - 在商店名稱下方以網格形式顯示該商店的所有環境圖片
+    - 使用響應式網格佈局（手機 2 列，桌面 3 列）
+    - 每個圖片使用圓角矩形樣式，hover 時有縮放效果
+
+### 功能說明
+
+1. **商店環境圖片顯示**：
+   - 只顯示有環境圖片的商店
+   - 每個商店獨立顯示，包含商店名稱和其環境圖片
+   - 環境圖片按 `sort_order` 排序顯示
+
+2. **視覺設計**：
+   - 每個商店使用白色卡片容器，帶有圓角和陰影
+   - 商店名稱居中顯示，使用較大字體
+   - 環境圖片以網格形式排列，保持正方形比例
+   - 圖片 hover 時有平滑的縮放動畫效果
+
+3. **資料來源**：
+   - 使用 `publicApi.stores.list()` 獲取商店列表
+   - 後端 API 已配置為自動載入 `environmentImages` 關係
+   - `StoreResource` 已包含 `environment_images` 欄位
+
+---
+
+## 2026-01-20 09:15:00 (Asia/Taipei) - 商店管理添加多張環境圖片功能
+
+### 變更內容
+
+#### 資料庫變更
+
+- **新增遷移文件**：
+  - `2026_01_20_100000_create_store_environment_images_table.php`：創建 `store_environment_images` 表，用於儲存商店的環境圖片
+    - `id`：主鍵
+    - `store_id`：外鍵，關聯到 `stores` 表
+    - `image_path`：圖片路徑
+    - `sort_order`：排序順序
+    - `timestamps`：創建和更新時間
+
+#### 後端變更
+
+- **新增模型**：
+  - `StoreEnvironmentImage.php`：商店環境圖片模型
+    - 定義與 `Store` 的 `belongsTo` 關係
+
+- **模型更新**：
+  - `Store.php`：添加 `environmentImages()` 關係方法，返回該商店的所有環境圖片（按 `sort_order` 排序）
+
+- **控制器更新**：
+  - `StoreController.php`：
+    - `index()` 方法：載入 `environmentImages` 關係
+    - `show()` 方法：載入 `environmentImages` 關係
+    - `uploadPhoto()` 方法：返回時載入 `environmentImages` 關係
+    - `destroy()` 方法：刪除商店時同時刪除所有相關的環境圖片檔案
+    - 新增 `uploadEnvironmentImage()` 方法：上傳環境圖片
+    - 新增 `deleteEnvironmentImage()` 方法：刪除環境圖片
+    - 新增 `updateEnvironmentImageOrder()` 方法：更新環境圖片排序
+
+- **資源更新**：
+  - `StoreResource.php`：在 `toArray()` 方法中添加 `environment_images` 欄位，當載入關係時返回環境圖片列表
+
+- **路由更新**：
+  - `routes/api.php`：添加環境圖片相關路由
+    - `POST /stores/{store}/upload-environment-image`：上傳環境圖片
+    - `DELETE /stores/{store}/environment-images/{environmentImage}`：刪除環境圖片
+    - `PUT /stores/{store}/environment-images/{environmentImage}/order`：更新環境圖片排序
+
+#### 前端後台變更
+
+- **API 定義更新** (`system/backend/lib/api.ts`)：
+  - `storesApi.uploadEnvironmentImage()`：上傳環境圖片
+  - `storesApi.deleteEnvironmentImage()`：刪除環境圖片
+  - `storesApi.updateEnvironmentImageOrder()`：更新環境圖片排序
+
+- **StoresPage 更新** (`system/backend/pages/StoresPage.tsx`)：
+  - 添加 `EnvironmentImage` 接口定義
+  - 更新 `Store` 接口，添加 `environment_images` 欄位
+  - 添加環境圖片相關狀態：
+    - `environmentImages`：當前商店的環境圖片列表
+    - `uploadingEnvironmentImage`：上傳狀態
+    - `environmentImageInputRef`：文件輸入引用
+  - 在模態框中添加「環境圖片」區塊：
+    - 顯示已上傳的環境圖片網格（2-3 列）
+    - 每個圖片顯示縮圖，hover 時顯示操作按鈕（上移、刪除、下移）
+    - 上傳區域（僅在編輯模式下可用）
+    - 新建立商店時提示「請先建立商店後再上傳環境圖片」
+  - 添加環境圖片處理函數：
+    - `handleEnvironmentImageChange()`：處理環境圖片上傳
+    - `handleDeleteEnvironmentImage()`：刪除環境圖片
+    - `handleMoveEnvironmentImage()`：移動環境圖片（調整排序）
+  - 更新 `handleOpenModal()`：載入商店時同時載入環境圖片
+  - 更新 `handleCloseModal()`：關閉模態框時清除環境圖片狀態
+
+### 功能說明
+
+1. **環境圖片上傳**：
+   - 僅在編輯現有商店時可以上傳環境圖片
+   - 支援單張上傳，可多次上傳多張圖片
+   - 上傳時自動設定排序順序（基於現有圖片的最大排序值 + 1）
+
+2. **環境圖片管理**：
+   - 以網格形式顯示所有環境圖片（響應式：手機 2 列，桌面 3 列）
+   - 每個圖片 hover 時顯示操作按鈕
+   - 支援上移/下移調整排序
+   - 支援刪除單張圖片
+
+3. **資料關聯**：
+   - 環境圖片與商店一對多關係
+   - 刪除商店時自動刪除所有相關的環境圖片檔案
+   - 環境圖片按 `sort_order` 排序顯示
+
+---
+
+## 2026-01-20 09:04:18 (Asia/Taipei) - 前臺租車方案與租車須知添加店家選擇功能及注意事項換行支援
+
+### 變更內容
+
+#### 前端變更
+
+- **API 定義更新** (`system/frontend/lib/api.ts`)：
+  - `rentalPlans.list()` 支援 `store_id` 參數過濾
+  - `guidelines.list()` 支援 `store_id` 參數過濾
+
+- **租車方案頁面更新** (`system/frontend/pages/RentalPlans.tsx`)：
+  - 添加店家選擇按鈕（顯示在標題下方）
+  - 添加店家選擇視窗（模態框），顯示所有店家列表（按 ID 排序）
+  - 選擇店家後自動過濾顯示該店家的租車方案
+  - 預設選擇第一個店家
+  - 注意事項區塊改為顯示所選店家的 `notice` 欄位（取代硬編碼文字）
+  - 使用 `whitespace-pre-line` CSS 類別正確處理注意事項中的換行符號（\n）
+
+- **租車須知頁面更新** (`system/frontend/pages/Guidelines.tsx`)：
+  - 添加店家選擇按鈕（顯示在標題下方）
+  - 添加店家選擇視窗（模態框），顯示所有店家列表（按 ID 排序）
+  - 選擇店家後自動過濾顯示該店家的租車須知
+  - 預設選擇第一個店家
+  - 店家選擇視窗中的注意事項使用 `whitespace-pre-line` 正確處理換行符號
+
+### 功能說明
+
+1. **店家選擇功能**：
+   - 頁面標題下方顯示「選擇店家」按鈕，顯示當前選擇的店家名稱
+   - 點擊按鈕後彈出模態框，顯示所有店家列表
+   - 每個店家顯示為可點擊的卡片，包含店家圖標、名稱、注意事項（如果有）和選中標記
+
+2. **注意事項顯示**：
+   - 租車方案頁面的注意事項區塊顯示所選店家的注意事項
+   - 後端的換行符號（\n）在前臺正確渲染為換行
+   - 使用 `whitespace-pre-line` CSS 類別實現換行顯示
+
+3. **自動過濾**：
+   - 選擇店家後，自動過濾顯示該店家的租車方案或租車須知
+   - 載入時自動選擇第一個店家（按 ID 排序）
+
+---
+
 ## 2026-01-20 12:00:00 (Asia/Taipei) - 租車方案、租車須知、門市據點添加商店支援
 
 ### 變更內容

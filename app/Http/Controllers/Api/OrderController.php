@@ -9,6 +9,9 @@ use App\Models\Scooter;
 use App\Models\PartnerScooterModelTransferFee;
 use App\Models\ScooterModel;
 use App\Models\OrderScooter;
+use App\Models\Store;
+use App\Exports\PartnerMonthlyReportExport;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -134,6 +137,14 @@ class OrderController extends Controller
                 
                 $calculatedAmount = $this->calculateOrderAmount($partnerId, $scooterIds, $startTime, $endTime);
                 $validated['payment_amount'] = $calculatedAmount;
+            }
+            
+            // 如果沒有提供 store_id，但提供了 partner_id，則從 partner 獲取 store_id
+            if (empty($validated['store_id']) && !empty($validated['partner_id'])) {
+                $partner = Partner::find($validated['partner_id']);
+                if ($partner && $partner->store_id) {
+                    $validated['store_id'] = $partner->store_id;
+                }
             }
             
             $order = Order::create($validated);
@@ -637,7 +648,7 @@ class OrderController extends Controller
 
     /**
      * Get partner detailed monthly report for a specific month
-     * Returns Excel file if partner_id is provided, otherwise returns JSON data
+     * Returns Excel file if format=excel and partner_id is provided, otherwise returns JSON data
      */
     public function partnerDailyReport(Request $request)
     {
@@ -645,6 +656,8 @@ class OrderController extends Controller
         $validator = Validator::make($request->all(), [
             'month' => 'required|date_format:Y-m',
             'partner_id' => 'nullable|exists:partners,id',
+            'store_id' => 'nullable|exists:stores,id',
+            'format' => 'nullable|in:json,excel',
         ]);
 
         if ($validator->fails()) {
@@ -656,8 +669,17 @@ class OrderController extends Controller
 
         $month = $request->get('month');
         $partnerId = $request->get('partner_id');
+        $storeId = $request->get('store_id');
+        $format = $request->get('format', 'json');
         $monthStartDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->startOfMonth();
         $monthEndDate = Carbon::parse($month . '-01')->timezone('Asia/Taipei')->endOfMonth();
+        
+        // 獲取店名（如果有 store_id）
+        $storeName = null;
+        if ($storeId) {
+            $store = Store::find($storeId);
+            $storeName = $store ? $store->name : null;
+        }
 
         // dd('Step 1: 參數驗證完成', [
         //     'month' => $month,
@@ -744,9 +766,23 @@ class OrderController extends Controller
         // ]);
 
         // Step 7: 處理每個合作商的訂單數據
-        $reportData = $ordersByPartner->map(function ($partnerOrders, $partnerName) use ($transferFeesMap, $allDates) {
+        $reportData = $ordersByPartner->map(function ($partnerOrders, $partnerName) use ($transferFeesMap, $allDates, $storeId, $storeName) {
             $firstOrder = $partnerOrders->first();
             $partnerId = $firstOrder->partner_id;
+
+            // 獲取 store 信息
+            $reportStoreId = $storeId;
+            $reportStoreName = $storeName;
+            
+            // 如果沒有從請求中獲取到 store_id，嘗試從訂單中獲取
+            if (!$reportStoreId) {
+                // 找到第一個有 store_id 的訂單
+                $orderWithStore = $partnerOrders->firstWhere('store_id', '!=', null);
+                if ($orderWithStore && $orderWithStore->store) {
+                    $reportStoreId = $orderWithStore->store_id;
+                    $reportStoreName = $orderWithStore->store->name;
+                }
+            }
 
             // 處理訂單數據
             $datesData = $this->processPartnerOrders($partnerOrders, $transferFeesMap, $partnerId);
@@ -793,9 +829,58 @@ class OrderController extends Controller
             return [
                 'partner_id' => $partnerId,
                 'partner_name' => $partnerName,
+                'store_id' => $reportStoreId,
+                'store_name' => $reportStoreName,
                 'dates' => $dates,
             ];
         })->values();
+
+        // Step 8: 如果 format=excel 且 partner_id 存在，生成 Excel 文件
+        if ($format === 'excel' && $partnerId) {
+            // 找到對應的合作商數據
+            $partnerData = $reportData->firstWhere('partner_id', $partnerId);
+            
+            if (!$partnerData) {
+                return response()->json([
+                    'message' => '找不到合作商數據',
+                ], 404);
+            }
+
+            // 確保 partnerData 是數組格式（如果是 Collection 項目，轉換為數組）
+            if (is_object($partnerData) && method_exists($partnerData, 'toArray')) {
+                $partnerData = $partnerData->toArray();
+            }
+
+            // 解析年月
+            [$year, $monthNum] = explode('-', $month);
+            
+            // 使用 partnerData 中的 store_name（如果有的話），否則使用請求中的 storeName
+            $excelStoreName = $partnerData['store_name'] ?? $storeName;
+            
+            // 創建 Export 實例
+            $export = new PartnerMonthlyReportExport(
+                $partnerData['partner_name'],
+                $year,
+                $monthNum,
+                is_array($partnerData['dates']) ? $partnerData['dates'] : $partnerData['dates']->toArray(),
+                $allModels,
+                $excelStoreName
+            );
+
+            // 生成 Excel
+            $spreadsheet = $export->generate();
+            
+            // 創建臨時文件
+            $filename = 'partner_monthly_report_' . $partnerId . '_' . $month . '.xlsx';
+            $tempFile = tempnam(sys_get_temp_dir(), 'excel_');
+            $writer = new Xlsx($spreadsheet);
+            $writer->save($tempFile);
+
+            // 返回文件下載
+            return response()->download($tempFile, $filename, [
+                'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            ])->deleteFileAfterSend(true);
+        }
 
         // Step 9: 返回 JSON 數據
         return response()->json([
@@ -803,6 +888,8 @@ class OrderController extends Controller
                 'partners' => $reportData,
                 'models' => $allModels,
                 'month' => $month,
+                'store_id' => $storeId,
+                'store_name' => $storeName,
             ],
         ]);
     }

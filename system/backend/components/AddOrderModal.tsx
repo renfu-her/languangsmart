@@ -130,18 +130,15 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
   useEffect(() => {
     if (isOpen) {
       const initializeModal = async () => {
-        // 先獲取可用機車、合作商和商店
-        await Promise.all([
-          fetchAvailableScooters(),
-          fetchPartners(),
-          fetchStores()
-        ]);
+        // 先獲取商店列表（合作商會在 fixedStoreId 確定後載入）
+        await fetchStores();
         
         if (editingOrder) {
-          // 編輯模式：預填表單數據並獲取訂單詳情以獲取機車 ID
+          // 編輯模式：預填表單數據，store_id 固定為訂單的 store_id
+          const orderStoreId = editingOrder.store_id || editingOrder.store?.id;
           setFormData({
             partner_id: editingOrder.partner?.id.toString() || '',
-            store_id: editingOrder.store_id?.toString() || editingOrder.store?.id.toString() || '',
+            store_id: orderStoreId ? orderStoreId.toString() : '',
             tenant: editingOrder.tenant,
             appointment_date: formatDateForInput(editingOrder.appointment_date),
             start_time: formatDateForInput(editingOrder.start_time),
@@ -162,41 +159,8 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
           } else {
             setIsAmountManuallyEdited(true); // 有金額時，標記為已手動修改（避免自動覆蓋）
           }
-          
-          // 從訂單詳情 API 獲取完整的機車 ID 列表
-          try {
-            const response = await ordersApi.get(editingOrder.id);
-            const orderData = response.data;
-            let scooterIds: number[] = [];
-            
-            // 如果 API 返回包含 scooter_ids 或完整的 scooters 數組
-            if (orderData.scooter_ids && Array.isArray(orderData.scooter_ids)) {
-              scooterIds = orderData.scooter_ids;
-            } else if (orderData.scooters && Array.isArray(orderData.scooters)) {
-              // 如果返回的是完整的機車對象數組
-              scooterIds = orderData.scooters.map((s: any) => s.id || s.scooter_id).filter((id: any) => id);
-            }
-            
-            if (scooterIds.length > 0) {
-              // 獲取這些機車的完整信息（包括已租借的）
-              const orderScooters = await fetchScootersByIds(scooterIds);
-              // 將訂單中的機車也加入到可用機車列表中（如果還沒有）
-              setAvailableScooters(prev => {
-                const existingIds = new Set(prev.map(s => s.id));
-                const newScooters = orderScooters.filter((s: Scooter) => !existingIds.has(s.id));
-                return [...prev, ...newScooters];
-              });
-              // 確保在機車信息已載入後再設置選中的機車 ID
-              setSelectedScooterIds(scooterIds);
-            } else {
-              setSelectedScooterIds([]);
-            }
-          } catch (error) {
-            console.error('Failed to fetch order details:', error);
-            setSelectedScooterIds([]);
-          }
         } else {
-          // 新增模式：重置表單
+          // 新增模式：重置表單，store_id 使用 currentStore（固定）
           setFormData({
             partner_id: '',
             store_id: currentStore?.id.toString() || '',
@@ -224,16 +188,43 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     }
   }, [isOpen, editingOrder]);
 
-  // 當 currentStore 改變時，如果表單中沒有選擇商店，自動設置為當前商店
+  // 確定固定的 store_id（新增模式使用 currentStore，編輯模式使用訂單的 store_id）
+  const fixedStoreId = editingOrder 
+    ? (editingOrder.store_id || editingOrder.store?.id)
+    : (currentStore?.id);
+
+  // 當固定的 store_id 確定後，載入合作商和機車列表
   useEffect(() => {
-    if (isOpen && currentStore && !formData.store_id) {
-      setFormData(prev => ({ ...prev, store_id: currentStore.id.toString() }));
+    if (isOpen && fixedStoreId) {
+      // 載入該商店的合作商列表
+      fetchPartners();
+      // 載入該商店的機車列表
+      fetchAvailableScooters();
+      // 如果是編輯模式，載入訂單中的機車
+      if (editingOrder) {
+        const scooterIds = editingOrder.scooters?.map(s => s.id) || [];
+        if (scooterIds.length > 0) {
+          fetchScootersByIds(scooterIds).then(orderScooters => {
+            setAvailableScooters(prev => {
+              const existingIds = new Set(prev.map(s => s.id));
+              const newScooters = orderScooters.filter((s: Scooter) => !existingIds.has(s.id));
+              return [...prev, ...newScooters];
+            });
+            setSelectedScooterIds(scooterIds);
+          });
+        }
+      }
     }
-  }, [currentStore, isOpen, formData.store_id]);
+  }, [fixedStoreId, isOpen, editingOrder]);
 
   const fetchAvailableScooters = async () => {
     try {
-      const response = await scootersApi.available();
+      // 根據固定的 store_id 過濾機車列表（只顯示狀態為「待出租」的機車）
+      const params: any = { status: '待出租' };
+      if (fixedStoreId) {
+        params.store_id = fixedStoreId;
+      }
+      const response = await scootersApi.list(params);
       setAvailableScooters(response.data || []);
     } catch (error) {
       console.error('Failed to fetch available scooters:', error);
@@ -242,8 +233,12 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
 
   const fetchScootersByIds = async (scooterIds: number[]): Promise<Scooter[]> => {
     try {
-      // 獲取所有機車列表（包括已租借的），不傳 status 參數以獲取所有狀態的機車
-      const response = await scootersApi.list();
+      // 獲取機車列表（包括已租借的），根據固定的 store_id 過濾
+      const params: any = {};
+      if (fixedStoreId) {
+        params.store_id = fixedStoreId;
+      }
+      const response = await scootersApi.list(params);
       const allScooters = response.data || [];
       // 過濾出需要的機車
       const foundScooters = allScooters.filter((s: Scooter) => scooterIds.includes(s.id));
@@ -263,13 +258,23 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
 
   const fetchPartners = async () => {
     try {
-      const response = await partnersApi.list();
+      // 根據固定的 store_id 過濾合作商列表
+      const params = fixedStoreId ? { store_id: fixedStoreId } : undefined;
+      const response = await partnersApi.list(params);
       // 確保載入 transfer_fees 關係
       const partnersWithFees = (response.data || []).map((partner: any) => ({
         ...partner,
         transfer_fees: partner.transfer_fees || [],
       }));
       setPartners(partnersWithFees);
+      
+      // 如果沒有選擇合作商，自動選擇該商店的預設合作商
+      if (!formData.partner_id && partnersWithFees.length > 0) {
+        const defaultPartner = partnersWithFees.find((p: any) => p.is_default_for_booking);
+        if (defaultPartner) {
+          setFormData(prev => ({ ...prev, partner_id: defaultPartner.id.toString() }));
+        }
+      }
     } catch (error) {
       console.error('Failed to fetch partners:', error);
     }
@@ -399,7 +404,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     try {
       const orderData = {
         partner_id: formData.partner_id || null,
-        store_id: formData.store_id || currentStore?.id || null,
+        store_id: fixedStoreId || null,
         tenant: formData.tenant,
         appointment_date: formData.appointment_date,
         start_time: formData.start_time,
@@ -525,18 +530,15 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
               <div>
                 <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">商店選擇</label>
                 <div className="relative">
-                  <select 
-                    className={selectClasses}
-                    value={formData.store_id}
-                    onChange={(e) => setFormData({ ...formData, store_id: e.target.value })}
-                  >
-                    <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">請選擇商店（非必選）</option>
-                    {stores.map(store => (
-                      <option key={store.id} value={store.id} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{store.name}</option>
-                    ))}
-                  </select>
-                  <ChevronDown size={18} className={chevronDownClasses} />
+                  <input
+                    type="text"
+                    className={`${inputClasses} bg-gray-50 dark:bg-gray-700/50 cursor-not-allowed`}
+                    value={fixedStoreId ? stores.find(s => s.id === fixedStoreId)?.name || '未知商店' : '未選擇商店'}
+                    readOnly
+                    disabled
+                  />
                 </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">商店選擇已固定，無法修改</p>
               </div>
 
               <div>
@@ -776,25 +778,48 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                   />
                   {showPlateDropdown && filteredScooters.length > 0 && (
                     <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl z-20 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
-                      {filteredScooters.map(s => (
-                        <div 
-                          key={s.id}
-                          className={`px-5 py-3 hover:bg-orange-50 flex items-center justify-between cursor-pointer transition-colors border-b border-gray-50 last:border-0 ${
-                            selectedScooterIds.includes(s.id) ? 'bg-orange-50' : ''
-                          }`}
-                          onClick={() => {
-                            toggleScooter(s.id);
-                            setShowPlateDropdown(false);
-                            setSearchPlate('');
-                          }}
-                        >
-                          <div>
-                            <span className="text-sm font-bold text-gray-900 dark:text-gray-100">{s.plate_number}</span>
-                            <span className="ml-2 px-1.5 py-0.5 bg-gray-100 text-[10px] rounded font-bold text-gray-500">{s.type}</span>
+                      {filteredScooters.map(s => {
+                        const isSelected = selectedScooterIds.includes(s.id);
+                        return (
+                          <div 
+                            key={s.id}
+                            className={`px-5 py-3 flex items-center justify-between cursor-pointer transition-colors border-b border-gray-50 dark:border-gray-700 last:border-0 ${
+                              isSelected 
+                                ? 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-800' 
+                                : 'hover:bg-orange-50 dark:hover:bg-gray-700'
+                            }`}
+                            onClick={() => {
+                              toggleScooter(s.id);
+                              setShowPlateDropdown(false);
+                              setSearchPlate('');
+                            }}
+                          >
+                            <div>
+                              <span className={`text-sm font-bold ${
+                                isSelected 
+                                  ? 'text-orange-700 dark:text-orange-300' 
+                                  : 'text-gray-900 dark:text-gray-100'
+                              }`}>
+                                {s.plate_number}
+                              </span>
+                              <span className={`ml-2 px-1.5 py-0.5 text-[10px] rounded font-bold ${
+                                isSelected
+                                  ? 'bg-orange-200 dark:bg-orange-800 text-orange-800 dark:text-orange-200'
+                                  : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
+                              }`}>
+                                {s.type}
+                              </span>
+                            </div>
+                            <span className={`text-xs ${
+                              isSelected
+                                ? 'text-orange-600 dark:text-orange-400 font-medium'
+                                : 'text-gray-400 dark:text-gray-500'
+                            }`}>
+                              {s.model}
+                            </span>
                           </div>
-                          <span className="text-xs text-gray-400">{s.model}</span>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   )}
                 </div>

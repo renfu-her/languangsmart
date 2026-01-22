@@ -47,13 +47,25 @@ const Guidelines: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [filter, setFilter] = useState('所有問題');
 
+  // 獲取商店列表並從 localStorage 讀取保存的 store_id
   useEffect(() => {
     const fetchStores = async () => {
       try {
         const response = await publicApi.stores.list();
         const sortedStores = (response.data || []).sort((a: Store, b: Store) => a.id - b.id);
         setStores(sortedStores);
-        // 如果有很多店家，預設選擇第一個店家
+        
+        // 從 localStorage 讀取保存的 store_id
+        const savedStoreId = localStorage.getItem('selectedStoreId');
+        if (savedStoreId && sortedStores.length > 0) {
+          const savedStore = sortedStores.find(store => store.id === parseInt(savedStoreId));
+          if (savedStore) {
+            setSelectedStore(savedStore);
+            return;
+          }
+        }
+        
+        // 如果沒有保存的店家，預設選擇第一個店家
         if (sortedStores.length > 0 && !selectedStore) {
           setSelectedStore(sortedStores[0]);
         }
@@ -62,6 +74,11 @@ const Guidelines: React.FC = () => {
       }
     };
 
+    fetchStores();
+  }, []);
+
+  // 當 selectedStore 改變時，獲取該商店的相關數據
+  useEffect(() => {
     const fetchGuidelines = async () => {
       try {
         const params = selectedStore ? { store_id: selectedStore.id } : undefined;
@@ -77,7 +94,8 @@ const Guidelines: React.FC = () => {
 
     const fetchGuesthouses = async () => {
       try {
-        const response = await publicApi.guesthouses.list({ active_only: true });
+        const params = selectedStore ? { store_id: selectedStore.id, active_only: true } : { active_only: true };
+        const response = await publicApi.guesthouses.list(params);
         setGuesthouses(response.data || []);
       } catch (error) {
         console.error('Failed to fetch guesthouses:', error);
@@ -87,7 +105,8 @@ const Guidelines: React.FC = () => {
 
     const fetchShuttleImages = async () => {
       try {
-        const response = await publicApi.shuttleImages.list();
+        const params = selectedStore ? { store_id: selectedStore.id } : undefined;
+        const response = await publicApi.shuttleImages.list(params);
         setShuttleImages(response.data || []);
       } catch (error) {
         console.error('Failed to fetch shuttle images:', error);
@@ -95,14 +114,14 @@ const Guidelines: React.FC = () => {
       }
     };
 
-    fetchStores();
     if (selectedStore) {
+      setLoading(true);
       fetchGuidelines();
+      fetchGuesthouses();
+      fetchShuttleImages();
     } else {
       setLoading(false);
     }
-    fetchGuesthouses();
-    fetchShuttleImages();
   }, [selectedStore]);
 
   const categories = Array.from(new Set(guidelines.map(g => g.category)));
@@ -148,11 +167,11 @@ const Guidelines: React.FC = () => {
             <div className="mb-6 sm:mb-8">
               <button
                 onClick={() => setShowStoreModal(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white rounded-full shadow-md hover:shadow-lg transition-all text-gray-800 font-medium"
+                className="inline-flex items-center gap-2 px-6 py-3 sm:px-8 sm:py-4 bg-white rounded-full shadow-md hover:shadow-lg transition-all font-medium"
               >
-                <Store size={18} />
-                <span>{selectedStore ? selectedStore.name : '選擇店家'}</span>
-                <ChevronDown size={18} />
+                <Store size={20} className="text-[#0D9488]" />
+                <span className="text-[#0D9488] text-base sm:text-lg">{selectedStore ? selectedStore.name : '選擇店家'}</span>
+                <ChevronDown size={20} className="text-[#0D9488]" />
               </button>
             </div>
           )}
@@ -292,7 +311,7 @@ const Guidelines: React.FC = () => {
                     <img
                       src={`/storage/${image.image_path}`}
                       alt="專車接送"
-                      className="w-full h-auto object-cover"
+                      className="w-full h-[300px] sm:h-[350px] md:h-[400px] object-cover"
                     />
                   </div>
                 ))}
@@ -334,6 +353,8 @@ const Guidelines: React.FC = () => {
                       key={store.id}
                       onClick={() => {
                         setSelectedStore(store);
+                        // 保存 store_id 到 localStorage
+                        localStorage.setItem('selectedStoreId', store.id.toString());
                         setShowStoreModal(false);
                         setLoading(true);
                       }}
@@ -355,7 +376,7 @@ const Guidelines: React.FC = () => {
                           <div>
                             <p className="font-semibold text-gray-800">{store.name}</p>
                             {store.notice && (
-                              <p className="text-xs text-gray-500 mt-1 line-clamp-1">{store.notice}</p>
+                              <p className="text-xs text-gray-500 mt-1 whitespace-pre-line">{store.notice}</p>
                             )}
                           </div>
                         </div>

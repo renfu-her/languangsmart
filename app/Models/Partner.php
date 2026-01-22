@@ -27,6 +27,7 @@ class Partner extends Model
         'overnight_transfer_fee_green',
         'overnight_transfer_fee_electric',
         'overnight_transfer_fee_tricycle',
+        'store_id',
     ];
 
     /**
@@ -51,6 +52,14 @@ class Partner extends Model
     public function scooterModelTransferFees()
     {
         return $this->hasMany(PartnerScooterModelTransferFee::class);
+    }
+
+    /**
+     * Get the store that owns the partner.
+     */
+    public function store()
+    {
+        return $this->belongsTo(Store::class);
     }
 }
 

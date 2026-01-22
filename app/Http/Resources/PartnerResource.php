@@ -25,6 +25,13 @@ class PartnerResource extends JsonResource
             'color' => $this->color,
             'is_default_for_booking' => $this->is_default_for_booking ?? false,
             'default_shipping_company' => $this->default_shipping_company,
+            'store_id' => $this->store_id,
+            'store' => $this->whenLoaded('store', function () {
+                return $this->store ? [
+                    'id' => $this->store->id,
+                    'name' => $this->store->name,
+                ] : null;
+            }),
             'transfer_fees' => $this->whenLoaded('scooterModelTransferFees', function () {
                 return $this->scooterModelTransferFees->map(function ($fee) {
                     return [

@@ -5,11 +5,14 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StoreResource;
 use App\Models\Store;
+use App\Models\Partner;
+use App\Models\StoreEnvironmentImage;
 use App\Services\ImageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 
 class StoreController extends Controller
 {
@@ -37,7 +40,7 @@ class StoreController extends Controller
             });
         }
 
-        $stores = $query->orderBy('created_at', 'desc')->get();
+        $stores = $query->with('environmentImages')->orderBy('created_at', 'desc')->get();
 
         return response()->json([
             'data' => StoreResource::collection($stores),
@@ -64,12 +67,39 @@ class StoreController extends Controller
             ], 422);
         }
 
-        $store = Store::create($validator->validated());
-
-        return response()->json([
-            'message' => 'Store created successfully',
-            'data' => new StoreResource($store),
-        ], 201);
+        DB::beginTransaction();
+        try {
+            $store = Store::create($validator->validated());
+            
+            // 檢查該商店是否已有預設線上預約合作商
+            $hasDefaultPartnerForStore = Partner::where('store_id', $store->id)
+                ->where('is_default_for_booking', true)
+                ->exists();
+            
+            // 自動創建一個名為「蘭光智能」的合作商，關聯到新創建的商店
+            // 如果該商店沒有預設合作商，則將此合作商設為預設（用於線上預約）
+            $partner = Partner::create([
+                'name' => '蘭光智能',
+                'address' => $store->address,
+                'phone' => $store->phone,
+                'manager' => $store->manager,
+                'store_id' => $store->id,
+                'is_default_for_booking' => !$hasDefaultPartnerForStore, // 如果該商店沒有預設合作商，則設為預設
+            ]);
+            
+            DB::commit();
+            
+            return response()->json([
+                'message' => 'Store created successfully',
+                'data' => new StoreResource($store),
+            ], 201);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'message' => 'Failed to create store',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     /**
@@ -77,6 +107,7 @@ class StoreController extends Controller
      */
     public function show(Store $store): JsonResponse
     {
+        $store->load('environmentImages');
         return response()->json([
             'data' => new StoreResource($store),
         ]);
@@ -128,6 +159,14 @@ class StoreController extends Controller
             Storage::disk('public')->delete($store->photo_path);
         }
 
+        // Delete environment images
+        foreach ($store->environmentImages as $environmentImage) {
+            if ($environmentImage->image_path) {
+                $this->imageService->deleteImage($environmentImage->image_path);
+            }
+            $environmentImage->delete();
+        }
+
         $store->delete();
 
         return response()->json([
@@ -162,7 +201,104 @@ class StoreController extends Controller
 
         return response()->json([
             'message' => 'Photo uploaded successfully',
-            'data' => new StoreResource($store),
+            'data' => new StoreResource($store->load('environmentImages')),
+        ]);
+    }
+
+    /**
+     * Upload environment image for the store.
+     */
+    public function uploadEnvironmentImage(Request $request, Store $store): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'image' => 'required|image|mimes:jpeg,png,jpg,gif,webp|max:10240', // 10MB max
+            'sort_order' => 'nullable|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $imagePath = $this->imageService->uploadImage(
+            $request->file('image'),
+            'store-environment'
+        );
+
+        $environmentImage = StoreEnvironmentImage::create([
+            'store_id' => $store->id,
+            'image_path' => $imagePath,
+            'sort_order' => $request->input('sort_order', 0),
+        ]);
+
+        return response()->json([
+            'message' => 'Environment image uploaded successfully',
+            'data' => [
+                'id' => $environmentImage->id,
+                'image_path' => asset('storage/' . $environmentImage->image_path),
+                'sort_order' => $environmentImage->sort_order,
+            ],
+        ], 201);
+    }
+
+    /**
+     * Delete environment image for the store.
+     */
+    public function deleteEnvironmentImage(Store $store, StoreEnvironmentImage $environmentImage): JsonResponse
+    {
+        // Verify the environment image belongs to the store
+        if ($environmentImage->store_id !== $store->id) {
+            return response()->json([
+                'message' => 'Environment image does not belong to this store',
+            ], 403);
+        }
+
+        // Delete image file
+        if ($environmentImage->image_path) {
+            $this->imageService->deleteImage($environmentImage->image_path);
+        }
+
+        $environmentImage->delete();
+
+        return response()->json([
+            'message' => 'Environment image deleted successfully',
+        ]);
+    }
+
+    /**
+     * Update environment image sort order.
+     */
+    public function updateEnvironmentImageOrder(Request $request, Store $store, StoreEnvironmentImage $environmentImage): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'sort_order' => 'required|integer|min:0',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'Validation error',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        // Verify the environment image belongs to the store
+        if ($environmentImage->store_id !== $store->id) {
+            return response()->json([
+                'message' => 'Environment image does not belong to this store',
+            ], 403);
+        }
+
+        $environmentImage->update(['sort_order' => $request->input('sort_order')]);
+
+        return response()->json([
+            'message' => 'Environment image order updated successfully',
+            'data' => [
+                'id' => $environmentImage->id,
+                'image_path' => asset('storage/' . $environmentImage->image_path),
+                'sort_order' => $environmentImage->sort_order,
+            ],
         ]);
     }
 }

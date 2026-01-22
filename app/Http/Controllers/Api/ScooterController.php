@@ -70,21 +70,57 @@ class ScooterController extends Controller
 
     /**
      * Get unique model + type combinations for booking form (Public)
-     * Now returns from ScooterModel table
+     * If store_id is provided, returns only scooter models that exist in that store
+     * Otherwise, returns all scooter models
      */
-    public function models(): JsonResponse
+    public function models(Request $request): JsonResponse
     {
-        $models = ScooterModel::orderBy('name')
-            ->orderBy('type')
-            ->get()
-            ->map(function ($scooterModel) {
-                return [
-                    'id' => $scooterModel->id,
-                    'model' => $scooterModel->name,
-                    'type' => $scooterModel->type,
-                    'label' => $scooterModel->name . ' ' . $scooterModel->type, // 組合顯示：例如 "ES-2000 白牌"
-                ];
-            });
+        $storeId = $request->get('store_id');
+        
+        if ($storeId) {
+            // 如果提供了 store_id，只返回該商店實際擁有的機車型號
+            // 通過 Scooter 表查找該商店有哪些機車型號
+            $scooterModelIds = Scooter::where('store_id', $storeId)
+                ->whereNotNull('scooter_model_id')
+                ->distinct()
+                ->pluck('scooter_model_id')
+                ->toArray();
+            
+            if (empty($scooterModelIds)) {
+                // 如果該商店沒有任何機車，返回空數組
+                return response()->json([
+                    'data' => [],
+                ]);
+            }
+            
+            // 根據機車 ID 獲取對應的機車型號
+            $models = ScooterModel::whereIn('id', $scooterModelIds)
+                ->orderBy('name')
+                ->orderBy('type')
+                ->get()
+                ->map(function ($scooterModel) {
+                    return [
+                        'id' => $scooterModel->id,
+                        'model' => $scooterModel->name,
+                        'type' => $scooterModel->type,
+                        'label' => $scooterModel->name . ' ' . $scooterModel->type, // 組合顯示：例如 "ES-2000 白牌"
+                    ];
+                });
+        } else {
+            // 如果沒有提供 store_id，返回所有機車型號
+            $models = ScooterModel::query()
+                ->orderBy('name')
+                ->orderBy('type')
+                ->get()
+                ->map(function ($scooterModel) {
+                    return [
+                        'id' => $scooterModel->id,
+                        'model' => $scooterModel->name,
+                        'type' => $scooterModel->type,
+                        'label' => $scooterModel->name . ' ' . $scooterModel->type, // 組合顯示：例如 "ES-2000 白牌"
+                    ];
+                });
+        }
 
         return response()->json([
             'data' => $models,

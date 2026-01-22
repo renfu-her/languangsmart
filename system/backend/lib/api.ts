@@ -343,7 +343,7 @@ export const api = new ApiClient(API_BASE_URL);
 
 // API endpoints
 export const ordersApi = {
-  list: (params?: { month?: string; search?: string; page?: number }) =>
+  list: (params?: { month?: string; search?: string; page?: number; store_id?: number }) =>
     api.get('/orders', params),
   get: (id: string | number) => api.get(`/orders/${id}`),
   create: (data: any) => api.post('/orders', data),
@@ -363,7 +363,7 @@ export const ordersApi = {
 };
 
 export const partnersApi = {
-  list: (params?: { search?: string }) => api.get('/partners', params),
+  list: (params?: { search?: string; store_id?: number }) => api.get('/partners', params),
   get: (id: string | number) => api.get(`/partners/${id}`),
   create: (data: any) => api.post('/partners', data),
   update: (id: string | number, data: any) => api.put(`/partners/${id}`, data),
@@ -380,10 +380,24 @@ export const storesApi = {
   delete: (id: string | number) => api.delete(`/stores/${id}`),
   uploadPhoto: (id: string | number, file: File) =>
     api.uploadFile(`/stores/${id}/upload-photo`, file),
+  uploadEnvironmentImage: async (storeId: number, imageFile: File, sortOrder?: number) => {
+    const formData = new FormData();
+    formData.append('image', imageFile);
+    if (sortOrder !== undefined) {
+      formData.append('sort_order', sortOrder.toString());
+    }
+    return api.post(`/stores/${storeId}/upload-environment-image`, formData);
+  },
+  deleteEnvironmentImage: async (storeId: number, environmentImageId: number) => {
+    return api.delete(`/stores/${storeId}/environment-images/${environmentImageId}`);
+  },
+  updateEnvironmentImageOrder: async (storeId: number, environmentImageId: number, sortOrder: number) => {
+    return api.put(`/stores/${storeId}/environment-images/${environmentImageId}/order`, { sort_order: sortOrder });
+  },
 };
 
 export const scootersApi = {
-  list: (params?: { status?: string; search?: string }) =>
+  list: (params?: { status?: string; search?: string; store_id?: number }) =>
     api.get('/scooters', params),
   available: () => api.get('/scooters/available'),
   get: (id: string | number) => api.get(`/scooters/${id}`),
@@ -432,13 +446,13 @@ export const finesApi = {
 };
 
 export const accessoriesApi = {
-  list: (params?: { category?: string; status?: string; search?: string }) =>
+  list: (params?: { category?: string; status?: string; search?: string; store_id?: number }) =>
     api.get('/accessories', params),
   get: (id: string | number) => api.get(`/accessories/${id}`),
   create: (data: any) => api.post('/accessories', data),
   update: (id: string | number, data: any) => api.put(`/accessories/${id}`, data),
   delete: (id: string | number) => api.delete(`/accessories/${id}`),
-  statistics: () => api.get('/accessories/statistics'),
+  statistics: (params?: { store_id?: number }) => api.get('/accessories/statistics', params),
 };
 
 export const usersApi = {
@@ -514,7 +528,7 @@ export const locationsApi = {
 };
 
 export const guesthousesApi = {
-  list: (params?: { active_only?: boolean; search?: string }) =>
+  list: (params?: { active_only?: boolean; search?: string; store_id?: number }) =>
     api.get('/guesthouses', params),
   get: (id: string | number) => api.get(`/guesthouses/${id}`),
   create: (data: any) => api.post('/guesthouses', data),
@@ -537,11 +551,12 @@ export const homeImagesApi = {
 };
 
 export const environmentImagesApi = {
-  list: () => api.get('/environment-images'),
-  create: async (file: File, sortOrder: number) => {
+  list: (params?: { store_id?: number }) => api.get('/environment-images', params),
+  create: async (file: File, sortOrder: number, storeId: number) => {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('sort_order', sortOrder.toString());
+    formData.append('store_id', storeId.toString());
 
     const url = `${API_BASE_URL}/environment-images`;
     const token = localStorage.getItem('auth_token');
@@ -567,17 +582,18 @@ export const environmentImagesApi = {
 
     return data;
   },
-  update: (id: number, data: { alt_text?: string | null; sort_order?: number }) =>
+  update: (id: number, data: { alt_text?: string | null; sort_order?: number; store_id?: number }) =>
     api.put(`/environment-images/${id}`, data),
   delete: (id: number) => api.delete(`/environment-images/${id}`),
 };
 
 export const shuttleImagesApi = {
-  list: () => api.get('/shuttle-images'),
-  create: async (file: File, sortOrder: number) => {
+  list: (params?: { store_id?: number }) => api.get('/shuttle-images', params),
+  create: async (file: File, sortOrder: number, storeId: number) => {
     const formData = new FormData();
     formData.append('image', file);
     formData.append('sort_order', sortOrder.toString());
+    formData.append('store_id', storeId.toString());
 
     const url = `${API_BASE_URL}/shuttle-images`;
     const token = localStorage.getItem('auth_token');
@@ -603,7 +619,7 @@ export const shuttleImagesApi = {
 
     return data;
   },
-  update: (id: number, data: { sort_order: number }) =>
+  update: (id: number, data: { sort_order?: number; store_id?: number }) =>
     api.put(`/shuttle-images/${id}`, data),
   delete: (id: number) => api.delete(`/shuttle-images/${id}`),
 };
@@ -616,8 +632,8 @@ export const bookingsApi = {
   updateStatus: (id: string | number, status: string) =>
     api.patch(`/bookings/${id}/status`, { status }),
   delete: (id: string | number) => api.delete(`/bookings/${id}`),
-  pending: () => api.get('/bookings/pending'),
-  pendingCount: () => api.get('/bookings/pending/count'),
+  pending: (params?: { store_id?: number }) => api.get('/bookings/pending', params),
+  pendingCount: (params?: { store_id?: number }) => api.get('/bookings/pending/count', params),
   convertToOrder: (id: string | number, data: any) =>
     api.post(`/bookings/${id}/convert-to-order`, data),
 };

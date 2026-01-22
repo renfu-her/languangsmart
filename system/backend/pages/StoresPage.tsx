@@ -206,6 +206,7 @@ const StoresPage: React.FC = () => {
     }
   };
 
+
   return (
     <div className="px-6 pb-6 pt-0 dark:text-gray-100">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">

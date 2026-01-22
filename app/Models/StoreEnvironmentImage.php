@@ -5,19 +5,18 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class EnvironmentImage extends Model
+class StoreEnvironmentImage extends Model
 {
     use HasFactory;
 
     protected $fillable = [
+        'store_id',
         'image_path',
         'sort_order',
-        'store_id',
     ];
 
     protected $casts = [
         'sort_order' => 'integer',
-        'store_id' => 'integer',
     ];
 
     /**

@@ -7,27 +7,62 @@ interface EnvironmentImage {
   id: number;
   image_path: string;
   sort_order: number;
+  store_id?: number | null;
+  store?: { id: number; name: string } | null;
+}
+
+interface Store {
+  id: number;
+  name: string;
+  notice?: string | null;
+  environmentImages?: EnvironmentImage[];
 }
 
 const About: React.FC = () => {
-  const [environmentImages, setEnvironmentImages] = useState<EnvironmentImage[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchEnvironmentImages();
-  }, []);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        // 同時獲取商店列表和所有環境圖片
+        const [storesResponse, allImagesResponse] = await Promise.all([
+          publicApi.stores.list(),
+          publicApi.environmentImages.list(),
+        ]);
 
-  const fetchEnvironmentImages = async () => {
-    try {
-      const response = await publicApi.environmentImages.list();
-      setEnvironmentImages(response.data || []);
-    } catch (error) {
-      console.error('Failed to fetch environment images:', error);
-      setEnvironmentImages([]);
-    } finally {
-      setLoading(false);
-    }
-  };
+        const sortedStores = (storesResponse.data || []).sort((a: Store, b: Store) => a.id - b.id);
+        const allImages = (allImagesResponse.data || []) as EnvironmentImage[];
+
+        // 為每個商店分配對應的環境圖片
+        const storesWithImages = sortedStores.map((store: Store) => {
+          const storeImages = allImages
+            .filter((img: EnvironmentImage) => img.store_id === store.id)
+            .sort((a: EnvironmentImage, b: EnvironmentImage) => a.sort_order - b.sort_order);
+          
+          return {
+            ...store,
+            environmentImages: storeImages,
+          };
+        });
+
+        // 只顯示有環境圖片的商店
+        const storesWithImagesFiltered = storesWithImages.filter(
+          (store: Store) => store.environmentImages && store.environmentImages.length > 0
+        );
+
+        setStores(storesWithImagesFiltered);
+      } catch (error) {
+        console.error('Failed to fetch data:', error);
+        setStores([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
   const structuredData = {
     '@context': 'https://schema.org',
     '@type': 'AboutPage',
@@ -175,19 +210,35 @@ const About: React.FC = () => {
         </div>
       </section>
 
-      {/* Image Gallery */}
-      {!loading && environmentImages.length > 0 && (
-        <section className="py-12 sm:py-16 md:py-20 bg-[#f0f4ff]">
+      {/* Environment Images Section */}
+      {!loading && stores.length > 0 && (
+        <section className="py-6 sm:py-8 md:py-10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold serif text-center mb-8 sm:mb-12">我們的環境</h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-              {environmentImages.map((image) => (
-                <div key={image.id} className="aspect-square rounded-[30px] overflow-hidden">
-                  <img
-                    src={`/storage/${image.image_path}`}
-                    alt="Environment image"
-                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                  />
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold serif text-center mb-4 sm:mb-6">我們的環境</h2>
+            
+            <div className="space-y-6 sm:space-y-8">
+              {stores.map((store, index) => (
+                <div key={store.id}>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold serif mb-4 sm:mb-6 text-center">
+                    {store.name}
+                  </h3>
+                  {store.environmentImages && store.environmentImages.length > 0 && (
+                    <>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4 mb-3 sm:mb-4">
+                        {store.environmentImages.map((image) => (
+                          <div key={image.id} className="aspect-square rounded-[30px] overflow-hidden">
+                            <img
+                              src={`/storage/${image.image_path}`}
+                              alt={`${store.name} 環境圖片`}
+                              className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                            />
+                          </div>
+                        ))}
+                      </div>
+                      {/* 每個圖片區塊下方添加細的 hr */}
+                      <hr style={{ borderColor: '#ccc', borderWidth: '0.5px', borderTop: 'none', borderLeft: 'none', borderRight: 'none', marginTop: '1rem', marginBottom: '1rem' }} />
+                    </>
+                  )}
                 </div>
               ))}
             </div>

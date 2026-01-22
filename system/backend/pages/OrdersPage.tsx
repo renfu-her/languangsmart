@@ -9,6 +9,11 @@ import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+interface Store {
+  id: number;
+  name: string;
+}
+
 interface Order {
   id: number;
   order_number: string;
@@ -37,7 +42,7 @@ interface Statistics {
   month: string;
 }
 
-const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statistics | null }> = ({ isOpen, onClose, stats }) => {
+const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statistics | null; currentStore: Store | null }> = ({ isOpen, onClose, stats, currentStore }) => {
   const [isExporting, setIsExporting] = useState(false);
 
   const handleExportPartnerReport = async (partnerName: string, partnerId?: number) => {
@@ -61,6 +66,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
 
       const dates = partnerData.dates || [];
       const allModels = reportData.models || [];
+      const storeName = partnerData.store_name || reportData.store_name || null;
 
       // 驗證數據
       if (!Array.isArray(allModels) || allModels.length === 0) {
@@ -171,9 +177,9 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         border: borderStyle
       };
 
-      // 第一行：標題「合作商出租月報表」（合併所有列）
+      // 第一行：標題「合作商機車出租月報表」（合併所有列）
       const titleCell = worksheet.getCell(rowNumber, 1);
-      titleCell.value = `${partnerName}出租月報表`;
+      titleCell.value = `${partnerName}機車出租月報表`;
       worksheet.mergeCells(rowNumber, 1, rowNumber, totalCols);
       titleCell.font = titleStyle.font;
       titleCell.fill = titleStyle.fill;
@@ -186,7 +192,24 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       }
       rowNumber++;
 
-      // 第二行：前面兩欄空白，然後機車型號標題（每個型號佔 4 欄）
+      // 第二行：店家名稱（如果有的話）
+      if (storeName) {
+        const storeNameCell = worksheet.getCell(rowNumber, 1);
+        storeNameCell.value = storeName;
+        worksheet.mergeCells(rowNumber, 1, rowNumber, totalCols);
+        storeNameCell.font = { bold: true, size: 12, color: { argb: 'FF000000' } };
+        storeNameCell.fill = titleStyle.fill;
+        storeNameCell.alignment = titleStyle.alignment;
+        storeNameCell.border = titleStyle.border;
+        // 為店家名稱行的所有單元格設置邊框
+        for (let c = 1; c <= totalCols; c++) {
+          const cell = worksheet.getCell(rowNumber, c);
+          cell.border = borderStyle;
+        }
+        rowNumber++;
+      }
+
+      // 第三行：前面兩欄空白，然後機車型號標題（每個型號佔 4 欄）
       const headerRow2 = worksheet.getRow(rowNumber);
       let colIndex = 1;
       // 為前兩欄設置樣式和邊框
@@ -225,7 +248,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       rowNumber++;
 
-      // 第三行：當日租（1 欄）、跨日租（3 欄）
+      // 第四行：當日租（1 欄）、跨日租（3 欄）
       const headerRow3 = worksheet.getRow(rowNumber);
       colIndex = 1;
       // 為前兩欄設置樣式和邊框
@@ -273,7 +296,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       rowNumber++;
 
-      // 第四行：日期、星期（前兩欄），然後是台數（當日租下）、台數、天數、金額（跨日租下，金額共用）
+      // 第五行：日期、星期（前兩欄），然後是台數（當日租下）、台數、天數、金額（跨日租下，金額共用）
       const headerRow4 = worksheet.getRow(rowNumber);
       colIndex = 1;
       // 為前兩欄設置樣式和邊框（日期和星期）
@@ -307,11 +330,13 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       });
       rowNumber++;
 
-      // 凍結表頭行（第 1-4 行，包含所有文字的表頭）
-      // ySplit: 4 表示凍結前 4 行（0-3 行），從第 5 行開始可以滾動
-      worksheet.views = [{ state: 'frozen', ySplit: 4 }];
+      // 凍結表頭行（根據是否有店家名稱決定）
+      // 如果有店家名稱：凍結前 5 行（標題、店家名稱、機車型號、當日租/跨日租、日期/星期）
+      // 如果沒有店家名稱：凍結前 4 行
+      const frozenRows = storeName ? 5 : 4;
+      worksheet.views = [{ state: 'frozen', ySplit: frozenRows }];
 
-      // 第五行開始：日期、星期、數據
+      // 數據行開始：日期、星期、數據
 
       // 數據行（按 order_number 分開顯示）
       dates.forEach((dateItem: any) => {
@@ -329,7 +354,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
           emptyRow.getCell(1).value = formattedDate;
           emptyRow.getCell(2).value = weekday;
           // 其他欄位為空
-          const isAlternate = (rowNumber - 5) % 2 === 1; // 第 5 行開始是數據行（索引 5，rowNumber 從 1 開始）
+          const dataStartRow = storeName ? 6 : 5; // 數據行開始的行號
+          const isAlternate = (rowNumber - dataStartRow) % 2 === 1;
           const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
           for (let c = 1; c <= totalCols; c++) {
             const cell = emptyRow.getCell(c);
@@ -348,7 +374,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
             dataRow.getCell(cellIndex++).value = orderIndex === 0 ? formattedDate : '';
             dataRow.getCell(cellIndex++).value = orderIndex === 0 ? weekday : '';
 
-            const isAlternate = (rowNumber - 5) % 2 === 1; // 第 5 行開始是數據行
+            const dataStartRow = storeName ? 6 : 5; // 數據行開始的行號
+            const isAlternate = (rowNumber - dataStartRow) % 2 === 1;
             const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
             
             allModels.forEach((model: string) => {
@@ -1313,9 +1340,11 @@ const OrdersPage: React.FC = () => {
   // Fetch pending bookings count and list
   const fetchPendingBookings = async () => {
     try {
+      // 根據選擇的商店過濾預約訂單
+      const params = currentStore?.id ? { store_id: currentStore.id } : undefined;
       const [countResponse, listResponse] = await Promise.all([
-        bookingsApi.pendingCount(),
-        bookingsApi.pending(),
+        bookingsApi.pendingCount(params),
+        bookingsApi.pending(params),
       ]);
       setPendingBookingsCount(countResponse.count || 0);
       const bookings = listResponse.data || [];
@@ -1324,10 +1353,15 @@ const OrdersPage: React.FC = () => {
       // 初始化每個預約的合作商
       const initialPartners: Record<number, number | null> = {};
       bookings.forEach((booking: any) => {
-        // 設置預設合作商：優先使用 booking 的 partner_id，否則使用預設合作商
+        // 設置預設合作商：優先使用 booking 的 partner_id，否則使用該商店的預設合作商
         let defaultPartnerId: number | null = booking.partner_id || null;
         if (!defaultPartnerId && partners.length > 0) {
-          const defaultPartner = partners.find((p: any) => p.is_default_for_booking);
+          // 根據 booking 的 store_id 查找該商店的預設合作商
+          const bookingStoreId = booking.store_id || booking.store?.id;
+          const defaultPartner = partners.find((p: any) => 
+            p.is_default_for_booking && 
+            (p.store_id === bookingStoreId || (!p.store_id && !bookingStoreId))
+          );
           defaultPartnerId = defaultPartner ? defaultPartner.id : null;
         }
         initialPartners[booking.id] = defaultPartnerId;
@@ -1362,7 +1396,7 @@ const OrdersPage: React.FC = () => {
     // 每 30 秒刷新一次未確認預約數量
     const interval = setInterval(fetchPendingBookings, 30000);
     return () => clearInterval(interval);
-  }, [partners, rentalPlans]);
+  }, [partners, rentalPlans, currentStore]);
 
   // Fetch orders
   useEffect(() => {
@@ -1396,7 +1430,7 @@ const OrdersPage: React.FC = () => {
     };
 
     fetchOrders();
-  }, [selectedYear, selectedMonth, searchTerm, currentPage]);
+  }, [selectedYear, selectedMonth, searchTerm, currentPage, currentStore]);
 
 
   // 滾動時關閉狀態下拉選單
@@ -1429,7 +1463,7 @@ const OrdersPage: React.FC = () => {
 
   useEffect(() => {
     fetchStatistics();
-  }, [selectedYear, selectedMonth]);
+  }, [selectedYear, selectedMonth, currentStore]);
 
   // 點擊外部關閉下拉菜單（現在通過遮罩層處理）
   // 滾動時關閉下拉菜單
@@ -1667,6 +1701,7 @@ const OrdersPage: React.FC = () => {
         month: selectedMonthString,
         search: searchTerm || undefined,
         page: currentPage,
+        store_id: currentStore?.id,
       });
       const ordersData = response.data || [];
       setOrders(Array.isArray(ordersData) ? ordersData : []);
@@ -1855,10 +1890,14 @@ const OrdersPage: React.FC = () => {
     try {
       const partnerId = bookingPartners[booking.id] || null;
       
+      // 確保預約的 store_id 被傳遞到訂單轉換
+      const storeId = booking.store_id || booking.store?.id || null;
+      
       // 不傳入 payment_amount，讓後端根據合作商的機車型號費用自動計算調車費用
       await bookingsApi.convertToOrder(booking.id, {
         partner_id: partnerId,
         payment_method: '現金',
+        store_id: storeId, // 確保預約的 store_id 被寫入訂單
       });
       
       await handleConvertSuccess(booking.id);
@@ -1877,6 +1916,7 @@ const OrdersPage: React.FC = () => {
       month: selectedMonthString,
       search: searchTerm || undefined,
       page: currentPage,
+      store_id: currentStore?.id,
     });
     const ordersData = response.data || [];
     setOrders(Array.isArray(ordersData) ? ordersData : []);
@@ -2050,6 +2090,7 @@ const OrdersPage: React.FC = () => {
                           <div>承租人姓名: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.name}</span></div>
                           <div>LINE ID: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.line_id || '-'}</span></div>
                           <div>行動電話: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.phone || '-'}</span></div>
+                          <div>商店名稱: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.store?.name || '-'}</span></div>
                           <div>預約日期: <span className="font-medium text-gray-800 dark:text-gray-100">{new Date(booking.booking_date).toLocaleDateString('zh-TW')}</span></div>
                           <div>結束日期: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.end_date ? new Date(booking.end_date).toLocaleDateString('zh-TW') : '-'}</span></div>
                           <div>船運公司: <span className="font-medium text-gray-800 dark:text-gray-100">{booking.shipping_company || '-'}</span></div>
@@ -2567,6 +2608,7 @@ const OrdersPage: React.FC = () => {
                 month: selectedMonthString,
                 search: searchTerm || undefined,
                 page: currentPage,
+                store_id: currentStore?.id,
               });
               const ordersData = response.data || [];
               setOrders(Array.isArray(ordersData) ? ordersData : []);
@@ -2620,7 +2662,7 @@ const OrdersPage: React.FC = () => {
         ) : null;
       })()}
 
-      <StatsModal isOpen={isStatsModalOpen} onClose={() => setIsStatsModalOpen(false)} stats={stats} />
+      <StatsModal isOpen={isStatsModalOpen} onClose={() => setIsStatsModalOpen(false)} stats={stats} currentStore={currentStore} />
       
       <ChartModal isOpen={isChartModalOpen} onClose={() => setIsChartModalOpen(false)} stats={stats} />
 
@@ -2667,6 +2709,7 @@ const OrdersPage: React.FC = () => {
                               month: selectedMonthString,
                               search: searchTerm || undefined,
                               page: currentPage,
+                              store_id: currentStore?.id,
                             });
                             const ordersData = response.data || [];
                             setOrders(Array.isArray(ordersData) ? ordersData : []);

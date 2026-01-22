@@ -26,7 +26,7 @@ class PartnerController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Partner::query();
+        $query = Partner::with('store');
 
         // Search
         if ($request->has('search')) {
@@ -36,6 +36,11 @@ class PartnerController extends Controller
                     ->orWhere('address', 'like', "%{$search}%")
                     ->orWhere('tax_id', 'like', "%{$search}%");
             });
+        }
+
+        // Filter by store_id
+        if ($request->has('store_id')) {
+            $query->where('store_id', $request->get('store_id'));
         }
 
         $partners = $query->with('scooterModelTransferFees.scooterModel')->orderBy('created_at', 'desc')->get();
@@ -59,6 +64,7 @@ class PartnerController extends Controller
             'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'is_default_for_booking' => 'nullable|boolean',
             'default_shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船',
+            'store_id' => 'nullable|exists:stores,id',
             'transfer_fees' => 'nullable|array',
             'transfer_fees.*.scooter_model_id' => 'required_with:transfer_fees|exists:scooter_models,id',
             'transfer_fees.*.same_day_transfer_fee' => 'nullable|integer|min:0',
@@ -76,9 +82,20 @@ class PartnerController extends Controller
         $transferFees = $data['transfer_fees'] ?? [];
         unset($data['transfer_fees']);
         
-        // 如果設置為預設，取消其他合作商的預設狀態
+        // 如果設置為預設，取消同一 store_id 下其他合作商的預設狀態
         if (isset($data['is_default_for_booking']) && $data['is_default_for_booking']) {
-            Partner::where('id', '!=', 0)->update(['is_default_for_booking' => false]);
+            $storeId = $data['store_id'] ?? null;
+            if ($storeId) {
+                // 只取消同一 store_id 下其他合作商的預設狀態
+                Partner::where('store_id', $storeId)
+                    ->where('id', '!=', 0)
+                    ->update(['is_default_for_booking' => false]);
+            } else {
+                // 如果沒有 store_id，取消所有沒有 store_id 的合作商的預設狀態
+                Partner::whereNull('store_id')
+                    ->where('id', '!=', 0)
+                    ->update(['is_default_for_booking' => false]);
+            }
         }
 
         DB::beginTransaction();
@@ -136,6 +153,7 @@ class PartnerController extends Controller
             'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
             'is_default_for_booking' => 'nullable|boolean',
             'default_shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船',
+            'store_id' => 'nullable|exists:stores,id',
             'transfer_fees' => 'nullable|array',
             'transfer_fees.*.scooter_model_id' => 'required_with:transfer_fees|exists:scooter_models,id',
             'transfer_fees.*.same_day_transfer_fee' => 'nullable|integer|min:0',
@@ -154,9 +172,20 @@ class PartnerController extends Controller
         $transferFees = $data['transfer_fees'] ?? null;
         unset($data['transfer_fees']);
         
-        // 如果設置為預設，取消其他合作商的預設狀態
+        // 如果設置為預設，取消同一 store_id 下其他合作商的預設狀態
         if (isset($data['is_default_for_booking']) && $data['is_default_for_booking']) {
-            Partner::where('id', '!=', $partner->id)->update(['is_default_for_booking' => false]);
+            $storeId = $data['store_id'] ?? $partner->store_id;
+            if ($storeId) {
+                // 只取消同一 store_id 下其他合作商的預設狀態
+                Partner::where('store_id', $storeId)
+                    ->where('id', '!=', $partner->id)
+                    ->update(['is_default_for_booking' => false]);
+            } else {
+                // 如果沒有 store_id，取消所有沒有 store_id 的合作商的預設狀態
+                Partner::whereNull('store_id')
+                    ->where('id', '!=', $partner->id)
+                    ->update(['is_default_for_booking' => false]);
+            }
         }
 
         DB::beginTransaction();
