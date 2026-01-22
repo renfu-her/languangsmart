@@ -30,11 +30,14 @@ return new class extends Migration
         });
 
         // 修改 role 欄位：從 ['admin', 'member'] 改為 ['super_admin', 'admin']
-        // 先將現有的 'admin' 改為 'super_admin'，'member' 改為 'admin'
+        // 先修改 enum 類型，允許新的值
+        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'member', 'super_admin') NOT NULL DEFAULT 'admin'");
+        
+        // 然後更新資料：'admin' -> 'super_admin'，'member' -> 'admin'
         DB::statement("UPDATE users SET role = 'super_admin' WHERE role = 'admin'");
         DB::statement("UPDATE users SET role = 'admin' WHERE role = 'member'");
         
-        // 修改 enum 類型
+        // 最後移除舊的 'member' 選項，只保留 'super_admin' 和 'admin'
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('super_admin', 'admin') NOT NULL DEFAULT 'admin'");
     }
 
@@ -60,8 +63,14 @@ return new class extends Migration
         });
 
         // 還原 role 欄位
+        // 先修改 enum 類型，允許舊的值
+        DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('super_admin', 'admin', 'member') NOT NULL DEFAULT 'admin'");
+        
+        // 然後更新資料：'super_admin' -> 'admin'，'admin' -> 'member'
         DB::statement("UPDATE users SET role = 'admin' WHERE role = 'super_admin'");
         DB::statement("UPDATE users SET role = 'member' WHERE role = 'admin'");
+        
+        // 最後移除 'super_admin' 選項，只保留 'admin' 和 'member'
         DB::statement("ALTER TABLE users MODIFY COLUMN role ENUM('admin', 'member') NOT NULL DEFAULT 'member'");
     }
 };
