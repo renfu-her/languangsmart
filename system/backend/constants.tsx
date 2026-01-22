@@ -61,3 +61,26 @@ export const NAV_ITEMS = [
     ]
   }
 ];
+
+// 路由權限映射：路徑 -> 權限要求
+export const ROUTE_PERMISSIONS: Record<string, string | null> = {
+  '/orders': null, // 所有角色都可以使用
+  '/fines': null,
+  '/scooters': null,
+  '/scooter-models': null,
+  '/scooter-types': null,
+  '/accessories': null,
+  '/partners': null,
+  '/stores': 'can_manage_stores', // 需要授權商店管理
+  '/banners': 'can_manage_content', // 需要授權網站內容管理
+  '/home-images': 'can_manage_content',
+  '/environment-images': 'can_manage_content',
+  '/shuttle-images': 'can_manage_content',
+  '/rental-plans': 'can_manage_content',
+  '/guidelines': 'can_manage_content',
+  '/contact-infos': 'can_manage_content',
+  '/locations': 'can_manage_content',
+  '/guesthouses': 'can_manage_content',
+  '/bookings': 'can_manage_content',
+  '/admins': 'super_admin', // 只有 super_admin 可以使用
+};

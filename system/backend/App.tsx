@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { StoreProvider } from './contexts/StoreContext';
 import DashboardLayout from './components/DashboardLayout';
 import LoginPage from './pages/LoginPage';
+import { ROUTE_PERMISSIONS } from './constants';
 
 // Lazy load page components for code-splitting
 const OrdersPage = React.lazy(() => import('./pages/OrdersPage'));
@@ -57,6 +58,63 @@ const ProtectedRoute: React.FC<{ children: React.ReactElement }> = ({ children }
   return children;
 };
 
+// 權限保護路由組件
+const PermissionRoute: React.FC<{ children: React.ReactElement; path: string }> = ({ children, path }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto"></div>
+          <p className="mt-4 text-gray-500 dark:text-gray-400">載入中...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // 檢查路由權限
+  const requiredPermission = ROUTE_PERMISSIONS[path];
+  
+  // 如果沒有設定權限，所有角色都可以使用
+  if (requiredPermission === null) {
+    return children;
+  }
+
+  // super_admin 可以使用所有路由
+  if (user.role === 'super_admin') {
+    return children;
+  }
+
+  // 檢查特定權限
+  if (requiredPermission === 'super_admin') {
+    // 只有 super_admin 可以使用
+    if (user.role !== 'super_admin') {
+      return <Navigate to="/orders" replace />;
+    }
+  }
+
+  if (requiredPermission === 'can_manage_stores') {
+    // 需要授權商店管理
+    if (!user.can_manage_stores) {
+      return <Navigate to="/orders" replace />;
+    }
+  }
+
+  if (requiredPermission === 'can_manage_content') {
+    // 需要授權網站內容管理
+    if (!user.can_manage_content) {
+      return <Navigate to="/orders" replace />;
+    }
+  }
+
+  return children;
+};
+
 const App: React.FC = () => {
   return (
     <AuthProvider>
@@ -81,9 +139,11 @@ const App: React.FC = () => {
               </Suspense>
             } />
             <Route path="stores" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <StoresPage />
-              </Suspense>
+              <PermissionRoute path="/stores">
+                <Suspense fallback={<LoadingFallback />}>
+                  <StoresPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="scooters" element={
               <Suspense fallback={<LoadingFallback />}>
@@ -111,59 +171,81 @@ const App: React.FC = () => {
               </Suspense>
             } />
             <Route path="admins" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <AdminsPage />
-              </Suspense>
+              <PermissionRoute path="/admins">
+                <Suspense fallback={<LoadingFallback />}>
+                  <AdminsPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="banners" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <BannersPage />
-              </Suspense>
+              <PermissionRoute path="/banners">
+                <Suspense fallback={<LoadingFallback />}>
+                  <BannersPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="rental-plans" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <RentalPlansPage />
-              </Suspense>
+              <PermissionRoute path="/rental-plans">
+                <Suspense fallback={<LoadingFallback />}>
+                  <RentalPlansPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="guidelines" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <GuidelinesPage />
-              </Suspense>
+              <PermissionRoute path="/guidelines">
+                <Suspense fallback={<LoadingFallback />}>
+                  <GuidelinesPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="contact-infos" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <ContactInfosPage />
-              </Suspense>
+              <PermissionRoute path="/contact-infos">
+                <Suspense fallback={<LoadingFallback />}>
+                  <ContactInfosPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="locations" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <LocationsPage />
-              </Suspense>
+              <PermissionRoute path="/locations">
+                <Suspense fallback={<LoadingFallback />}>
+                  <LocationsPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="guesthouses" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <GuesthousesPage />
-              </Suspense>
+              <PermissionRoute path="/guesthouses">
+                <Suspense fallback={<LoadingFallback />}>
+                  <GuesthousesPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="bookings" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <BookingsPage />
-              </Suspense>
+              <PermissionRoute path="/bookings">
+                <Suspense fallback={<LoadingFallback />}>
+                  <BookingsPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="home-images" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <HomeImagesPage />
-              </Suspense>
+              <PermissionRoute path="/home-images">
+                <Suspense fallback={<LoadingFallback />}>
+                  <HomeImagesPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="environment-images" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <EnvironmentImagesPage />
-              </Suspense>
+              <PermissionRoute path="/environment-images">
+                <Suspense fallback={<LoadingFallback />}>
+                  <EnvironmentImagesPage />
+                </Suspense>
+              </PermissionRoute>
             } />
             <Route path="shuttle-images" element={
-              <Suspense fallback={<LoadingFallback />}>
-                <ShuttleImagesPage />
-              </Suspense>
+              <PermissionRoute path="/shuttle-images">
+                <Suspense fallback={<LoadingFallback />}>
+                  <ShuttleImagesPage />
+                </Suspense>
+              </PermissionRoute>
             } />
           </Route>
         </Routes>
