@@ -1,5 +1,40 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-22 11:30:31 (Asia/Taipei) - 實作路由權限保護，隱藏的選單 URL 無法訪問
+
+### 變更內容
+
+#### 前端變更
+
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 新增 `ROUTE_PERMISSIONS` 物件，建立路由路徑與權限要求的映射
+  - 定義每個路由所需的權限（`null`、`can_manage_stores`、`can_manage_content`、`super_admin`）
+
+- **App.tsx** (`system/backend/App.tsx`)
+  - 新增 `PermissionRoute` 組件，用於檢查用戶是否有權限訪問特定路由
+  - 為需要權限的路由加上 `PermissionRoute` 保護：
+    - `/stores`：需要 `can_manage_stores` 授權
+    - `/admins`：需要 `super_admin` 角色
+    - `/banners`、`/home-images`、`/environment-images`、`/shuttle-images`、`/rental-plans`、`/guidelines`、`/contact-infos`、`/locations`、`/guesthouses`、`/bookings`：需要 `can_manage_content` 授權
+  - 如果用戶沒有權限訪問路由，會自動重定向到 `/orders` 頁面
+
+### 功能說明
+
+- **路由權限保護**：
+  - 所有路由都會檢查用戶權限
+  - 如果用戶沒有權限訪問某個路由（即使直接輸入 URL），會被自動重定向到 `/orders` 頁面
+  - `super_admin` 可以訪問所有路由
+  - `admin` 需要對應的授權才能訪問特定路由
+  - 沒有權限要求的路由（如 `/orders`、`/scooters` 等）所有角色都可以訪問
+
+- **權限檢查邏輯**：
+  - 系統管理者管理 (`/admins`)：只有 `super_admin` 可以訪問
+  - 商店管理 (`/stores`)：需要 `can_manage_stores` 授權或 `super_admin`
+  - 網站內容管理相關路由：需要 `can_manage_content` 授權或 `super_admin`
+  - 其他路由：所有角色都可以訪問
+
+---
+
 ## 2026-01-22 11:21:03 (Asia/Taipei) - 移除後台登入頁面的店家選擇器，直接使用 users store_id
 
 ### 變更內容
