@@ -1,5 +1,33 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-22 11:54:48 (Asia/Taipei) - 修改 User 刪除保護邏輯，只保護 zau1110216@gmail.com
+
+### 變更內容
+
+#### 後端變更
+
+- **UserController** (`app/Http/Controllers/Api/UserController.php`)
+  - 修改 `destroy()` 方法的刪除保護邏輯
+  - 從保護 `admin@admin.com` 改為保護 `zau1110216@gmail.com`
+  - `admin@admin.com` 現在可以刪除
+  - 只有 `zau1110216@gmail.com` 無法刪除
+
+#### 前端變更
+
+- **AdminsPage** (`system/backend/pages/AdminsPage.tsx`)
+  - 修改 `handleDelete()` 函數的檢查邏輯
+  - 從檢查 `admin@admin.com` 改為檢查 `zau1110216@gmail.com`
+  - 修改刪除按鈕的顯示條件，只有 `zau1110216@gmail.com` 不顯示刪除按鈕
+
+### 功能說明
+
+- **User 刪除保護**：
+  - 只有 `zau1110216@gmail.com` 這個帳號無法刪除
+  - 其他所有帳號（包括 `admin@admin.com`）都可以刪除
+  - 前端和後端都有雙重保護，確保 `zau1110216@gmail.com` 無法被刪除
+
+---
+
 ## 2026-01-22 11:30:31 (Asia/Taipei) - 實作路由權限保護，隱藏的選單 URL 無法訪問
 
 ### 變更內容
