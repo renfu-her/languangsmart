@@ -1,5 +1,37 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-23 09:48:10 (Asia/Taipei) - 修復 constants.tsx 語法錯誤
+
+### 變更內容
+
+#### 前端變更
+
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 修復第 59 行的語法錯誤，移除意外插入的 `image.png` 文本
+  - 修正 `children` 陣列的語法，確保正確的 JavaScript/TypeScript 語法
+
+### 問題說明
+
+- **構建錯誤**：
+  - 原因：在 `constants.tsx` 文件的第 59 行，`children: [` 後面意外插入了 `image.png` 文本，導致語法錯誤
+  - 錯誤訊息：`Expected "]" but found "{"`
+  - 解決：移除 `image.png` 文本，恢復正確的語法
+
+### 功能說明
+
+- **修復後的代碼**：
+  ```typescript
+  children: [
+    { name: '系統管理者管理', path: '/admins' }
+  ]
+  ```
+
+- **改進效果**：
+  - 修復構建錯誤，後端可以正常構建
+  - 恢復正確的語法結構
+
+---
+
 ## 2026-01-23 09:45:19 (Asia/Taipei) - 進一步修復完成編輯或新增 modal 動作後其他連結失效的問題
 
 ### 變更內容
