@@ -1,5 +1,74 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-23 14:34:48 (Asia/Taipei) - 訂單新增/編輯 modal 的取消和確認按鈕皆觸發 reload
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `AddOrderModal` 的 `onClose` 回調，取消和確認按鈕皆觸發 `window.location.reload()`
+  - 簡化 `onClose` 邏輯，移除所有 state 清理和 DOM 清理代碼，直接使用 reload 確保狀態重置
+  - 使用 `setTimeout` 延遲 100ms 再 reload，確保 modal 先關閉
+
+### 問題說明
+
+- **畫面卡住問題（最終解決方案）**：
+  - 原因：雖然已經添加了清理邏輯，但可能還有其他未知的 state 或 DOM 元素導致畫面卡住
+  - 解決：使用 `window.location.reload()` 重新載入頁面，確保所有狀態都被重置，這是最可靠的方式
+
+### 功能說明
+
+- **Modal 關閉流程**：
+  1. 用戶點擊「取消」或「確認完成」（新增/更新訂單）
+  2. 關閉 modal：`setIsAddModalOpen(false)`, `setEditingOrder(null)`
+  3. 延遲 100ms 後執行 `window.location.reload()`
+  4. 頁面重新載入，所有狀態都被重置
+
+- **改進效果**：
+  - 確保所有狀態都被重置，不會有殘留的 state 或 DOM 元素
+  - 簡單可靠，不會有遺漏的問題
+  - 取消和確認按鈕都會觸發 reload
+
+---
+
+## 2026-01-23 14:31:54 (Asia/Taipei) - 修復 BrowserRouter basename 配置解決白屏問題
+
+### 變更內容
+
+#### 前端變更
+
+- **App.tsx** (`system/backend/App.tsx`)
+  - 在 `BrowserRouter` 中添加 `basename="/backend"` 屬性
+  - 因為應用部署在 `/backend/` 路徑下（vite.config.ts 中設置了 `base: '/backend/'`），需要設置 basename 才能正確工作
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 將所有重定向路徑從 `/login` 改為 `/backend/login`
+  - 將所有路徑檢查從 `window.location.pathname !== '/login'` 改為 `window.location.pathname !== '/backend/login'`
+  - 共更新 8 處（第 68, 127, 164, 228, 296, 331, 576, 613 行）
+
+### 問題說明
+
+- **白屏問題**：
+  - 原因：將 `HashRouter` 改為 `BrowserRouter` 後，沒有設置 `basename` 屬性，導致路由無法正確匹配
+  - 因為應用部署在 `/backend/` 路徑下（vite.config.ts 中設置了 `base: '/backend/'`），BrowserRouter 需要知道基礎路徑
+  - 解決：在 `BrowserRouter` 中添加 `basename="/backend"`，並更新所有路由檢查和重定向路徑
+
+### 功能說明
+
+- **BrowserRouter basename**：
+  - 設置 `basename="/backend"` 後，所有路由都會自動加上 `/backend` 前綴
+  - `/login` 會變成 `/backend/login`
+  - `/orders` 會變成 `/backend/orders`
+  - 與 vite.config.ts 中的 `base: '/backend/'` 配置一致
+
+- **改進效果**：
+  - 修復白屏問題，應用可以正常顯示
+  - URL 格式為 `/backend/orders` 而不是 `/#/orders`
+  - 所有路由和重定向都正確工作
+
+---
+
 ## 2026-01-23 14:27:58 (Asia/Taipei) - 修復所有 Modal 殘留問題並將 HashRouter 改為 BrowserRouter
 
 ### 變更內容

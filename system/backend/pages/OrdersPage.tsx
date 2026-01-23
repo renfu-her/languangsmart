@@ -2700,24 +2700,10 @@ const OrdersPage: React.FC = () => {
           setEditingOrder(null);
           setPendingAppointmentDate(appointmentDate);
           
-          // 清空所有 UI 交互相關的 state，確保不會阻擋其他連結
-          setOpenDropdownId(null);
-          setDropdownPosition(null);
-          setOpenStatusDropdownId(null);
-          setStatusDropdownPosition(null);
-          setExpandedRemarkId(null);
-          setShowPendingBookings(false);
-          
-          // 清空拖拽相關 state
-          setDraggedOrderId(null);
-          setDraggedOverOrderId(null);
-          setTemporaryOrder([]);
-          
-          // 重置 ref
-          prevModalOpenRef.current = false;
-          
-          // 使用共用的清理函數
-          cleanupAllModals();
+          // 取消、確認按鈕皆觸發 reload
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
         }} 
       />
       {/* 備註內容彈窗 */}
