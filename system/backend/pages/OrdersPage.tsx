@@ -2672,12 +2672,14 @@ const OrdersPage: React.FC = () => {
           }
         }}
         onClose={(appointmentDate) => {
-          // 立即同步關閉 Modal，避免影響其他連結
+          // 立即同步關閉 Modal
           setIsAddModalOpen(false);
           setEditingOrder(null);
-          
-          // 如果有預約日期，表示是成功提交（新增或編輯），更新 pendingAppointmentDate 以觸發 useEffect 刷新數據
           setPendingAppointmentDate(appointmentDate);
+          // 取消、確認完成（新增/更新訂單）皆觸發 reload，確保畫面狀態重置、連結可用
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
         }} 
       />
       {/* 備註內容彈窗 */}

@@ -937,6 +937,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
             取消
           </button>
           <button 
+            type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
             className="px-10 py-2.5 bg-gray-900 dark:bg-gray-700 rounded-xl text-sm font-black text-white hover:bg-black dark:hover:bg-gray-600 shadow-lg transition-all disabled:opacity-50 flex items-center"
