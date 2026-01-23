@@ -454,8 +454,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
       } else {
         await ordersApi.create(orderData);
       }
-      // 傳遞預約日期，用於跳轉到對應月份
-      // 立即關閉 modal，確保不會阻擋其他連結
+      // 傳遞預約日期；關閉後由父層 onClose 觸發 reload
       onClose(formData.appointment_date || undefined);
     } catch (error: any) {
       console.error('Failed to create order:', error);
@@ -929,7 +928,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onClose();
+              onClose(); // 關閉後由父層 onClose 觸發 reload
             }} 
             className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all"
             disabled={isSubmitting}
