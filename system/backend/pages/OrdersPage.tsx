@@ -2672,11 +2672,26 @@ const OrdersPage: React.FC = () => {
           }
         }}
         onClose={(appointmentDate) => {
+          // 關閉 modal
           setIsAddModalOpen(false);
           setEditingOrder(null);
           setPendingAppointmentDate(appointmentDate);
-          // 取消、確認 按鈕皆觸發 reload
-          setTimeout(() => window.location.reload(), 100);
+          
+          // 清空所有 UI 交互相關的 state，確保不會阻擋其他連結
+          setOpenDropdownId(null);
+          setDropdownPosition(null);
+          setOpenStatusDropdownId(null);
+          setStatusDropdownPosition(null);
+          setExpandedRemarkId(null);
+          setShowPendingBookings(false);
+          
+          // 清空拖拽相關 state
+          setDraggedOrderId(null);
+          setDraggedOverOrderId(null);
+          setTemporaryOrder([]);
+          
+          // 重置 ref
+          prevModalOpenRef.current = false;
         }} 
       />
       {/* 備註內容彈窗 */}

@@ -1,5 +1,46 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-23 14:11:21 (Asia/Taipei) - 改用清空 state 替代 reload 解決訂單管理 modal 關閉後連結失效問題
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 移除 `window.location.reload()`，改用清空所有相關 state 的方式
+  - 在 `AddOrderModal` 的 `onClose` 回調中，清空所有 UI 交互相關的 state：
+    - `openDropdownId`, `dropdownPosition` - 下拉菜單相關
+    - `openStatusDropdownId`, `statusDropdownPosition` - 狀態下拉菜單相關
+    - `expandedRemarkId` - 備註展開狀態
+    - `showPendingBookings` - 待處理預約顯示狀態
+    - `draggedOrderId`, `draggedOverOrderId`, `temporaryOrder` - 拖拽相關
+    - `prevModalOpenRef.current` - Modal 前一個狀態的 ref
+  - 保留 `pendingAppointmentDate` 的設置，讓 useEffect 正常處理數據刷新和月份跳轉
+
+### 問題說明
+
+- **連結失效問題（最終解決方案）**：
+  - 原因：使用 `window.location.reload()` 會重新載入整個頁面，丟失用戶當前的篩選條件，且體驗不佳
+  - 解決：改用清空所有可能影響連結的 state，確保 modal 關閉後可以立即點擊其他連結（罰單管理、機車清單等）
+  - 優點：保留用戶當前的篩選條件（年份、月份、搜尋關鍵字等），體驗更流暢
+
+### 功能說明
+
+- **Modal 關閉流程**：
+  1. 用戶點擊「取消」或「確認完成」（新增/更新訂單）
+  2. 關閉 modal：`setIsAddModalOpen(false)`, `setEditingOrder(null)`
+  3. 清空所有 UI 交互相關的 state，確保不會阻擋其他連結
+  4. 設置 `pendingAppointmentDate`，觸發 useEffect 處理數據刷新和月份跳轉
+  5. 用戶可以立即點擊其他連結，不會被阻擋
+
+- **改進效果**：
+  - Modal 關閉後，其他連結可以立即正常使用
+  - 不會因為殘留的 state 或 DOM 元素導致連結失效
+  - 保留用戶當前的篩選條件，體驗更流暢
+  - 不需要重新載入整個頁面，性能更好
+
+---
+
 ## 2026-01-23 11:38:28 (Asia/Taipei) - 訂單管理 modal 取消與確認完成皆觸發 reload
 
 ### 變更內容
