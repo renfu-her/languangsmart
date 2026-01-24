@@ -44,7 +44,7 @@ class AuthController extends Controller
 
         if ($userAnswer !== $correctAnswer) {
             return response()->json([
-                'message' => '驗證碼錯誤',
+                'message' => '驗證碼不正確，請再試一次',
             ], 400);
         }
 
@@ -55,7 +55,7 @@ class AuthController extends Controller
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([
-                'message' => 'Email 或密碼錯誤',
+                'message' => 'Email 以及密碼不符合，請再試一次',
             ], 401);
         }
 

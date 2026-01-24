@@ -1,5 +1,17 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-24 20:26:31 (Asia/Taipei) - 後台登入錯誤訊息依驗證結果調整
+
+### 變更內容
+
+#### 後端變更
+
+- **AuthController.php** (`app/Http/Controllers/Api/AuthController.php`)
+  - 驗證碼錯誤時回覆「驗證碼不正確，請再試一次」
+  - Email/密碼錯誤時回覆「Email 以及密碼不符合，請再試一次」
+
+---
+
 ## 2026-01-24 20:18:09 (Asia/Taipei) - 後台預約管理移至租借管理並調整權限
 
 ### 變更內容
