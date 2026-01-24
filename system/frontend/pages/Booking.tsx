@@ -37,20 +37,9 @@ const Booking: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // 獲取今天的日期時間（格式：YYYY-MM-DDTHH:mm）
-  const getTodayDateTime = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const hours = String(today.getHours()).padStart(2, '0');
-    const minutes = String(today.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
   const todayDate = getTodayDate();
   const tomorrowDate = getTomorrowDate();
-  const todayDateTime = getTodayDateTime();
+  const getStartOfDayDateTime = (dateValue: string) => `${dateValue}T00:00`;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -73,6 +62,9 @@ const Booking: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [scooterModels, setScooterModels] = useState<ScooterModel[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const minArrivalDateTime = formData.appointmentDate
+    ? getStartOfDayDateTime(formData.appointmentDate)
+    : getStartOfDayDateTime(tomorrowDate);
 
   useEffect(() => {
     fetchDefaultShippingCompany();
@@ -423,7 +415,7 @@ const Booking: React.FC = () => {
                 <input 
                   type="datetime-local" 
                   required
-                  min={todayDateTime}
+                  min={minArrivalDateTime}
                   onKeyDown={(e) => e.preventDefault()}
                   onPaste={(e) => e.preventDefault()}
                   className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all cursor-pointer text-sm sm:text-base"
