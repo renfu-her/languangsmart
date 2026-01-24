@@ -1,5 +1,29 @@
 # 變更記錄 (Change Log)
 
+## 2026-01-24 20:39:14 (Asia/Taipei) - 後台登入錯誤改為彈出提示
+
+### 變更內容
+
+#### 後台變更
+
+- **LoginPage.tsx** (`system/backend/pages/LoginPage.tsx`)
+  - 登入錯誤與驗證碼未填寫時改用 alert 彈窗提示
+
+---
+
+## 2026-01-24 20:38:08 (Asia/Taipei) - 修正後台登入頁面控制台錯誤提示
+
+### 變更內容
+
+#### 後台變更
+
+- **index.html** (`system/backend/index.html`)
+  - 移除不存在的 `index.css` 連結，避免 404 錯誤
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 僅在非預期錯誤或 5xx 時輸出 API 錯誤到控制台
+
+---
+
 ## 2026-01-24 20:26:31 (Asia/Taipei) - 後台登入錯誤訊息依驗證結果調整
 
 ### 變更內容

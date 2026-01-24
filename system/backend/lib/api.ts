@@ -81,8 +81,11 @@ class ApiClient {
       }
 
       return data;
-    } catch (error) {
-      console.error('API request error:', error);
+    } catch (error: any) {
+      const status = error?.response?.status;
+      if (!status || status >= 500) {
+        console.error('API request error:', error);
+      }
       throw error;
     }
   }
