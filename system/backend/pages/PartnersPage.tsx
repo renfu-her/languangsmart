@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Search, Edit3, Trash2, MapPin, Phone, Building, Image as ImageIcon, X, Loader2, MoreHorizontal, ChevronDown } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, MapPin, Phone, Building, Image as ImageIcon, X, Loader2, MoreHorizontal, ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { partnersApi, scooterModelsApi } from '../lib/api';
 import { useStore } from '../contexts/StoreContext';
 import { inputClasses, selectClasses, labelClasses, searchInputClasses, chevronDownClasses, uploadAreaBaseClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
@@ -278,6 +278,34 @@ const PartnersPage: React.FC = () => {
     setDropdownPosition(null);
   };
 
+  const handleReorder = async (index: number, direction: 'up' | 'down') => {
+    if (
+      (direction === 'up' && index === 0) ||
+      (direction === 'down' && index === partners.length - 1)
+    ) {
+      return;
+    }
+
+    const newPartners = [...partners];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    // Swap items
+    [newPartners[index], newPartners[targetIndex]] = [newPartners[targetIndex], newPartners[index]];
+    
+    // Optimistic update
+    setPartners(newPartners);
+
+    try {
+      const ids = newPartners.map(p => p.id);
+      await partnersApi.reorder(ids);
+    } catch (error) {
+      console.error('Failed to reorder partners:', error);
+      // Revert on error
+      fetchPartners();
+      alert('排序更新失敗');
+    }
+  };
+
   const handleEdit = (partner: Partner) => {
     handleOpenModal(partner);
     setOpenDropdownId(null);
@@ -450,14 +478,40 @@ const PartnersPage: React.FC = () => {
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-black">{partner.manager || '-'}</td>
                     <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{partner.store?.name || '-'}</td>
                     <td className="px-6 py-5 text-center">
-                      <div className="relative">
-                        <button 
-                          ref={(el) => { buttonRefs.current[partner.id] = el; }}
-                          onClick={() => toggleDropdown(partner.id)}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
+                      <div className="flex items-center justify-center space-x-2">
+                        <button
+                          onClick={() => handleReorder(partners.indexOf(partner), 'up')}
+                          disabled={partners.indexOf(partner) === 0}
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            partners.indexOf(partner) === 0
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
+                          }`}
+                          title="上移"
                         >
-                          <MoreHorizontal size={18} />
+                          <ArrowUp size={16} />
                         </button>
+                        <button
+                          onClick={() => handleReorder(partners.indexOf(partner), 'down')}
+                          disabled={partners.indexOf(partner) === partners.length - 1}
+                          className={`p-1.5 rounded-lg transition-colors ${
+                            partners.indexOf(partner) === partners.length - 1
+                              ? 'text-gray-300 cursor-not-allowed'
+                              : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
+                          }`}
+                          title="下移"
+                        >
+                          <ArrowDown size={16} />
+                        </button>
+                        <div className="relative">
+                          <button 
+                            ref={(el) => { buttonRefs.current[partner.id] = el; }}
+                            onClick={() => toggleDropdown(partner.id)}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
+                          >
+                            <MoreHorizontal size={18} />
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>

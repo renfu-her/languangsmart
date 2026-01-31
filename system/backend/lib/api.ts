@@ -368,11 +368,12 @@ export const ordersApi = {
 export const partnersApi = {
   list: (params?: { search?: string; store_id?: number }) => api.get('/partners', params),
   get: (id: string | number) => api.get(`/partners/${id}`),
-  create: (data: any) => api.post('/partners', data),
+  create: (data: any) => api.post<any>('/partners', data),
   update: (id: string | number, data: any) => api.put(`/partners/${id}`, data),
   delete: (id: string | number) => api.delete(`/partners/${id}`),
   uploadPhoto: (id: string | number, file: File) =>
     api.uploadFile(`/partners/${id}/upload-photo`, file),
+  reorder: (ids: number[]) => api.post('/partners/reorder', { ids }),
 };
 
 export const storesApi = {
