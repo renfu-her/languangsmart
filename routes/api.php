@@ -86,6 +86,7 @@ Route::prefix('orders')->group(function () {
 Route::prefix('shipping-companies')->group(function () {
     Route::get('/', [ShippingCompanyController::class, 'index']);
     Route::post('/', [ShippingCompanyController::class, 'store']);
+    Route::post('/reorder', [ShippingCompanyController::class, 'reorder']);
     Route::get('/{shippingCompany}', [ShippingCompanyController::class, 'show']);
     Route::put('/{shippingCompany}', [ShippingCompanyController::class, 'update']);
     Route::delete('/{shippingCompany}', [ShippingCompanyController::class, 'destroy']);

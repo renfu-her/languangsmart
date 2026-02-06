@@ -8,6 +8,7 @@ use App\Models\ShippingCompany;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 
 class ShippingCompanyController extends Controller
 {
@@ -26,7 +27,7 @@ class ShippingCompanyController extends Controller
             $query->where('name', 'like', "%{$search}%");
         }
 
-        $items = $query->orderBy('store_id')->orderBy('name')->get();
+        $items = $query->orderBy('store_id')->orderBy('sort_order')->orderBy('name')->get();
 
         return response()->json([
             'data' => ShippingCompanyResource::collection($items),
@@ -67,6 +68,8 @@ class ShippingCompanyController extends Controller
         }
 
         try {
+            $maxOrder = ShippingCompany::where('store_id', $data['store_id'])->max('sort_order') ?? 0;
+            $data['sort_order'] = $maxOrder + 1;
             $item = ShippingCompany::create($data);
             $item->load('store');
 
@@ -167,5 +170,46 @@ class ShippingCompanyController extends Controller
                 'error' => config('app.debug') ? $e->getMessage() : null,
             ], 500);
         }
+    }
+
+    /**
+     * Reorder shipping companies (ids must belong to the same store).
+     */
+    public function reorder(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'ids' => 'required|array',
+            'ids.*' => 'exists:shipping_companies,id',
+        ], [
+            'ids.required' => '請提供排序的船運 ID 列表',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => '驗證錯誤',
+                'errors' => $validator->errors(),
+            ], 422);
+        }
+
+        $ids = $request->get('ids');
+
+        DB::beginTransaction();
+        try {
+            foreach ($ids as $index => $id) {
+                ShippingCompany::where('id', $id)->update(['sort_order' => $index + 1]);
+            }
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Shipping company reorder error: ' . $e->getMessage());
+            return response()->json([
+                'message' => '排序更新失敗',
+                'error' => config('app.debug') ? $e->getMessage() : null,
+            ], 500);
+        }
+
+        return response()->json([
+            'message' => '船運排序已更新',
+        ]);
     }
 }

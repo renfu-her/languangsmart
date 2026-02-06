@@ -332,7 +332,8 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     if (!fixedStoreId) return;
     try {
       const response = await shippingCompaniesApi.list({ store_id: fixedStoreId });
-      const list = (response.data || []).map((item: { id: number; name: string }) => ({ id: item.id, name: item.name }));
+      const raw = (response.data || []).slice().sort((a: { sort_order?: number }, b: { sort_order?: number }) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      const list = raw.map((item: { id: number; name: string }) => ({ id: item.id, name: item.name }));
       setShippingCompanies(list);
     } catch (error) {
       console.error('Failed to fetch shipping companies:', error);

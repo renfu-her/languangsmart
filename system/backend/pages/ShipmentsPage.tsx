@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Plus, Search, Edit3, Trash2, X, Loader2, MoreHorizontal } from 'lucide-react';
+import { Plus, Search, Edit3, Trash2, X, Loader2, MoreHorizontal, ArrowUp, ArrowDown } from 'lucide-react';
 import { shippingCompaniesApi, storesApi } from '../lib/api';
 import { inputClasses, selectClasses, labelClasses, searchInputClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
 
@@ -13,6 +13,7 @@ interface ShippingCompany {
   name: string;
   store_id: number;
   color: string | null;
+  sort_order?: number;
   store?: { id: number; name: string };
 }
 
@@ -37,7 +38,15 @@ const ShipmentsPage: React.FC = () => {
     fetchStores();
   }, []);
 
+  // 所屬商店不允許「全部」：載入商店後以第一個商店為預設
   useEffect(() => {
+    if (stores.length > 0 && !storeFilterId) {
+      setStoreFilterId(String(stores[0].id));
+    }
+  }, [stores]);
+
+  useEffect(() => {
+    if (!storeFilterId) return;
     fetchItems();
   }, [searchTerm, storeFilterId]);
 
@@ -51,11 +60,11 @@ const ShipmentsPage: React.FC = () => {
   };
 
   const fetchItems = async () => {
+    if (!storeFilterId) return;
     setLoading(true);
     try {
-      const params: Record<string, string> = {};
+      const params: Record<string, string> = { store_id: storeFilterId };
       if (searchTerm) params.search = searchTerm;
-      if (storeFilterId) params.store_id = storeFilterId;
       const response = await shippingCompaniesApi.list(params);
       setItems(response.data || []);
     } catch (error) {
@@ -78,7 +87,7 @@ const ShipmentsPage: React.FC = () => {
       setEditingItem(null);
       setFormData({
         name: '',
-        store_id: storeFilterId || '',
+        store_id: storeFilterId || String(stores[0]?.id ?? ''),
         color: '',
       });
     }
@@ -170,6 +179,26 @@ const ShipmentsPage: React.FC = () => {
 
   const getStoreName = (item: ShippingCompany) => item.store?.name ?? stores.find(s => s.id === item.store_id)?.name ?? `商店 #${item.store_id}`;
 
+  const handleReorder = async (index: number, direction: 'up' | 'down') => {
+    if (
+      (direction === 'up' && index === 0) ||
+      (direction === 'down' && index === items.length - 1)
+    ) {
+      return;
+    }
+    const newItems = [...items];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    [newItems[index], newItems[targetIndex]] = [newItems[targetIndex], newItems[index]];
+    setItems(newItems);
+    try {
+      await shippingCompaniesApi.reorder(newItems.map((i) => i.id));
+    } catch (error) {
+      console.error('Failed to reorder shipping companies:', error);
+      fetchItems();
+      alert('排序更新失敗');
+    }
+  };
+
   return (
     <div className="px-6 pb-6 pt-0 dark:text-gray-100">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
@@ -205,7 +234,6 @@ const ShipmentsPage: React.FC = () => {
               value={storeFilterId}
               onChange={(e) => setStoreFilterId(e.target.value)}
             >
-              <option value="">全部</option>
               {stores.map((s) => (
                 <option key={s.id} value={String(s.id)}>{s.name}</option>
               ))}
@@ -214,7 +242,11 @@ const ShipmentsPage: React.FC = () => {
         </div>
       </div>
 
-      {loading ? (
+      {stores.length === 0 ? (
+        <div className="p-12 text-center text-gray-500 dark:text-gray-400">
+          請先至商店管理建立商店，再新增船班。
+        </div>
+      ) : loading ? (
         <div className="p-12 text-center">
           <Loader2 size={32} className="animate-spin mx-auto text-orange-600" />
           <p className="mt-4 text-gray-500">載入中...</p>
@@ -257,14 +289,44 @@ const ShipmentsPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-5 text-gray-600 dark:text-gray-400">{getStoreName(item)}</td>
                     <td className="px-6 py-5 text-center">
-                      <div className="relative">
-                        <button
-                          ref={(el) => { if (el) buttonRefs.current[item.id] = el; }}
-                          onClick={() => toggleDropdown(item.id)}
-                          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
-                        >
-                          <MoreHorizontal size={18} />
-                        </button>
+                      <div className="flex items-center justify-center space-x-2">
+                        {!searchTerm && items.length > 1 && (
+                          <>
+                            <button
+                              onClick={() => handleReorder(items.indexOf(item), 'up')}
+                              disabled={items.indexOf(item) === 0}
+                              className={`p-1.5 rounded-lg transition-colors ${
+                                items.indexOf(item) === 0
+                                  ? 'text-gray-300 cursor-not-allowed opacity-50'
+                                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
+                              }`}
+                              title="上移"
+                            >
+                              <ArrowUp size={16} />
+                            </button>
+                            <button
+                              onClick={() => handleReorder(items.indexOf(item), 'down')}
+                              disabled={items.indexOf(item) === items.length - 1}
+                              className={`p-1.5 rounded-lg transition-colors ${
+                                items.indexOf(item) === items.length - 1
+                                  ? 'text-gray-300 cursor-not-allowed opacity-50'
+                                  : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-gray-700'
+                              }`}
+                              title="下移"
+                            >
+                              <ArrowDown size={16} />
+                            </button>
+                          </>
+                        )}
+                        <div className="relative">
+                          <button
+                            ref={(el) => { if (el) buttonRefs.current[item.id] = el; }}
+                            onClick={() => toggleDropdown(item.id)}
+                            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl text-gray-400 dark:text-gray-500 transition-colors"
+                          >
+                            <MoreHorizontal size={18} />
+                          </button>
+                        </div>
                       </div>
                     </td>
                   </tr>

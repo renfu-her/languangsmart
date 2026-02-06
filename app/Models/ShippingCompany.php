@@ -13,6 +13,7 @@ class ShippingCompany extends Model
         'name',
         'store_id',
         'color',
+        'sort_order',
     ];
 
     /**

@@ -371,6 +371,7 @@ export const shippingCompaniesApi = {
   create: (data: { name: string; store_id: number; color?: string | null }) => api.post('/shipping-companies', data),
   update: (id: string | number, data: { name?: string; store_id?: number; color?: string | null }) => api.put(`/shipping-companies/${id}`, data),
   delete: (id: string | number) => api.delete(`/shipping-companies/${id}`),
+  reorder: (ids: number[]) => api.post('/shipping-companies/reorder', { ids }),
 };
 
 export const partnersApi = {

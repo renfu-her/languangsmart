@@ -100,7 +100,8 @@ const Booking: React.FC = () => {
     if (!formData.storeId) return;
     try {
       const response = await publicApi.shippingCompanies.list({ store_id: parseInt(formData.storeId) });
-      setShippingCompanies(response.data || []);
+      const list = (response.data || []).slice().sort((a: { sort_order?: number }, b: { sort_order?: number }) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      setShippingCompanies(list);
     } catch (error) {
       console.error('Failed to fetch shipping companies:', error);
       setShippingCompanies([]);
