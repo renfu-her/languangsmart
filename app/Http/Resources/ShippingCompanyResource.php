@@ -18,6 +18,7 @@ class ShippingCompanyResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'store_id' => $this->store_id,
+            'color' => $this->color,
             'store' => $this->whenLoaded('store', fn () => [
                 'id' => $this->store->id,
                 'name' => $this->store->name,

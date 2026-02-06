@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown, ChevronUp, Download, Bell, XCircle } from 'lucide-react';
 import AddOrderModal from '../components/AddOrderModal';
 import ConvertBookingModal from '../components/ConvertBookingModal';
-import { ordersApi, partnersApi, bookingsApi, rentalPlansApi, scooterModelsApi } from '../lib/api';
+import { ordersApi, partnersApi, bookingsApi, rentalPlansApi, scooterModelsApi, shippingCompaniesApi } from '../lib/api';
 import { useStore } from '../contexts/StoreContext';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
@@ -1264,6 +1264,7 @@ const OrdersPage: React.FC = () => {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [monthsWithOrders, setMonthsWithOrders] = useState<number[]>([]);
   const [partnerColorMap, setPartnerColorMap] = useState<Record<string, string>>({});
+  const [shippingCompanyColorMap, setShippingCompanyColorMap] = useState<Record<string, string>>({});
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [pendingBookingsCount, setPendingBookingsCount] = useState(0);
   const [pendingBookings, setPendingBookings] = useState<any[]>([]);
@@ -1745,22 +1746,32 @@ const OrdersPage: React.FC = () => {
     fetchRentalPlans();
   }, []);
 
+  // 獲取船運列表並建立顏色映射（key: store_id:name -> hex）
+  useEffect(() => {
+    const fetchShippingCompanies = async () => {
+      try {
+        const response = await shippingCompaniesApi.list();
+        const list = response.data || [];
+        const colorMap: Record<string, string> = {};
+        list.forEach((item: { store_id: number; name: string; color: string | null }) => {
+          if (item.color) {
+            colorMap[`${item.store_id}:${item.name}`] = item.color;
+          }
+        });
+        setShippingCompanyColorMap(colorMap);
+      } catch (error) {
+        console.error('Failed to fetch shipping companies:', error);
+      }
+    };
+    fetchShippingCompanies();
+  }, []);
 
-  // 獲取航運別顏色
-  const getShippingCompanyColor = (company: string | null | undefined): string => {
-    if (!company) return 'text-gray-500 dark:text-gray-400';
-    
-    const companyLower = company.toLowerCase();
-    if (companyLower.includes('藍白')) {
-      return 'text-blue-600 dark:text-blue-400';
-    } else if (companyLower.includes('泰富')) {
-      return 'text-red-600 dark:text-red-400';
-    } else if (companyLower.includes('聯營')) {
-      return 'text-green-600 dark:text-green-400';
-    } else if (companyLower.includes('大福')) {
-      return 'text-yellow-700 dark:text-yellow-500';
-    }
-    return 'text-gray-600 dark:text-gray-400';
+  // 獲取航運別顏色（依船運管理設定的顏色，回傳 hex 或 null）
+  const getShippingCompanyColor = (company: string | null | undefined, storeId?: number | null): string | null => {
+    if (!company) return null;
+    const sid = storeId ?? currentStore?.id;
+    if (sid == null) return null;
+    return shippingCompanyColorMap[`${sid}:${company}`] ?? null;
   };
 
   // 獲取付款方式顏色
@@ -2579,17 +2590,24 @@ const OrdersPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-4 py-4 w-[160px] text-xs leading-tight">
-                      {order.shipping_company && (
-                        <>
-                          <div className={`font-bold mb-1 ${getShippingCompanyColor(order.shipping_company)}`}>{order.shipping_company}</div>
+                      {order.shipping_company && (() => {
+                        const shipColor = getShippingCompanyColor(order.shipping_company, order.store_id ?? order.store?.id);
+                        return (
+                          <>
+                            <div className="font-bold mb-1" style={shipColor ? { color: shipColor } : undefined}>
+                              <span className={!shipColor ? 'text-gray-600 dark:text-gray-400' : ''}>
+                                {order.shipping_company}
+                              </span>
+                            </div>
                           {order.ship_arrival_time && (
                             <div className="text-gray-400">來: {formatDateTime(order.ship_arrival_time)}</div>
                           )}
                           {order.ship_return_time && (
                             <div className="text-gray-400">回: {formatDateTime(order.ship_return_time)}</div>
                           )}
-                        </>
-                      )}
+                          </>
+                        );
+                      })()}
                       {!order.shipping_company && '-'}
                     </td>
                     <td className="px-4 py-4 w-[120px] text-gray-500 dark:text-gray-400 font-medium">{order.phone || '-'}</td>

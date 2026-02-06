@@ -368,8 +368,8 @@ export const ordersApi = {
 export const shippingCompaniesApi = {
   list: (params?: { search?: string; store_id?: number }) => api.get('/shipping-companies', params),
   get: (id: string | number) => api.get(`/shipping-companies/${id}`),
-  create: (data: { name: string; store_id: number }) => api.post('/shipping-companies', data),
-  update: (id: string | number, data: { name?: string; store_id?: number }) => api.put(`/shipping-companies/${id}`, data),
+  create: (data: { name: string; store_id: number; color?: string | null }) => api.post('/shipping-companies', data),
+  update: (id: string | number, data: { name?: string; store_id?: number; color?: string | null }) => api.put(`/shipping-companies/${id}`, data),
   delete: (id: string | number) => api.delete(`/shipping-companies/${id}`),
 };
 

@@ -12,6 +12,7 @@ interface ShippingCompany {
   id: number;
   name: string;
   store_id: number;
+  color: string | null;
   store?: { id: number; name: string };
 }
 
@@ -26,6 +27,7 @@ const ShipmentsPage: React.FC = () => {
   const [formData, setFormData] = useState({
     name: '',
     store_id: '',
+    color: '',
   });
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
@@ -70,12 +72,14 @@ const ShipmentsPage: React.FC = () => {
       setFormData({
         name: item.name,
         store_id: String(item.store_id),
+        color: item.color || '',
       });
     } else {
       setEditingItem(null);
       setFormData({
         name: '',
         store_id: storeFilterId || '',
+        color: '',
       });
     }
     setIsModalOpen(true);
@@ -84,7 +88,7 @@ const ShipmentsPage: React.FC = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingItem(null);
-    setFormData({ name: '', store_id: '' });
+    setFormData({ name: '', store_id: '', color: '' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,16 +99,15 @@ const ShipmentsPage: React.FC = () => {
       return;
     }
     try {
+      const payload = {
+        name: formData.name,
+        store_id: storeId,
+        color: formData.color || null,
+      };
       if (editingItem) {
-        await shippingCompaniesApi.update(editingItem.id, {
-          name: formData.name,
-          store_id: storeId,
-        });
+        await shippingCompaniesApi.update(editingItem.id, payload);
       } else {
-        await shippingCompaniesApi.create({
-          name: formData.name,
-          store_id: storeId,
-        });
+        await shippingCompaniesApi.create(payload);
       }
       handleCloseModal();
       fetchItems();
@@ -222,6 +225,7 @@ const ShipmentsPage: React.FC = () => {
             <thead className="bg-gray-50/50 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 font-bold uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="px-6 py-5">船班名稱</th>
+                <th className="px-6 py-5">顏色</th>
                 <th className="px-6 py-5">所屬商店</th>
                 <th className="px-6 py-5 text-center">操作</th>
               </tr>
@@ -229,7 +233,7 @@ const ShipmentsPage: React.FC = () => {
             <tbody className="divide-y divide-gray-100">
               {items.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                  <td colSpan={4} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
                     目前沒有船班資料，請先選擇所屬商店後新增船班
                   </td>
                 </tr>
@@ -237,6 +241,20 @@ const ShipmentsPage: React.FC = () => {
                 items.map((item) => (
                   <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/50 group transition-colors">
                     <td className="px-6 py-5 font-medium text-gray-800 dark:text-gray-100">{item.name}</td>
+                    <td className="px-6 py-5">
+                      {item.color ? (
+                        <div className="flex items-center gap-2">
+                          <div
+                            className="w-8 h-8 rounded-lg border-2 border-gray-200 dark:border-gray-700 shadow-sm"
+                            style={{ backgroundColor: item.color }}
+                            title={item.color}
+                          />
+                          <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{item.color}</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 dark:text-gray-500">-</span>
+                      )}
+                    </td>
                     <td className="px-6 py-5 text-gray-600 dark:text-gray-400">{getStoreName(item)}</td>
                     <td className="px-6 py-5 text-center">
                       <div className="relative">
@@ -331,6 +349,45 @@ const ShipmentsPage: React.FC = () => {
                   placeholder="例如：泰富、藍白、聯營"
                   required
                 />
+              </div>
+              <div>
+                <label className={labelClasses}>顏色</label>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center space-x-3">
+                    <input
+                      type="color"
+                      value={formData.color || '#6B7280'}
+                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      className="w-16 h-16 rounded-lg border-2 border-gray-200 dark:border-gray-700 cursor-pointer"
+                      title="選擇顏色"
+                    />
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={formData.color || ''}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          if (value === '' || /^#[0-9A-Fa-f]{6}$/.test(value)) {
+                            setFormData({ ...formData, color: value });
+                          }
+                        }}
+                        placeholder="#7DD3FC"
+                        className={`${inputClasses} font-mono text-sm`}
+                        maxLength={7}
+                      />
+                      <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">輸入 hex 顏色值（例如：#FF5733）</p>
+                    </div>
+                  </div>
+                </div>
+                {formData.color && (
+                  <div className="mt-2 flex items-center space-x-2">
+                    <div
+                      className="w-8 h-8 rounded-lg border-2 border-gray-200 dark:border-gray-700"
+                      style={{ backgroundColor: formData.color }}
+                    />
+                    <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{formData.color}</span>
+                  </div>
+                )}
               </div>
               <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                 <button type="button" onClick={handleCloseModal} className={modalCancelButtonClasses}>取消</button>

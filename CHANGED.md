@@ -1,5 +1,27 @@
 # 變更記錄 (Change Log)
 
+## 2026-02-06 15:00:00 (Asia/Taipei) - 船運管理新增顏色、訂單管理依船運設定顯示
+
+### 變更內容
+
+#### 後端
+
+- **資料庫**
+  - `shipping_companies` 表新增欄位 `color`（nullable，hex 如 #7DD3FC）
+- **Model / API**
+  - `ShippingCompany` 的 `fillable`、Resource、Controller 的 store/update 驗證新增 `color`（nullable，hex 格式）
+
+#### 後台
+
+- **船運管理 (ShipmentsPage)**
+  - 新增/編輯表單新增「顏色」欄位：色塊選擇器 + hex 輸入（同機車類型管理）
+  - 列表新增「顏色」欄，顯示色塊與 hex 值
+- **訂單管理 (OrdersPage)**
+  - 訂單列表的「航運公司」改為依「船運管理」設定的顏色顯示
+  - 進入頁面時載入船運列表並建立 `store_id:name` → 顏色映射，訂單顯示時依該訂單的商店與船運名稱套用對應顏色；無設定時顯示灰色
+
+---
+
 ## 2026-02-06 14:00:00 (Asia/Taipei) - 新增船運管理（合作商與商店管理之間）
 
 ### 變更內容

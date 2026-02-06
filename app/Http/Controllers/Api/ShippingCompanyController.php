@@ -41,10 +41,12 @@ class ShippingCompanyController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:100',
             'store_id' => 'required|exists:stores,id',
+            'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
         ], [
             'name.required' => '請輸入船班名稱',
             'store_id.required' => '請選擇所屬商店',
             'store_id.exists' => '所選商店不存在',
+            'color.regex' => '顏色請使用 hex 格式（例如：#FF5733）',
         ]);
 
         if ($validator->fails()) {
@@ -101,10 +103,12 @@ class ShippingCompanyController extends Controller
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|required|string|max:100',
             'store_id' => 'sometimes|required|exists:stores,id',
+            'color' => 'nullable|string|regex:/^#[0-9A-Fa-f]{6}$/',
         ], [
             'name.required' => '請輸入船班名稱',
             'store_id.required' => '請選擇所屬商店',
             'store_id.exists' => '所選商店不存在',
+            'color.regex' => '顏色請使用 hex 格式（例如：#FF5733）',
         ]);
 
         if ($validator->fails()) {
