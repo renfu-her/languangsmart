@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Search, Calendar, Clock, Phone, FileText, Loader2, ChevronDown } from 'lucide-react';
-import { ordersApi, scootersApi, partnersApi, storesApi } from '../lib/api';
+import { ordersApi, scootersApi, partnersApi, storesApi, shippingCompaniesApi } from '../lib/api';
 import { useStore } from '../contexts/StoreContext';
 import { inputClasses as sharedInputClasses, selectClasses as sharedSelectClasses, labelClasses, chevronDownClasses } from '../styles';
 
@@ -67,6 +67,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
   const { currentStore } = useStore();
   const [availableScooters, setAvailableScooters] = useState<Scooter[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
+  const [shippingCompanies, setShippingCompanies] = useState<Array<{ id: number; name: string }>>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedScooterIds, setSelectedScooterIds] = useState<number[]>([]);
   const [searchPlate, setSearchPlate] = useState('');
@@ -236,12 +237,11 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     ? (editingOrder.store_id || editingOrder.store?.id)
     : (currentStore?.id);
 
-  // 當固定的 store_id 確定後，載入合作商和機車列表
+  // 當固定的 store_id 確定後，載入合作商、船運與機車列表
   useEffect(() => {
     if (isOpen && fixedStoreId) {
-      // 載入該商店的合作商列表
       fetchPartners();
-      // 載入該商店的機車列表
+      fetchShippingCompanies();
       fetchAvailableScooters();
       // 如果是編輯模式，載入訂單中的機車
       if (editingOrder) {
@@ -325,6 +325,18 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
       }
     } catch (error) {
       console.error('Failed to fetch partners:', error);
+    }
+  };
+
+  const fetchShippingCompanies = async () => {
+    if (!fixedStoreId) return;
+    try {
+      const response = await shippingCompaniesApi.list({ store_id: fixedStoreId });
+      const list = (response.data || []).map((item: { id: number; name: string }) => ({ id: item.id, name: item.name }));
+      setShippingCompanies(list);
+    } catch (error) {
+      console.error('Failed to fetch shipping companies:', error);
+      setShippingCompanies([]);
     }
   };
 
@@ -724,11 +736,12 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                     onChange={(e) => setFormData({ ...formData, shipping_company: e.target.value })}
                   >
                     <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">請選擇</option>
-                    <option value="泰富" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">泰富</option>
-                    <option value="藍白" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">藍白</option>
-                    <option value="聯營" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">聯營</option>
-                    <option value="大福" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">大福</option>
-                    <option value="公船" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">公船</option>
+                    {formData.shipping_company && !shippingCompanies.some(sc => sc.name === formData.shipping_company) && (
+                      <option value={formData.shipping_company} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{formData.shipping_company}</option>
+                    )}
+                    {shippingCompanies.map((sc) => (
+                      <option key={sc.id} value={sc.name} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{sc.name}</option>
+                    ))}
                   </select>
                   <ChevronDown size={18} className={chevronDownClasses} />
                 </div>

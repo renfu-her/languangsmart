@@ -10,6 +10,7 @@ import { ROUTE_PERMISSIONS } from './constants';
 // Lazy load page components for code-splitting
 const OrdersPage = React.lazy(() => import('./pages/OrdersPage'));
 const PartnersPage = React.lazy(() => import('./pages/PartnersPage'));
+const ShipmentsPage = React.lazy(() => import('./pages/ShipmentsPage'));
 const StoresPage = React.lazy(() => import('./pages/StoresPage'));
 const ScootersPage = React.lazy(() => import('./pages/ScootersPage'));
 const ScooterModelsPage = React.lazy(() => import('./pages/ScooterModelsPage'));
@@ -136,6 +137,11 @@ const App: React.FC = () => {
             <Route path="partners" element={
               <Suspense fallback={<LoadingFallback />}>
                 <PartnersPage />
+              </Suspense>
+            } />
+            <Route path="shipping-companies" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ShipmentsPage />
               </Suspense>
             } />
             <Route path="stores" element={

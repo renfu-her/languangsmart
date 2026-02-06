@@ -33,5 +33,13 @@ class Store extends Model
     {
         return $this->hasMany(StoreEnvironmentImage::class)->orderBy('sort_order', 'asc');
     }
+
+    /**
+     * Get the shipping companies for the store.
+     */
+    public function shippingCompanies()
+    {
+        return $this->hasMany(ShippingCompany::class)->orderBy('name');
+    }
 }
 

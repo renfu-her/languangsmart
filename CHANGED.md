@@ -1,5 +1,42 @@
 # 變更記錄 (Change Log)
 
+## 2026-02-06 14:00:00 (Asia/Taipei) - 新增船運管理（合作商與商店管理之間）
+
+### 變更內容
+
+#### 後端
+
+- **資料庫**
+  - 新增 `shipping_companies` 表：`id`, `name`, `store_id`（所屬商店）, `timestamps`，同一商店下船班名稱唯一
+  - `orders.shipping_company`、`bookings.shipping_company`、`partners.default_shipping_company` 由 ENUM 改為 `VARCHAR(100)`，以支援依商店設定的船班名稱
+- **Model / API**
+  - 新增 `ShippingCompany` Model、`ShippingCompanyResource`、`ShippingCompanyController`
+  - 新增 API：`GET/POST /shipping-companies`，`GET/PUT/DELETE /shipping-companies/{id}`；列表支援 `store_id`、`search` 篩選
+  - 訂單、預約、合作商之船運/預設船運驗證改為 `nullable|string|max:100`
+- **Store**：新增 `shippingCompanies()` 關聯
+
+#### 後台 (Backend)
+
+- **導覽**
+  - 在「合作商管理」與「商店管理」之間新增「船運管理」（路徑 `/shipping-companies`），圖示為 Ship
+- **船運管理頁 (ShipmentsPage)**
+  - 介面同機車類型管理：列表（船班名稱、所屬商店、操作）、搜尋、依所屬商店篩選
+  - 新增/編輯時必選「所屬商店」；編輯時不可變更所屬商店
+- **新增訂單 (AddOrderModal)**
+  - 航運公司下拉改為依「所選商店」從 API 取得該商店的船班名稱；僅顯示該商店的船運選項
+- **預約管理 (BookingsPage)**
+  - 編輯預約時，船運公司下拉改為依該預約的 `store_id` 載入該商店的船班名稱選項
+
+#### 前台 (Frontend 線上預約)
+
+- **Booking.tsx**
+  - 客人選擇店家後，船運公司下拉改為只顯示「該商店」的船班名稱（呼叫 `GET /shipping-companies?store_id=...`）
+  - 仍會依預設合作商帶入預設船運公司（若該名稱在該商店船班列表中）
+- **publicApi**
+  - 新增 `shippingCompanies.list({ store_id })` 供前台使用
+
+---
+
 ## 2026-01-24 20:39:14 (Asia/Taipei) - 後台登入錯誤改為彈出提示
 
 ### 變更內容

@@ -56,6 +56,7 @@ const Booking: React.FC = () => {
     note: '',
   });
   const [stores, setStores] = useState<Array<{ id: number; name: string }>>([]);
+  const [shippingCompanies, setShippingCompanies] = useState<Array<{ id: number; name: string }>>([]);
   const [scooterItems, setScooterItems] = useState<ScooterItem[]>([
     { id: '1', model: '', type: '', count: 1 }
   ]);
@@ -71,16 +72,17 @@ const Booking: React.FC = () => {
     fetchStores();
   }, []);
 
-  // 當選擇商店時，重新獲取該商店的機車型號和預設合作商
+  // 當選擇商店時，重新獲取該商店的機車型號、船運公司與預設合作商
   useEffect(() => {
     if (formData.storeId) {
       fetchScooterModels();
+      fetchShippingCompanies();
       fetchDefaultShippingCompany();
-      // 清空已選擇的機車項目（因為不同商店可能有不同的機車型號）
       setScooterItems([{ id: '1', model: '', type: '', count: 1 }]);
     } else {
-      // 如果沒有選擇商店，獲取所有機車型號
       fetchScooterModels();
+      setShippingCompanies([]);
+      setFormData(prev => ({ ...prev, shippingCompany: '' }));
     }
   }, [formData.storeId]);
 
@@ -94,27 +96,30 @@ const Booking: React.FC = () => {
     }
   };
 
+  const fetchShippingCompanies = async () => {
+    if (!formData.storeId) return;
+    try {
+      const response = await publicApi.shippingCompanies.list({ store_id: parseInt(formData.storeId) });
+      setShippingCompanies(response.data || []);
+    } catch (error) {
+      console.error('Failed to fetch shipping companies:', error);
+      setShippingCompanies([]);
+    }
+  };
+
   const fetchDefaultShippingCompany = async () => {
     try {
-      // 根據選擇的商店獲取該商店的合作商列表
       const params = formData.storeId ? { store_id: parseInt(formData.storeId) } : undefined;
       const response = await publicApi.partners.list(params);
       const partners = response.data || [];
-      
-      // 查找該商店的預設合作商（is_default_for_booking = true）
       const defaultPartner = partners.find((p: any) => p.is_default_for_booking === true);
-      
       if (defaultPartner && defaultPartner.default_shipping_company) {
         setFormData(prev => ({
           ...prev,
           shippingCompany: defaultPartner.default_shipping_company,
         }));
       } else if (!formData.shippingCompany) {
-        // 如果沒有找到預設合作商，且目前沒有設置船運公司，清空
-        setFormData(prev => ({
-          ...prev,
-          shippingCompany: '',
-        }));
+        setFormData(prev => ({ ...prev, shippingCompany: '' }));
       }
     } catch (error) {
       console.error('Failed to fetch default shipping company:', error);
@@ -400,11 +405,9 @@ const Booking: React.FC = () => {
                   onChange={e => setFormData({...formData, shippingCompany: e.target.value})}
                 >
                   <option value="">請選擇船運公司</option>
-                  <option value="泰富">泰富</option>
-                  <option value="藍白">藍白</option>
-                  <option value="聯營">聯營</option>
-                  <option value="大福">大福</option>
-                  <option value="公船">公船</option>
+                  {shippingCompanies.map((sc) => (
+                    <option key={sc.id} value={sc.name}>{sc.name}</option>
+                  ))}
                 </select>
               </div>
 

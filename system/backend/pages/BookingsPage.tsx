@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Edit2, Trash2, X, Loader2, Calendar, MessageCircle, Phone, CheckCircle, XCircle, Clock, Plus, Minus, ArrowLeft, Eye } from 'lucide-react';
-import { bookingsApi } from '../lib/api';
+import { bookingsApi, shippingCompaniesApi } from '../lib/api';
 import { inputClasses, labelClasses, modalCancelButtonClasses, modalSubmitButtonClasses } from '../styles';
 
 interface ScooterSelection {
@@ -28,6 +28,8 @@ interface Booking {
   status: '預約中' | '執行中' | '已經回覆' | '取消' | '已轉訂單';
   created_at: string;
   updated_at: string;
+  store_id?: number | null;
+  store?: { id: number; name: string } | null;
 }
 
 const BookingsPage: React.FC = () => {
@@ -41,6 +43,7 @@ const BookingsPage: React.FC = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [shippingCompanies, setShippingCompanies] = useState<Array<{ id: number; name: string }>>([]);
   const [formData, setFormData] = useState({
     name: '',
     line_id: '',
@@ -70,6 +73,22 @@ const BookingsPage: React.FC = () => {
       setDetailBooking(null);
     }
   }, [detailId]);
+
+  // 編輯預約時，依該預約的 store_id 載入該商店的船運公司選項
+  useEffect(() => {
+    if (!isModalOpen || !editingBooking) {
+      setShippingCompanies([]);
+      return;
+    }
+    const storeId = editingBooking.store_id ?? editingBooking.store?.id;
+    if (!storeId) {
+      setShippingCompanies([]);
+      return;
+    }
+    shippingCompaniesApi.list({ store_id: storeId }).then((res) => {
+      setShippingCompanies((res.data || []).map((item: { id: number; name: string }) => ({ id: item.id, name: item.name })));
+    }).catch(() => setShippingCompanies([]));
+  }, [isModalOpen, editingBooking?.id, editingBooking?.store_id, editingBooking?.store?.id]);
 
   const fetchBookings = async () => {
     setLoading(true);
@@ -688,11 +707,12 @@ const BookingsPage: React.FC = () => {
                   className={inputClasses}
                 >
                   <option value="">請選擇</option>
-                  <option value="泰富">泰富</option>
-                  <option value="藍白">藍白</option>
-                  <option value="聯營">聯營</option>
-                  <option value="大福">大福</option>
-                  <option value="公船">公船</option>
+                  {formData.shipping_company && !shippingCompanies.some(sc => sc.name === formData.shipping_company) && (
+                    <option value={formData.shipping_company}>{formData.shipping_company}</option>
+                  )}
+                  {shippingCompanies.map((sc) => (
+                    <option key={sc.id} value={sc.name}>{sc.name}</option>
+                  ))}
                 </select>
               </div>
 

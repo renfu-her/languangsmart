@@ -131,6 +131,9 @@ export const publicApi = {
   partners: {
     list: (params?: { store_id?: number }) => api.get('/partners', params),
   },
+  shippingCompanies: {
+    list: (params?: { store_id?: number }) => api.get('/shipping-companies', params),
+  },
   captcha: {
     generate: () => api.get('/captcha/generate'),
     verify: (captchaId: string, answer: string) => api.post('/captcha/verify', { captcha_id: captchaId, answer }),

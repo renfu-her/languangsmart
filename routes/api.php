@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\HomeImageController;
 use App\Http\Controllers\Api\EnvironmentImageController;
 use App\Http\Controllers\Api\ShuttleImageController;
 use App\Http\Controllers\Api\ContactInfoController;
+use App\Http\Controllers\Api\ShippingCompanyController;
 
 // Auth Routes (Public)
 Route::post('/login', [AuthController::class, 'login']);
@@ -79,6 +80,15 @@ Route::prefix('orders')->group(function () {
     Route::put('/{order}', [OrderController::class, 'update'])->where('order', '[0-9]+');
     Route::patch('/{order}/status', [OrderController::class, 'updateStatus'])->where('order', '[0-9]+');
     Route::delete('/{order}', [OrderController::class, 'destroy'])->where('order', '[0-9]+');
+});
+
+// Shipping Companies API (船運管理)
+Route::prefix('shipping-companies')->group(function () {
+    Route::get('/', [ShippingCompanyController::class, 'index']);
+    Route::post('/', [ShippingCompanyController::class, 'store']);
+    Route::get('/{shippingCompany}', [ShippingCompanyController::class, 'show']);
+    Route::put('/{shippingCompany}', [ShippingCompanyController::class, 'update']);
+    Route::delete('/{shippingCompany}', [ShippingCompanyController::class, 'destroy']);
 });
 
 // Partners API

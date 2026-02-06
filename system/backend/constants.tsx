@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, ShoppingCart, Users, Bike, AlertCircle, Image as ImageIcon, Settings, Shield, User, FileText, MapPin, Home } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, Bike, AlertCircle, Image as ImageIcon, Settings, Shield, User, FileText, MapPin, Home, Ship } from 'lucide-react';
 
 export const NAV_ITEMS = [
   { 
@@ -29,6 +29,12 @@ export const NAV_ITEMS = [
     icon: <Users size={20} />, 
     permission: null, // 所有角色都可以使用
     path: '/partners'
+  },
+  { 
+    title: '船運管理', 
+    icon: <Ship size={20} />, 
+    permission: null,
+    path: '/shipping-companies'
   },
   { 
     title: '商店管理', 
@@ -71,6 +77,7 @@ export const ROUTE_PERMISSIONS: Record<string, string | null> = {
   '/scooter-types': null,
   '/accessories': null,
   '/partners': null,
+  '/shipping-companies': null,
   '/stores': 'can_manage_stores', // 需要授權商店管理
   '/banners': 'can_manage_content', // 需要授權網站內容管理
   '/home-images': 'can_manage_content',
