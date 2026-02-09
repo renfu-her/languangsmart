@@ -90,12 +90,7 @@ class ApiClient {
     }
   }
 
-  async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
-    if (!params) {
-      return this.request<T>(endpoint, { method: 'GET' });
-    }
-    
-    // 過濾掉 undefined 和 null 值
+  private buildQueryString(params: Record<string, any>): string {
     const filteredParams: Record<string, string> = {};
     Object.keys(params).forEach(key => {
       const value = params[key];
@@ -104,9 +99,13 @@ class ApiClient {
       }
     });
     
-    const queryString = Object.keys(filteredParams).length > 0
+    return Object.keys(filteredParams).length > 0
       ? '?' + new URLSearchParams(filteredParams).toString()
       : '';
+  }
+
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
+    const queryString = params ? this.buildQueryString(params) : '';
     return this.request<T>(endpoint + queryString, { method: 'GET' });
   }
 
@@ -191,8 +190,9 @@ class ApiClient {
     });
   }
 
-  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+  async delete<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
+    const queryString = params ? this.buildQueryString(params) : '';
+    return this.request<T>(endpoint + queryString, { method: 'DELETE' });
   }
 
   async downloadFile(
@@ -204,19 +204,8 @@ class ApiClient {
     const token = localStorage.getItem('auth_token');
     
     // 構建查詢字符串
-    let queryString = '';
-    if (params) {
-      const filteredParams: Record<string, string> = {};
-      Object.keys(params).forEach(key => {
-        const value = params[key];
-        if (value !== undefined && value !== null && value !== '') {
-          filteredParams[key] = String(value);
-        }
-      });
-      if (Object.keys(filteredParams).length > 0) {
-        queryString = '?' + new URLSearchParams(filteredParams).toString();
-      }
-    }
+    // 構建查詢字符串
+    const queryString = params ? this.buildQueryString(params) : '';
     
     const response = await fetch(url + queryString, {
       method: 'GET',
@@ -552,7 +541,7 @@ export const guesthousesApi = {
   uploadImages: (id: string | number, files: File[]) =>
     api.uploadFiles(`/guesthouses/${id}/upload-images`, files, 'images'),
   deleteImage: (id: string | number, imagePath: string) =>
-    api.delete(`/guesthouses/${id}/delete-image`, { params: { image_path: imagePath } }),
+    api.delete(`/guesthouses/${id}/delete-image`, { image_path: imagePath }),
 };
 
 export const homeImagesApi = {
