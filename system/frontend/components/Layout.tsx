@@ -29,7 +29,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   key={item.path}
                   to={item.path}
                   className={`text-[15px] font-medium transition-colors hover:text-teal-600 ${
-                    location.pathname === item.path ? 'text-teal-600 font-bold' : 'text-gray-700'
+                    location.pathname === item.path || (item.path === '/guidelines' && location.pathname.startsWith('/guesthouses'))
+                      ? 'text-teal-600 font-bold' 
+                      : 'text-gray-700'
                   }`}
                 >
                   {item.label}

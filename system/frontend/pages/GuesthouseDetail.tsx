@@ -96,7 +96,7 @@ const GuesthouseDetail: React.FC = () => {
           structuredData={structuredData}
         />
       )}
-      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-[#f0f4ff]">
+      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-transparent">
         <div className="container mx-auto max-w-4xl">
           <Link
             to="/guidelines"
@@ -114,7 +114,7 @@ const GuesthouseDetail: React.FC = () => {
       </header>
 
       <section className="container mx-auto px-4 sm:px-6 max-w-4xl pb-12 sm:pb-16 md:pb-24">
-        <div className="bg-[#f0f4ff] rounded-[30px] sm:rounded-[35px] md:rounded-[40px] shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-transparent rounded-[30px] sm:rounded-[35px] md:rounded-[40px] overflow-hidden">
           {/* 顯示多圖片或主圖片 */}
           {guesthouse.images && Array.isArray(guesthouse.images) && guesthouse.images.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 p-3 sm:p-4">
