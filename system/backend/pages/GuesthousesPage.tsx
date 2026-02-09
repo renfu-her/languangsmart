@@ -272,7 +272,6 @@ const GuesthousesPage: React.FC = () => {
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">名稱</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">商店</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">簡短說明</th>
-                  <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">連結</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">排序</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300">狀態</th>
                   <th className="px-6 py-4 text-sm font-bold text-gray-700 dark:text-gray-300 text-center">操作</th>
@@ -304,15 +303,6 @@ const GuesthousesPage: React.FC = () => {
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{guesthouse.short_description || '-'}</span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {guesthouse.link ? (
-                        <a href={guesthouse.link} target="_blank" rel="noopener noreferrer" className="text-sm text-blue-600 hover:underline">
-                          {guesthouse.link}
-                        </a>
-                      ) : (
-                        <span className="text-sm text-gray-400">-</span>
-                      )}
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm text-gray-600 dark:text-gray-400">{guesthouse.sort_order}</span>
