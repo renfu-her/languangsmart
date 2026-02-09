@@ -552,7 +552,7 @@ export const guesthousesApi = {
   uploadImages: (id: string | number, files: File[]) =>
     api.uploadFiles(`/guesthouses/${id}/upload-images`, files, 'images'),
   deleteImage: (id: string | number, imagePath: string) =>
-    api.delete(`/guesthouses/${id}/delete-image`, { data: { image_path: imagePath } }),
+    api.delete(`/guesthouses/${id}/delete-image`, { params: { image_path: imagePath } }),
 };
 
 export const homeImagesApi = {

@@ -5,7 +5,7 @@
 ### 變更內容
 
 - **後台 API 呼叫 (system/backend/lib/api.ts)**  
-  民宿刪除單張圖片時，後端回傳 422「The image path field is required」：axios 的 `delete(url, config)` 第二參數為 config，`image_path` 被當成 config 而非 request body。改為以 `data: { image_path: imagePath }` 傳送，Laravel 即可正確收到 `image_path`，刪除多張圖片區的圖片可正常完成。
+  民宿刪除單張圖片時，後端回傳 422「The image path field is required」：axios 的 `delete(url, config)` 第二參數為 config，`image_path` 須以 body 或 query 傳送。改為以 **query 參數** `params: { image_path: imagePath }` 傳送，避免部分伺服器/代理不轉發 DELETE body；Laravel 的 `$request->get('image_path')` 會從 query 取得，刪除多張圖片區的圖片可正常完成。
 
 ---
 
