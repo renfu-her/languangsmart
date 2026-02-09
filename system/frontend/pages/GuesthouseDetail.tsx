@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink, X } from 'lucide-react';
+import { ArrowLeft, ExternalLink, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import SEO from '../components/SEO';
 import { publicApi } from '../lib/api';
 
@@ -21,8 +21,54 @@ const GuesthouseDetail: React.FC = () => {
   const [guesthouse, setGuesthouse] = useState<Guesthouse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
+
+  const displayImages = guesthouse?.images && guesthouse.images.length > 0 
+    ? guesthouse.images.map(img => `/storage/${img}`)
+    : guesthouse?.image_path 
+      ? [`/storage/${guesthouse.image_path}`]
+      : [];
+
+  const handlePrev = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (selectedImageIndex === null) return;
+    setSelectedImageIndex((prev) => 
+      prev === 0 ? displayImages.length - 1 : (prev as number) - 1
+    );
+    setIsZoomed(false);
+  };
+
+  const handleNext = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (selectedImageIndex === null) return;
+    setSelectedImageIndex((prev) => 
+      prev === displayImages.length - 1 ? 0 : (prev as number) + 1
+    );
+    setIsZoomed(false);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (selectedImageIndex === null) return;
+      
+      switch (e.key) {
+        case 'ArrowLeft':
+          handlePrev();
+          break;
+        case 'ArrowRight':
+          handleNext();
+          break;
+        case 'Escape':
+          setSelectedImageIndex(null);
+          setIsZoomed(false);
+          break;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [selectedImageIndex, displayImages.length]);
 
   useEffect(() => {
     const fetchGuesthouse = async () => {
@@ -124,7 +170,7 @@ const GuesthouseDetail: React.FC = () => {
                 <div 
                   key={idx} 
                   className="aspect-[4/3] overflow-hidden rounded-lg cursor-pointer hover:opacity-95 transition-opacity"
-                  onClick={() => setSelectedImage(`/storage/${img}`)}
+                  onClick={() => setSelectedImageIndex(idx)}
                 >
                   <img
                     src={`/storage/${img}`}
@@ -137,7 +183,7 @@ const GuesthouseDetail: React.FC = () => {
           ) : guesthouse.image_path ? (
             <div 
               className="aspect-[16/9] overflow-hidden rounded-lg mb-8 cursor-pointer hover:opacity-95 transition-opacity"
-              onClick={() => setSelectedImage(`/storage/${guesthouse.image_path}`)}
+              onClick={() => setSelectedImageIndex(0)}
             >
               <img
                 src={`/storage/${guesthouse.image_path}`}
@@ -173,27 +219,49 @@ const GuesthouseDetail: React.FC = () => {
       </section>
 
       {/* Image Modal */}
-      {selectedImage && (
+      {selectedImageIndex !== null && (
         <div 
           className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 overflow-hidden"
           onClick={() => {
-            setSelectedImage(null);
+            setSelectedImageIndex(null);
             setIsZoomed(false);
           }}
         >
+          {/* Close Button */}
           <button 
-            className="absolute top-4 right-4 text-white/70 hover:text-white p-2 z-10"
+            className="absolute top-4 right-4 text-white/70 hover:text-white p-2 z-20"
             onClick={() => {
-              setSelectedImage(null);
+              setSelectedImageIndex(null);
               setIsZoomed(false);
             }}
           >
             <X size={32} />
           </button>
+
+          {/* Previous Button */}
+          {displayImages.length > 1 && (
+            <button 
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-2 z-20 transition-colors bg-black/20 hover:bg-black/40 rounded-full"
+              onClick={handlePrev}
+            >
+              <ChevronLeft size={40} />
+            </button>
+          )}
+
+          {/* Next Button */}
+          {displayImages.length > 1 && (
+            <button 
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white p-2 z-20 transition-colors bg-black/20 hover:bg-black/40 rounded-full"
+              onClick={handleNext}
+            >
+              <ChevronRight size={40} />
+            </button>
+          )}
+
           <img 
-            src={selectedImage} 
+            src={displayImages[selectedImageIndex]} 
             alt="Full size" 
-            className={`max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-out ${
+            className={`max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-out select-none ${
               isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'
             }`}
             style={{ 
@@ -211,6 +279,13 @@ const GuesthouseDetail: React.FC = () => {
               e.currentTarget.style.transformOrigin = `${x}% ${y}%`;
             }}
           />
+          
+          {/* Image Counter */}
+          {displayImages.length > 1 && (
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/80 bg-black/40 px-3 py-1 rounded-full text-sm font-medium z-20 select-none">
+              {selectedImageIndex + 1} / {displayImages.length}
+            </div>
+          )}
         </div>
       )}
     </div>
