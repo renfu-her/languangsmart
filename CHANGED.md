@@ -1,5 +1,14 @@
 # 變更記錄 (Change Log)
 
+## 2026-02-09 14:00:00 (Asia/Taipei) - 後台民宿推薦刪除圖片 422 修正
+
+### 變更內容
+
+- **後台 API 呼叫 (system/backend/lib/api.ts)**  
+  民宿刪除單張圖片時，後端回傳 422「The image path field is required」：axios 的 `delete(url, config)` 第二參數為 config，`image_path` 被當成 config 而非 request body。改為以 `data: { image_path: imagePath }` 傳送，Laravel 即可正確收到 `image_path`，刪除多張圖片區的圖片可正常完成。
+
+---
+
 ## 2026-02-06 16:30:00 (Asia/Taipei) - 前台預約與後台訂單的船運選單依排序顯示
 
 ### 變更內容
