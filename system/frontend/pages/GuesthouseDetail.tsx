@@ -85,7 +85,7 @@ const GuesthouseDetail: React.FC = () => {
   } : undefined;
 
   return (
-    <div className="animate-in fade-in duration-700 bg-[#fcfcfc] min-h-screen">
+    <div className="animate-in fade-in duration-700 bg-[#f0f4ff] min-h-screen">
       {guesthouse && (
         <SEO
           title={`${guesthouse.name} - 民宿推薦 - 蘭光電動機車`}
@@ -96,7 +96,7 @@ const GuesthouseDetail: React.FC = () => {
           structuredData={structuredData}
         />
       )}
-      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-transparent">
+      <header className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 bg-[#f0f4ff]">
         <div className="container mx-auto max-w-4xl">
           <Link
             to="/guidelines"
@@ -114,10 +114,10 @@ const GuesthouseDetail: React.FC = () => {
       </header>
 
       <section className="container mx-auto px-4 sm:px-6 max-w-4xl pb-12 sm:pb-16 md:pb-24">
-        <div className="bg-transparent rounded-[30px] sm:rounded-[35px] md:rounded-[40px] overflow-hidden">
+        <div className="bg-white rounded-[30px] sm:rounded-[35px] md:rounded-[40px] shadow-sm p-6 sm:p-8 md:p-12 overflow-hidden">
           {/* 顯示多圖片或主圖片 */}
           {guesthouse.images && Array.isArray(guesthouse.images) && guesthouse.images.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 p-3 sm:p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-8">
               {guesthouse.images.map((img, idx) => (
                 <div key={idx} className="aspect-[4/3] overflow-hidden rounded-lg">
                   <img
@@ -129,7 +129,7 @@ const GuesthouseDetail: React.FC = () => {
               ))}
             </div>
           ) : guesthouse.image_path ? (
-            <div className="aspect-[16/9] overflow-hidden">
+            <div className="aspect-[16/9] overflow-hidden rounded-lg mb-8">
               <img
                 src={`/storage/${guesthouse.image_path}`}
                 alt={guesthouse.name}
@@ -139,7 +139,7 @@ const GuesthouseDetail: React.FC = () => {
           ) : null}
 
           {guesthouse.description && (
-            <div className="p-6 sm:p-8 md:p-12">
+            <div className="mb-8">
               <div 
                 className="text-gray-700 leading-relaxed prose prose-sm sm:prose-base md:prose-lg max-w-none text-sm sm:text-base"
                 dangerouslySetInnerHTML={{ __html: guesthouse.description }}
@@ -148,7 +148,7 @@ const GuesthouseDetail: React.FC = () => {
           )}
 
           {guesthouse.link && (
-            <div className="px-6 sm:px-8 md:px-12 pb-6 sm:pb-8 md:pb-12">
+            <div>
               <a
                 href={guesthouse.link}
                 target="_blank"
