@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ExternalLink, X } from 'lucide-react';
 import SEO from '../components/SEO';
 import { publicApi } from '../lib/api';
 
@@ -21,6 +21,8 @@ const GuesthouseDetail: React.FC = () => {
   const [guesthouse, setGuesthouse] = useState<Guesthouse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isZoomed, setIsZoomed] = useState(false);
 
   useEffect(() => {
     const fetchGuesthouse = async () => {
@@ -119,7 +121,11 @@ const GuesthouseDetail: React.FC = () => {
           {guesthouse.images && Array.isArray(guesthouse.images) && guesthouse.images.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 mb-8">
               {guesthouse.images.map((img, idx) => (
-                <div key={idx} className="aspect-[4/3] overflow-hidden rounded-lg">
+                <div 
+                  key={idx} 
+                  className="aspect-[4/3] overflow-hidden rounded-lg cursor-pointer hover:opacity-95 transition-opacity"
+                  onClick={() => setSelectedImage(`/storage/${img}`)}
+                >
                   <img
                     src={`/storage/${img}`}
                     alt={`${guesthouse.name} ${idx + 1}`}
@@ -129,7 +135,10 @@ const GuesthouseDetail: React.FC = () => {
               ))}
             </div>
           ) : guesthouse.image_path ? (
-            <div className="aspect-[16/9] overflow-hidden rounded-lg mb-8">
+            <div 
+              className="aspect-[16/9] overflow-hidden rounded-lg mb-8 cursor-pointer hover:opacity-95 transition-opacity"
+              onClick={() => setSelectedImage(`/storage/${guesthouse.image_path}`)}
+            >
               <img
                 src={`/storage/${guesthouse.image_path}`}
                 alt={guesthouse.name}
@@ -162,6 +171,48 @@ const GuesthouseDetail: React.FC = () => {
           )}
         </div>
       </section>
+
+      {/* Image Modal */}
+      {selectedImage && (
+        <div 
+          className="fixed inset-0 bg-black/90 z-[100] flex items-center justify-center p-4 overflow-hidden"
+          onClick={() => {
+            setSelectedImage(null);
+            setIsZoomed(false);
+          }}
+        >
+          <button 
+            className="absolute top-4 right-4 text-white/70 hover:text-white p-2 z-10"
+            onClick={() => {
+              setSelectedImage(null);
+              setIsZoomed(false);
+            }}
+          >
+            <X size={32} />
+          </button>
+          <img 
+            src={selectedImage} 
+            alt="Full size" 
+            className={`max-w-full max-h-[90vh] object-contain rounded-lg shadow-2xl transition-transform duration-300 ease-out ${
+              isZoomed ? 'cursor-zoom-out' : 'cursor-zoom-in'
+            }`}
+            style={{ 
+              transform: isZoomed ? 'scale(2)' : 'scale(1)',
+            }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsZoomed(!isZoomed);
+            }}
+            onMouseMove={(e) => {
+              if (!isZoomed) return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              const x = ((e.clientX - rect.left) / rect.width) * 100;
+              const y = ((e.clientY - rect.top) / rect.height) * 100;
+              e.currentTarget.style.transformOrigin = `${x}% ${y}%`;
+            }}
+          />
+        </div>
+      )}
     </div>
   );
 };
