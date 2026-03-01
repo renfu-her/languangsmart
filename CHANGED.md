@@ -1,5 +1,16 @@
 # 變更記錄 (Change Log)
 
+## 2026-03-01 03:23:05 (Asia/Taipei) - 訂單開始/結束時間補上時分格式
+
+### 變更內容
+
+- **訂單後端寫入標準化 (app/Http/Controllers/Api/OrderController.php)**  
+  新增日期時間正規化：`start_time`、`end_time`（以及相關 datetime 欄位）若為 `YYYY-MM-DD` 會補為 `YYYY-MM-DD 00:00:00`，若為 `YYYY-MM-DDTHH:mm` 會轉為 `YYYY-MM-DD HH:mm:00`，確保後端資料一致含時間。
+- **訂單 API 回傳格式 (app/Http/Resources/OrderResource.php)**  
+  `start_time`、`end_time` 回傳格式改為 `Y-m-d H:i`，讓後端資料可直接帶出「時:分」資訊。
+
+---
+
 ## 2026-03-01 03:18:39 (Asia/Taipei) - 線上預約轉訂單的租借時間固定為 00:00
 
 ### 變更內容

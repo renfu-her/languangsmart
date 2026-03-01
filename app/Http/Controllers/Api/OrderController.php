@@ -128,6 +128,9 @@ class OrderController extends Controller
         DB::beginTransaction();
         try {
             $validated = $validator->validated();
+
+            // 將日期欄位標準化為含時分秒格式，避免不同環境對純日期字串解析不一致
+            $validated = $this->normalizeOrderDateTimeFields($validated);
             
             // 如果沒有提供 payment_amount 或為 0，自動計算費用
             if (empty($validated['payment_amount']) || $validated['payment_amount'] == 0) {
@@ -238,6 +241,9 @@ class OrderController extends Controller
             $oldScooterIds = $order->scooters->pluck('id')->toArray();
 
             $validated = $validator->validated();
+
+            // 將日期欄位標準化為含時分秒格式，避免不同環境對純日期字串解析不一致
+            $validated = $this->normalizeOrderDateTimeFields($validated);
             
             // 如果沒有提供 payment_amount 或為 0，自動計算費用
             if (empty($validated['payment_amount']) || $validated['payment_amount'] == 0) {
@@ -1253,6 +1259,44 @@ class OrderController extends Controller
         }
 
         return (float) $totalAmount;
+    }
+
+    /**
+     * 標準化訂單相關日期時間欄位。
+     * - YYYY-MM-DD 會補成 YYYY-MM-DD 00:00:00
+     * - YYYY-MM-DDTHH:mm 會轉為 YYYY-MM-DD HH:mm:00
+     * - 其他可解析格式會統一為 YYYY-MM-DD HH:mm:ss
+     */
+    private function normalizeOrderDateTimeFields(array $data): array
+    {
+        foreach (['start_time', 'end_time', 'expected_return_time', 'ship_arrival_time', 'ship_return_time'] as $field) {
+            if (!isset($data[$field]) || $data[$field] === null || $data[$field] === '') {
+                continue;
+            }
+
+            $value = is_string($data[$field]) ? trim($data[$field]) : (string) $data[$field];
+
+            // date input: yyyy-mm-dd -> yyyy-mm-dd 00:00:00
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+                $data[$field] = $value . ' 00:00:00';
+                continue;
+            }
+
+            // datetime-local input: yyyy-mm-ddTHH:mm -> yyyy-mm-dd HH:mm:00
+            if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $value)) {
+                $data[$field] = str_replace('T', ' ', $value) . ':00';
+                continue;
+            }
+
+            // fallback: normalize parseable formats
+            try {
+                $data[$field] = Carbon::parse($value)->format('Y-m-d H:i:s');
+            } catch (\Throwable $e) {
+                // 保留原始值，讓上層驗證或資料庫處理
+            }
+        }
+
+        return $data;
     }
 }
 
