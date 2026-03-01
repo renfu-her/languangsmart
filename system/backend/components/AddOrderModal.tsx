@@ -183,6 +183,15 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     return isNaN(parsed.getTime()) ? null : parsed;
   };
 
+  // 當開始時間變更時，若已有結束時間，僅同步結束時間的「時:分」
+  const syncEndTimeClockWithStart = (startValue: string, endValue: string): string => {
+    if (!startValue || !endValue) return endValue;
+    const startParts = startValue.split('T');
+    const endParts = endValue.split('T');
+    if (startParts.length !== 2 || endParts.length !== 2) return endValue;
+    return `${endParts[0]}T${startParts[1]}`;
+  };
+
   useEffect(() => {
     if (isOpen) {
       const initializeModal = async () => {
@@ -688,7 +697,14 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                   className={inputClasses}
                   value={formData.start_time}
                   onChange={(e) => {
-                    setFormData(prev => ({ ...prev, start_time: e.target.value }));
+                    const nextStartTime = e.target.value;
+                    setFormData(prev => ({
+                      ...prev,
+                      start_time: nextStartTime,
+                      end_time: prev.end_time
+                        ? syncEndTimeClockWithStart(nextStartTime, prev.end_time)
+                        : prev.end_time,
+                    }));
                   }}
                   onKeyDown={(e) => e.preventDefault()}
                   onPaste={(e) => e.preventDefault()}
