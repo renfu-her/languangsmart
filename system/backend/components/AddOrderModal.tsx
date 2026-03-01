@@ -703,7 +703,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                       start_time: nextStartTime,
                       end_time: prev.end_time
                         ? syncEndTimeClockWithStart(nextStartTime, prev.end_time)
-                        : prev.end_time,
+                        : (!editingOrder ? nextStartTime : prev.end_time),
                     }));
                   }}
                   onKeyDown={(e) => e.preventDefault()}
