@@ -528,9 +528,9 @@ class BookingController extends Controller
                 : $booking->end_date)
             : null;
 
-        // 開始時間和結束時間只使用日期格式（預約日期 = 租借開始）
-        $startTime = $bookingDate;
-        $endTime = $endDate ? $endDate : $bookingDate;
+        // 開始時間和結束時間固定補上 00:00:00（預約日期 = 租借開始）
+        $startTime = $bookingDate . ' 00:00:00';
+        $endTime = ($endDate ? $endDate : $bookingDate) . ' 00:00:00';
 
         // 如果沒有提供機車 ID，自動選擇可用機車
         if (!$scooterIds || count($scooterIds) === 0) {

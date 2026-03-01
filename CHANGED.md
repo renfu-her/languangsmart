@@ -1,5 +1,14 @@
 # 變更記錄 (Change Log)
 
+## 2026-03-01 03:18:39 (Asia/Taipei) - 線上預約轉訂單的租借時間固定為 00:00
+
+### 變更內容
+
+- **預約轉訂單後端流程 (app/Http/Controllers/Api/BookingController.php)**  
+  當前台線上預約轉為後台訂單時，`start_time` 與 `end_time` 改為明確寫入 `YYYY-MM-DD 00:00:00`，確保訂單管理中的「租借開始 / 租借結束」都有固定時間，不受資料庫或環境對純日期字串轉換差異影響。
+
+---
+
 ## 2026-03-01 02:45:30 (Asia/Taipei) - 新增 GitHub Actions production 部署流程
 
 ### 變更內容
