@@ -160,6 +160,10 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dateTimeStr)) {
       return dateTimeStr;
     }
+    // 如果是 YYYY-MM-DD HH:mm 或 YYYY-MM-DD HH:mm:ss，轉為 datetime-local 格式
+    if (/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}(:\d{2})?$/.test(dateTimeStr)) {
+      return dateTimeStr.replace(' ', 'T').slice(0, 16);
+    }
     // 如果是其他格式，嘗試解析
     const date = new Date(dateTimeStr);
     if (isNaN(date.getTime())) return '';
@@ -169,6 +173,14 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // 將日期或日期時間字串轉為 Date（date 會補 00:00）
+  const parseDateOrDateTime = (value: string): Date | null => {
+    if (!value) return null;
+    const normalized = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00` : value;
+    const parsed = new Date(normalized);
+    return isNaN(parsed.getTime()) ? null : parsed;
   };
 
   useEffect(() => {
@@ -185,8 +197,8 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
             store_id: orderStoreId ? orderStoreId.toString() : '',
             tenant: editingOrder.tenant,
             appointment_date: formatDateForInput(editingOrder.appointment_date),
-            start_time: formatDateForInput(editingOrder.start_time),
-            end_time: formatDateForInput(editingOrder.end_time),
+            start_time: formatDateTimeForInput(editingOrder.start_time),
+            end_time: formatDateTimeForInput(editingOrder.end_time),
             expected_return_time: formatDateTimeForInput(editingOrder.expected_return_time),
             phone: editingOrder.phone || '',
             shipping_company: editingOrder.shipping_company || '',
@@ -392,14 +404,18 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     }
 
     // 計算天數（參考後端邏輯）
-    const startDate = new Date(formData.start_time + 'T00:00:00');
-    const endDate = new Date(formData.end_time + 'T00:00:00');
-    const isSameDay = startDate.toDateString() === endDate.toDateString();
+    const startDate = parseDateOrDateTime(formData.start_time);
+    const endDate = parseDateOrDateTime(formData.end_time);
+    if (!startDate || !endDate) return 0;
+
+    const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    const isSameDay = startDay.getTime() === endDay.getTime();
     
     let days = 1;
     if (!isSameDay) {
       // 跨日租：計算夜數（diffInDays）
-      const diffTime = endDate.getTime() - startDate.getTime();
+      const diffTime = endDay.getTime() - startDay.getTime();
       days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     }
 
@@ -669,7 +685,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                     <Clock size={14} className="mr-1.5" /> 開始時間
                   </label>
                   <input 
-                    type="date" 
+                    type="datetime-local" 
                     className={inputClasses}
                     value={formData.start_time}
                     onChange={(e) => {
@@ -677,7 +693,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                     }}
                     onKeyDown={(e) => e.preventDefault()}
                     onPaste={(e) => e.preventDefault()}
-                    min={formData.appointment_date || undefined}
+                    min={formData.appointment_date ? `${formData.appointment_date}T00:00` : undefined}
                   />
                 </div>
                 <div>
@@ -685,7 +701,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                     <Clock size={14} className="mr-1.5" /> 結束時間
                   </label>
                   <input 
-                    type="date" 
+                    type="datetime-local" 
                     className={inputClasses}
                     value={formData.end_time}
                     onChange={(e) => {
@@ -693,7 +709,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                     }}
                     onKeyDown={(e) => e.preventDefault()}
                     onPaste={(e) => e.preventDefault()}
-                    min={formData.start_time || formData.appointment_date || undefined}
+                    min={formData.start_time || (formData.appointment_date ? `${formData.appointment_date}T00:00` : undefined)}
                   />
                 </div>
               </div>
