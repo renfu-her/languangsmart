@@ -1,5 +1,14 @@
 # 變更記錄 (Change Log)
 
+## 2026-03-01 02:45:30 (Asia/Taipei) - 新增 GitHub Actions production 部署流程
+
+### 變更內容
+
+- **CI/CD Workflow (.github/workflows/deploy.yml)**  
+  新增 `Deploy to Production` 工作流程：當 `main` 分支有新 commit 時，透過 `appleboy/ssh-action` 連線伺服器，切換到 `/home/codeartisanstudio/htdocs/languangsmart.com`，並執行 `./build.sh production` 完成部署。
+
+---
+
 ## 2026-02-09 14:00:00 (Asia/Taipei) - 後台民宿推薦刪除圖片 422 修正
 
 ### 變更內容
