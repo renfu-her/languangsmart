@@ -679,39 +679,37 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={`${labelClasses} flex items-center`}>
-                    <Clock size={14} className="mr-1.5" /> 開始時間
-                  </label>
-                  <input 
-                    type="datetime-local" 
-                    className={inputClasses}
-                    value={formData.start_time}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, start_time: e.target.value }));
-                    }}
-                    onKeyDown={(e) => e.preventDefault()}
-                    onPaste={(e) => e.preventDefault()}
-                    min={formData.appointment_date ? `${formData.appointment_date}T00:00` : undefined}
-                  />
-                </div>
-                <div>
-                  <label className={`${labelClasses} flex items-center`}>
-                    <Clock size={14} className="mr-1.5" /> 結束時間
-                  </label>
-                  <input 
-                    type="datetime-local" 
-                    className={inputClasses}
-                    value={formData.end_time}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, end_time: e.target.value }));
-                    }}
-                    onKeyDown={(e) => e.preventDefault()}
-                    onPaste={(e) => e.preventDefault()}
-                    min={formData.start_time || (formData.appointment_date ? `${formData.appointment_date}T00:00` : undefined)}
-                  />
-                </div>
+              <div>
+                <label className={`${labelClasses} flex items-center`}>
+                  <Clock size={14} className="mr-1.5" /> 開始時間
+                </label>
+                <input 
+                  type="datetime-local" 
+                  className={inputClasses}
+                  value={formData.start_time}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, start_time: e.target.value }));
+                  }}
+                  onKeyDown={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  min={formData.appointment_date ? `${formData.appointment_date}T00:00` : undefined}
+                />
+              </div>
+              <div>
+                <label className={`${labelClasses} flex items-center`}>
+                  <Clock size={14} className="mr-1.5" /> 結束時間
+                </label>
+                <input 
+                  type="datetime-local" 
+                  className={inputClasses}
+                  value={formData.end_time}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, end_time: e.target.value }));
+                  }}
+                  onKeyDown={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  min={formData.start_time || (formData.appointment_date ? `${formData.appointment_date}T00:00` : undefined)}
+                />
               </div>
 
               <div>
