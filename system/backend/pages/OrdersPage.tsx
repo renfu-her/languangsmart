@@ -1898,7 +1898,15 @@ const OrdersPage: React.FC = () => {
       switch (activeSortColumn) {
         case 'status':
           // 狀態排序：進行中、待接送、在合作商、已預訂、已完成
-          sorted.sort((a, b) => getStatusOrder(a.status) - getStatusOrder(b.status));
+          sorted.sort((a, b) => {
+            const statusDiff = getStatusOrder(a.status) - getStatusOrder(b.status);
+            if (statusDiff !== 0) return statusDiff;
+
+            // 同狀態時以預約日期由早到晚排序
+            const dateA = getDateTimeForAscendingSort(a.appointment_date);
+            const dateB = getDateTimeForAscendingSort(b.appointment_date);
+            return dateA - dateB;
+          });
           break;
         
         case 'appointment_date':
