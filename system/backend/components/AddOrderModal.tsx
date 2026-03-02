@@ -337,12 +337,15 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
       }));
       setPartners(partnersWithFees);
       
-      // 如果沒有選擇合作商，自動選擇該商店的預設合作商
-      if (!formData.partner_id && partnersWithFees.length > 0) {
-        const defaultPartner = partnersWithFees.find((p: any) => p.is_default_for_booking);
-        if (defaultPartner) {
-          setFormData(prev => ({ ...prev, partner_id: defaultPartner.id.toString() }));
-        }
+      // 只在「新增模式」且尚未選擇合作商時，才自動帶入預設合作商
+      // 「編輯模式」必須保留該筆訂單原本的合作商，不可被預設值覆蓋
+      if (!editingOrder && partnersWithFees.length > 0) {
+        setFormData(prev => {
+          if (prev.partner_id) return prev;
+          const defaultPartner = partnersWithFees.find((p: any) => p.is_default_for_booking);
+          if (!defaultPartner) return prev;
+          return { ...prev, partner_id: defaultPartner.id.toString() };
+        });
       }
     } catch (error) {
       console.error('Failed to fetch partners:', error);
