@@ -1883,6 +1883,11 @@ const OrdersPage: React.FC = () => {
     const index = statusOrder.indexOf(status);
     return index === -1 ? 999 : index;
   };
+  const getDateTimeForAscendingSort = (value: string | null | undefined) => {
+    if (!value) return Number.MAX_SAFE_INTEGER;
+    const timestamp = new Date(value).getTime();
+    return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER : timestamp;
+  };
 
   // 點擊表頭排序後的訂單列表（支持臨時拖拽排序）
   const sortedOrders = useMemo(() => {
@@ -1897,38 +1902,38 @@ const OrdersPage: React.FC = () => {
           break;
         
         case 'appointment_date':
-          // 預約日期排序：由近而遠（降序）
+          // 預約日期排序：由早到晚（升序）
           sorted.sort((a, b) => {
-            const dateA = a.appointment_date ? new Date(a.appointment_date).getTime() : 0;
-            const dateB = b.appointment_date ? new Date(b.appointment_date).getTime() : 0;
-            return dateB - dateA;
+            const dateA = getDateTimeForAscendingSort(a.appointment_date);
+            const dateB = getDateTimeForAscendingSort(b.appointment_date);
+            return dateA - dateB;
           });
           break;
         
         case 'start_time':
-          // 租借開始時間排序：由近而遠（降序）
+          // 租借開始時間排序：由早到晚（升序）
           sorted.sort((a, b) => {
-            const dateA = a.start_time ? new Date(a.start_time).getTime() : 0;
-            const dateB = b.start_time ? new Date(b.start_time).getTime() : 0;
-            return dateB - dateA;
+            const dateA = getDateTimeForAscendingSort(a.start_time);
+            const dateB = getDateTimeForAscendingSort(b.start_time);
+            return dateA - dateB;
           });
           break;
         
         case 'end_time':
-          // 租借結束時間排序：由近而遠（降序）
+          // 租借結束時間排序：由早到晚（升序）
           sorted.sort((a, b) => {
-            const dateA = a.end_time ? new Date(a.end_time).getTime() : 0;
-            const dateB = b.end_time ? new Date(b.end_time).getTime() : 0;
-            return dateB - dateA;
+            const dateA = getDateTimeForAscendingSort(a.end_time);
+            const dateB = getDateTimeForAscendingSort(b.end_time);
+            return dateA - dateB;
           });
           break;
         
         case 'expected_return_time':
-          // 預計還車時間排序：由近而遠（降序）
+          // 預計還車時間排序：由早到晚（升序）
           sorted.sort((a, b) => {
-            const dateA = a.expected_return_time ? new Date(a.expected_return_time).getTime() : 0;
-            const dateB = b.expected_return_time ? new Date(b.expected_return_time).getTime() : 0;
-            return dateB - dateA;
+            const dateA = getDateTimeForAscendingSort(a.expected_return_time);
+            const dateB = getDateTimeForAscendingSort(b.expected_return_time);
+            return dateA - dateB;
           });
           break;
       }

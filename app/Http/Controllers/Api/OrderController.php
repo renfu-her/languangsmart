@@ -425,7 +425,8 @@ class OrderController extends Controller
 
         // Get orders for the month
         $query = Order::with(['partner', 'scooters', 'store'])
-            ->whereBetween('appointment_date', [$startDate, $endDate]);
+            ->whereBetween('appointment_date', [$startDate, $endDate])
+            ->whereNotIn('status', ['已預訂', '已預約']);
         
         // Filter by store_id if provided
         if ($request->has('store_id')) {
@@ -942,6 +943,7 @@ class OrderController extends Controller
         $orders = Order::whereNotNull('start_time')
             ->whereNotNull('end_time')
             ->whereNotNull('partner_id')
+            ->whereNotIn('status', ['已預訂', '已預約'])
             ->whereBetween('start_time', [$monthStartDate, $monthEndDate])
             ->when($request->has('store_id'), fn($q) => $q->where('store_id', $request->get('store_id')))
             ->get();
