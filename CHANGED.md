@@ -1,5 +1,22 @@
 # 變更記錄 (Change Log)
 
+## 2026-03-08 16:04:06 (Asia/Taipei) - 修正資料匯出時合作商統編遺失
+
+### 變更內容
+
+- **後端統計 API** (`app/Http/Controllers/Api/OrderController.php`)
+  - `statistics()` 回傳的 `partner_stats` 新增 `tax_id` 欄位
+  - 統編直接從訂單關聯的合作商取得，不再依名稱比對
+- **訂單管理匯出 Excel** (`system/backend/pages/OrdersPage.tsx`)
+  - 匯出時優先使用統計資料中的 `tax_id`
+  - 若無則沿用既有邏輯以合作商名稱匹配統編
+
+### 說明
+- 先前匯出「單月總結」時，統編是以合作商名稱比對合作商列表取得，可能因 store 篩選或名稱差異導致統編為空
+- 現改由後端在統計 API 直接帶出每個合作商的 `tax_id`，匯出時直接使用，確保有使用合作商的訂單能正確顯示統編
+
+---
+
 ## 2026-03-02 08:46:45 (Asia/Taipei) - 編輯訂單保留原合作商不套用預設值
 
 ### 變更內容

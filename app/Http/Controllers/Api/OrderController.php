@@ -449,6 +449,7 @@ class OrderController extends Controller
             if (!isset($partnerStats[$partnerName])) {
                 $partnerStats[$partnerName] = [
                     'partner_id' => $partnerId,
+                    'tax_id' => $order->partner?->tax_id,
                     'count' => 0,
                     'amount' => 0,
                 ];

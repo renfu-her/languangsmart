@@ -39,7 +39,7 @@ interface Order {
 }
 
 interface Statistics {
-  partner_stats: Record<string, { count: number; amount: number }>;
+  partner_stats: Record<string, { partner_id?: number; tax_id?: string | null; count: number; amount: number }>;
   total_count: number;
   total_amount: number;
   month: string;
@@ -1614,7 +1614,7 @@ const OrdersPage: React.FC = () => {
     }
 
     try {
-      // 獲取合作商列表以匹配統編
+      // 統編優先從 stats.partner_stats 取得（後端直接帶出），找不到時再以名稱匹配合作商列表
       const partnersResponse = await partnersApi.list();
       const partners = (partnersResponse.data || []) as Array<{ name: string; tax_id: string | null }>;
       const partnerMap = new Map<string, string>();
@@ -1644,14 +1644,18 @@ const OrdersPage: React.FC = () => {
       // 第6行：表頭
       XLSX.utils.sheet_add_aoa(ws, [['合作商名稱', '統編', '台數', '金額']], { origin: 'A6' });
       
-      // 準備合作商統計數據
+      // 準備合作商統計數據（統編優先使用 stats 中的 tax_id，否則以名稱匹配）
       const partnerData = Object.entries(stats.partner_stats || {})
-        .map(([partnerName, data]) => [
-          partnerName,
-          partnerMap.get(partnerName) || '',
-          (data as { count: number; amount: number }).count || 0,
-          (data as { count: number; amount: number }).amount || 0
-        ])
+        .map(([partnerName, data]) => {
+          const d = data as { tax_id?: string | null; count: number; amount: number };
+          const taxId = (d.tax_id != null && d.tax_id !== '') ? d.tax_id : (partnerMap.get(partnerName) || '');
+          return [
+            partnerName,
+            taxId,
+            d.count || 0,
+            d.amount || 0
+          ];
+        })
         .sort((a, b) => (b[3] as number) - (a[3] as number)); // 按金額降序排列
       
       // 添加數據行（從第7行開始）
