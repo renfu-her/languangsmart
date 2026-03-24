@@ -39,6 +39,7 @@ const FinesPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [scooterSearchTerm, setScooterSearchTerm] = useState('');
   const [formData, setFormData] = useState({
     scooter_id: '',
     tenant: '',
@@ -115,6 +116,10 @@ const FinesPage: React.FC = () => {
     }
   };
 
+  const filteredScooters = scooters.filter((scooter) =>
+    scooter.plate_number.toLowerCase().includes(scooterSearchTerm.trim().toLowerCase())
+  );
+
   const handleOpenModal = (fine?: Fine) => {
     if (fine) {
       setEditingFine(fine);
@@ -126,6 +131,7 @@ const FinesPage: React.FC = () => {
         fine_amount: String(fine.fine_amount),
         payment_status: fine.payment_status,
       });
+      setScooterSearchTerm(fine.scooter?.plate_number || '');
       setPhotoPreview(fine.photo_path || null);
     } else {
       setEditingFine(null);
@@ -137,6 +143,7 @@ const FinesPage: React.FC = () => {
         fine_amount: '',
         payment_status: '未繳費',
       });
+      setScooterSearchTerm('');
       setPhotoPreview(null);
     }
     setPhotoFile(null);
@@ -156,6 +163,7 @@ const FinesPage: React.FC = () => {
     });
     setPhotoFile(null);
     setPhotoPreview(null);
+    setScooterSearchTerm('');
   };
 
   const handleSubmit = async () => {
@@ -460,16 +468,30 @@ const FinesPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className={labelClasses}>車牌號碼 <span className="text-red-500">*</span></label>
+                  <input
+                    type="text"
+                    className={`${inputClasses} mb-2`}
+                    placeholder="輸入車牌號碼模糊搜尋"
+                    value={scooterSearchTerm}
+                    onChange={(e) => setScooterSearchTerm(e.target.value)}
+                  />
                   <select
                     className={inputClasses}
                     value={formData.scooter_id}
-                    onChange={(e) => setFormData({ ...formData, scooter_id: e.target.value })}
+                    onChange={(e) => {
+                      const selectedScooter = scooters.find((scooter) => String(scooter.id) === e.target.value);
+                      setFormData({ ...formData, scooter_id: e.target.value });
+                      setScooterSearchTerm(selectedScooter?.plate_number || scooterSearchTerm);
+                    }}
                   >
                     <option value="">請選擇</option>
-                    {scooters.map(scooter => (
+                    {filteredScooters.map(scooter => (
                       <option key={scooter.id} value={scooter.id}>{scooter.plate_number}</option>
                     ))}
                   </select>
+                  {scooterSearchTerm && filteredScooters.length === 0 && (
+                    <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">查無符合車牌，請調整搜尋關鍵字。</p>
+                  )}
                 </div>
                 <div>
                   <label className={labelClasses}>承租人 <span className="text-red-500">*</span></label>
