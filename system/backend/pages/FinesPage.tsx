@@ -195,7 +195,8 @@ const FinesPage: React.FC = () => {
       } else {
         const response = await finesApi.create(data);
         if (photoFile) {
-          const fineId = editingFine ? editingFine.id : (response.data?.data?.id || response.data?.id);
+          const createdFine = response.data as { data?: { id?: number }; id?: number } | undefined;
+          const fineId = createdFine?.data?.id || createdFine?.id;
           if (fineId) {
             await finesApi.uploadPhoto(fineId, photoFile);
           }
