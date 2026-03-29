@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown, ChevronUp, Download, Bell, XCircle } from 'lucide-react';
 import AddOrderModal from '../components/AddOrderModal';
 import ConvertBookingModal from '../components/ConvertBookingModal';
@@ -1234,6 +1234,7 @@ const ChartModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
 const OrdersPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { currentStore } = useStore();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
@@ -1254,7 +1255,7 @@ const OrdersPage: React.FC = () => {
   
   // 計算 selectedMonth 字符串（用於 API）
   const selectedMonthString = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('keywords') ?? '');
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(false);
@@ -1434,7 +1435,7 @@ const OrdersPage: React.FC = () => {
       try {
         const response = await ordersApi.list({
           month: selectedMonthString,
-          search: searchTerm || undefined,
+          keywords: searchTerm || undefined,
           page: currentPage,
           store_id: currentStore?.id,
         });
@@ -1545,7 +1546,7 @@ const OrdersPage: React.FC = () => {
           try {
             const response = await ordersApi.list({
               month: selectedMonthString,
-              search: searchTerm || undefined,
+              keywords: searchTerm || undefined,
               page: currentPage,
               store_id: currentStore?.id,
             });
@@ -1828,7 +1829,7 @@ const OrdersPage: React.FC = () => {
       // 重新載入訂單列表
       const response = await ordersApi.list({
         month: selectedMonthString,
-        search: searchTerm || undefined,
+        keywords: searchTerm || undefined,
         page: currentPage,
         store_id: currentStore?.id,
       });
@@ -2056,7 +2057,7 @@ const OrdersPage: React.FC = () => {
     await fetchPendingBookings();
     const response = await ordersApi.list({
       month: selectedMonthString,
-      search: searchTerm || undefined,
+      keywords: searchTerm || undefined,
       page: currentPage,
       store_id: currentStore?.id,
     });
@@ -2399,6 +2400,14 @@ const OrdersPage: React.FC = () => {
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
+                  setSearchParams((prev) => {
+                    if (e.target.value) {
+                      prev.set('keywords', e.target.value);
+                    } else {
+                      prev.delete('keywords');
+                    }
+                    return prev;
+                  }, { replace: true });
                 }}
               />
             </div>
@@ -2846,7 +2855,7 @@ const OrdersPage: React.FC = () => {
                             // 重新載入訂單列表
                             const response = await ordersApi.list({
                               month: selectedMonthString,
-                              search: searchTerm || undefined,
+                              keywords: searchTerm || undefined,
                               page: currentPage,
                               store_id: currentStore?.id,
                             });

@@ -335,7 +335,7 @@ export const api = new ApiClient(API_BASE_URL);
 
 // API endpoints
 export const ordersApi = {
-  list: (params?: { month?: string; search?: string; page?: number; store_id?: number }) =>
+  list: (params?: { month?: string; search?: string; keywords?: string; page?: number; store_id?: number }) =>
     api.get('/orders', params),
   get: (id: string | number) => api.get(`/orders/${id}`),
   create: (data: any) => api.post('/orders', data),

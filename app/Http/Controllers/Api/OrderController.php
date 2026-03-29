@@ -41,9 +41,10 @@ class OrderController extends Controller
             $query->whereBetween('appointment_date', [$startDate, $endDate]);
         }
 
-        // Search
-        if ($request->has('search')) {
-            $search = $request->get('search');
+        // Search (支援 keywords 參數，fallback 至 search)
+        $searchValue = $request->get('keywords') ?? $request->get('search');
+        if ($searchValue) {
+            $search = $searchValue;
             $query->where(function ($q) use ($search) {
                 $q->where('tenant', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
