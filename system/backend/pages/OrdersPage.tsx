@@ -2393,7 +2393,7 @@ const OrdersPage: React.FC = () => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input 
                 type="text" 
-                placeholder="搜尋承租人、電話或訂單號..." 
+                placeholder="搜尋承租人、電話、訂單號或車牌號碼..." 
                 className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200"
                 value={searchTerm}
                 onChange={(e) => {

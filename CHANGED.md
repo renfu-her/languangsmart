@@ -1,5 +1,21 @@
 # 變更記錄 (Change Log)
 
+## 2026-03-29 13:25:31 (Asia/Taipei) - 訂單管理搜尋欄新增車牌號碼搜尋
+
+### 變更內容
+
+- **後端訂單列表 API** (`app/Http/Controllers/Api/OrderController.php`)
+  - 搜尋條件新增 `orWhereHas('scooters', ...)`，透過 `order_scooter` 關聯表比對 `scooters.plate_number`
+  - 輸入車牌如 `ERV-1234`，即可找出該月份有租到此車牌的所有訂單
+- **前端搜尋欄** (`system/backend/pages/OrdersPage.tsx`)
+  - 搜尋欄 placeholder 更新為「搜尋承租人、電話、訂單號或車牌號碼...」
+
+### 說明
+- 搜尋欄現支援承租人、電話、訂單號與車牌號碼四種模糊搜尋
+- 車牌搜尋會自動配合當月篩選，僅顯示該月有租到該車牌的訂單
+
+---
+
 ## 2026-03-24 21:48:44 (Asia/Taipei) - 罰單管理新增單一輸入框車牌模糊搜尋
 
 ### 變更內容
