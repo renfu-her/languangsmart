@@ -1,5 +1,20 @@
 # 變更記錄 (Change Log)
 
+## 2026-03-29 16:45:46 (Asia/Taipei) - OpenSpec change: audit-fe-be-risks (frontend/backend integration audit)
+
+### 變更內容
+
+- **OpenSpec** (`openspec/changes/audit-fe-be-risks/`)
+  - 新增 `proposal.md`、`design.md`、`tasks.md`
+  - 新增規格 `specs/fe-be-integration/spec.md`（API 基底 URL、管理端認證、公開端 API 使用、錯誤 JSON、CORS/Sanctum 對齊）
+  - 內容為專案前後端整合風險盤點與可驗證檢查清單，實作請依 `tasks.md` 執行或執行 `/opsx:apply`
+
+### 說明
+
+- 此變更為規劃與規格文件，不直接修改執行程式碼；後續依檢查結果可另開修復變更。
+
+---
+
 ## 2026-03-29 13:25:31 (Asia/Taipei) - 訂單管理搜尋欄新增車牌號碼搜尋
 
 ### 變更內容

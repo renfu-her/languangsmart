@@ -2072,6 +2072,21 @@ const OrdersPage: React.FC = () => {
     }
   };
 
+  // 訂單儲存後即時更新列表 state，避免顯示過時金額
+  const handleOrderSaved = (savedOrder: Order) => {
+    setOrders(prev => {
+      const exists = prev.some(o => o.id === savedOrder.id);
+      if (exists) {
+        // 更新現有訂單（編輯）
+        return prev.map(o => o.id === savedOrder.id ? savedOrder : o);
+      }
+      // 新增訂單（新增至列表頂端）
+      return [savedOrder, ...prev];
+    });
+    // 統計數字可能受影響，重新 fetch
+    fetchStatistics();
+  };
+
   // 處理拒絕預約
   const handleRejectBooking = async (bookingId: number) => {
     if (!confirm('確定要拒絕此預約嗎？')) return;
@@ -2733,6 +2748,7 @@ const OrdersPage: React.FC = () => {
       <AddOrderModal
         isOpen={isAddModalOpen}
         editingOrder={editingOrder}
+        onSaved={handleOrderSaved}
         onYearChange={(year) => {
           if (year && year !== selectedYear) {
             setSelectedYear(year);
@@ -2743,12 +2759,12 @@ const OrdersPage: React.FC = () => {
           setIsAddModalOpen(false);
           setEditingOrder(null);
           setPendingAppointmentDate(appointmentDate);
-          
+
           // 取消、確認按鈕皆觸發 reload
           setTimeout(() => {
             window.location.reload();
           }, 100);
-        }} 
+        }}
       />
       {/* 備註內容彈窗 */}
       {expandedRemarkId !== null && (() => {

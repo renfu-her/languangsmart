@@ -31,6 +31,7 @@ interface Order {
 interface AddOrderModalProps {
   isOpen: boolean;
   onClose: (appointmentDate?: string) => void;
+  onSaved?: (updatedOrder: Order) => void;
   editingOrder?: Order | null;
   onYearChange?: (year: number) => void;
 }
@@ -63,7 +64,7 @@ interface Store {
   name: string;
 }
 
-const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingOrder, onYearChange }) => {
+const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved, editingOrder, onYearChange }) => {
   const { currentStore } = useStore();
   const [availableScooters, setAvailableScooters] = useState<Scooter[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -511,9 +512,16 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
       };
 
       if (editingOrder) {
-        await ordersApi.update(editingOrder.id, orderData);
+        const response = await ordersApi.update(editingOrder.id, orderData);
+        // 將後端重算後的完整訂單傳回父層，以便即時更新列表 state
+        if (onSaved && response?.data?.data) {
+          onSaved(response.data.data);
+        }
       } else {
-        await ordersApi.create(orderData);
+        const response = await ordersApi.create(orderData);
+        if (onSaved && response?.data?.data) {
+          onSaved(response.data.data);
+        }
       }
       // 傳遞預約日期；關閉後由父層 onClose 觸發 reload
       onClose(formData.appointment_date || undefined);
