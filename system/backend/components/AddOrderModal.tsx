@@ -245,9 +245,9 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
             remark: '',
           });
           setSelectedScooterIds([]);
+          setIsAmountManuallyEdited(false); // 新增模式：重置手動修改標記
         }
         setSearchPlate('');
-        setIsAmountManuallyEdited(false); // 重置手動修改標記
       };
       
       initializeModal();
