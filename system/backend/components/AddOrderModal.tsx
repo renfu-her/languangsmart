@@ -506,7 +506,6 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
         ship_return_time: formData.ship_return_time || null,
         payment_method: formData.payment_method || null,
         payment_amount: parseFloat(formData.payment_amount),
-        is_manual_amount: isAmountManuallyEdited, // 告知後端是否使用手動輸入的金額
         status: formData.status,
         remark: formData.remark || null,
         scooter_ids: selectedScooterIds,

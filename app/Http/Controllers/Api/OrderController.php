@@ -252,25 +252,12 @@ class OrderController extends Controller
             // 將日期欄位標準化為含時分秒格式，避免不同環境對純日期字串解析不一致
             $validated = $this->normalizeOrderDateTimeFields($validated);
             
-            // 若前端標記為手動輸入金額（is_manual_amount = true），直接使用前端傳入的 payment_amount
-            // 否則由後端重新計算
-            $isManualAmount = $request->boolean('is_manual_amount', false);
-            if (!$isManualAmount) {
-                $partnerId = $validated['partner_id'] ?? $order->partner_id;
-                $startTime = $validated['start_time'] ?? $order->start_time;
-                $endTime = $validated['end_time'] ?? $order->end_time;
-                $scooterIdsForCalculation = $request->has('scooter_ids')
-                    ? $request->get('scooter_ids')
-                    : $oldScooterIds;
-                $calculatedAmount = $this->amountCalculator->calculate($partnerId, $scooterIdsForCalculation, $startTime, $endTime);
-                if ($calculatedAmount > 0) {
-                    $validated['payment_amount'] = $calculatedAmount;
-                } else {
-                    // 費率資料不完整，保留原有金額
-                    unset($validated['payment_amount']);
-                }
+            // 使用前端傳入的 payment_amount（前端已有自動計算邏輯，後端直接信任）
+            // 若前端未傳 payment_amount，保留原有金額
+            if (!isset($validated['payment_amount']) || $validated['payment_amount'] === null) {
+                unset($validated['payment_amount']);
             }
-            unset($validated['is_manual_amount']); // 不寫入 DB
+            unset($validated['is_manual_amount']); // 不寫入 DB（若前端有傳此欄位）
             
             $order->update($validated);
 
@@ -328,9 +315,6 @@ class OrderController extends Controller
                 'message' => 'Order updated successfully',
                 'data' => new OrderResource($order->load(['partner', 'scooters'])),
             ];
-            if ($calculatedAmount === 0.0) {
-                $response['warning'] = '費率資料不完整，金額維持原值';
-            }
             return response()->json($response);
         } catch (\Exception $e) {
             DB::rollBack();
