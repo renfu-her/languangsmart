@@ -252,20 +252,25 @@ class OrderController extends Controller
             // 將日期欄位標準化為含時分秒格式，避免不同環境對純日期字串解析不一致
             $validated = $this->normalizeOrderDateTimeFields($validated);
             
-            // 一律由後端重新計算 payment_amount，不採用前端傳入值
-            $partnerId = $validated['partner_id'] ?? $order->partner_id;
-            $startTime = $validated['start_time'] ?? $order->start_time;
-            $endTime = $validated['end_time'] ?? $order->end_time;
-            $scooterIdsForCalculation = $request->has('scooter_ids')
-                ? $request->get('scooter_ids')
-                : $oldScooterIds;
-            $calculatedAmount = $this->amountCalculator->calculate($partnerId, $scooterIdsForCalculation, $startTime, $endTime);
-            if ($calculatedAmount > 0) {
-                $validated['payment_amount'] = $calculatedAmount;
-            } else {
-                // 費率資料不完整，保留原有金額
-                unset($validated['payment_amount']);
+            // 若前端標記為手動輸入金額（is_manual_amount = true），直接使用前端傳入的 payment_amount
+            // 否則由後端重新計算
+            $isManualAmount = $request->boolean('is_manual_amount', false);
+            if (!$isManualAmount) {
+                $partnerId = $validated['partner_id'] ?? $order->partner_id;
+                $startTime = $validated['start_time'] ?? $order->start_time;
+                $endTime = $validated['end_time'] ?? $order->end_time;
+                $scooterIdsForCalculation = $request->has('scooter_ids')
+                    ? $request->get('scooter_ids')
+                    : $oldScooterIds;
+                $calculatedAmount = $this->amountCalculator->calculate($partnerId, $scooterIdsForCalculation, $startTime, $endTime);
+                if ($calculatedAmount > 0) {
+                    $validated['payment_amount'] = $calculatedAmount;
+                } else {
+                    // 費率資料不完整，保留原有金額
+                    unset($validated['payment_amount']);
+                }
             }
+            unset($validated['is_manual_amount']); // 不寫入 DB
             
             $order->update($validated);
 

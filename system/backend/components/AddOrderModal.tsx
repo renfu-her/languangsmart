@@ -506,6 +506,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
         ship_return_time: formData.ship_return_time || null,
         payment_method: formData.payment_method || null,
         payment_amount: parseFloat(formData.payment_amount),
+        is_manual_amount: isAmountManuallyEdited, // 告知後端是否使用手動輸入的金額
         status: formData.status,
         remark: formData.remark || null,
         scooter_ids: selectedScooterIds,
@@ -844,18 +845,14 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
                 </label>
                 <input
                   type="number"
-                  className={editingOrder ? `${inputClasses} bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-70` : inputClasses}
+                  className={inputClasses}
                   placeholder="NT$"
                   value={formData.payment_amount}
-                  readOnly={!!editingOrder}
-                  onChange={editingOrder ? undefined : (e) => {
+                  onChange={(e) => {
                     setFormData({ ...formData, payment_amount: e.target.value });
-                    setIsAmountManuallyEdited(true); // 標記為手動修改
+                    setIsAmountManuallyEdited(true); // 標記為手動修改，後端將使用此值
                   }}
                 />
-                {editingOrder && (
-                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">金額由系統自動計算，編輯模式下不可修改</p>
-                )}
               </div>
 
               <div>
