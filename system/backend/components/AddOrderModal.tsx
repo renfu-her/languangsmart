@@ -295,7 +295,13 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
         params.store_id = fixedStoreId;
       }
       const response = await scootersApi.list(params);
-      setAvailableScooters(response.data || []);
+      const newScooters: Scooter[] = response.data || [];
+      // 合併而非覆蓋：保留已選中的機車（狀態可能是「出租中」），避免 race condition 把它們清掉
+      setAvailableScooters(prev => {
+        const newIds = new Set(newScooters.map(s => s.id));
+        const preservedSelected = prev.filter(s => selectedScooterIds.includes(s.id) && !newIds.has(s.id));
+        return [...newScooters, ...preservedSelected];
+      });
     } catch (error) {
       console.error('Failed to fetch available scooters:', error);
     }
@@ -843,13 +849,16 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
                   <FileText size={14} className="mr-1.5" /> 總金額 <span className="text-red-500 ml-1">*</span>
                 </label>
                 <input
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   className={inputClasses}
                   placeholder="NT$"
                   value={formData.payment_amount}
                   onChange={(e) => {
-                    setFormData({ ...formData, payment_amount: e.target.value });
-                    setIsAmountManuallyEdited(true); // 標記為手動修改，後端將使用此值
+                    const val = e.target.value.replace(/[^0-9]/g, ''); // 只允許數字
+                    setFormData({ ...formData, payment_amount: val });
+                    setIsAmountManuallyEdited(true);
                   }}
                 />
               </div>
