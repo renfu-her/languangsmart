@@ -18,9 +18,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 use App\Models\Partner;
+use App\Services\OrderAmountCalculator;
 
 class OrderController extends Controller
 {
+    public function __construct(private OrderAmountCalculator $amountCalculator) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -41,13 +44,17 @@ class OrderController extends Controller
             $query->whereBetween('appointment_date', [$startDate, $endDate]);
         }
 
-        // Search
-        if ($request->has('search')) {
-            $search = $request->get('search');
+        // Search (支援 keywords 參數，fallback 至 search)
+        $searchValue = $request->get('keywords') ?? $request->get('search');
+        if ($searchValue) {
+            $search = $searchValue;
             $query->where(function ($q) use ($search) {
                 $q->where('tenant', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('order_number', 'like', "%{$search}%");
+                    ->orWhere('order_number', 'like', "%{$search}%")
+                    ->orWhereHas('scooters', function ($sq) use ($search) {
+                        $sq->where('plate_number', 'like', "%{$search}%");
+                    });
             });
         }
 
@@ -82,7 +89,7 @@ class OrderController extends Controller
             'end_time' => 'nullable|date',
             'expected_return_time' => 'nullable|date',
             'phone' => 'nullable|string|max:20',
-            'shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船',
+            'shipping_company' => 'nullable|string|max:100',
             'ship_arrival_time' => 'nullable|date',
             'ship_return_time' => 'nullable|date',
             'payment_method' => 'nullable|in:現金,月結,日結,匯款,刷卡,行動支付',
@@ -128,17 +135,20 @@ class OrderController extends Controller
         DB::beginTransaction();
         try {
             $validated = $validator->validated();
+
+            // 將日期欄位標準化為含時分秒格式，避免不同環境對純日期字串解析不一致
+            $validated = $this->normalizeOrderDateTimeFields($validated);
             
-            // 如果沒有提供 payment_amount 或為 0，自動計算費用
-            if (empty($validated['payment_amount']) || $validated['payment_amount'] == 0) {
-                $partnerId = $validated['partner_id'] ?? null;
-                $startTime = $validated['start_time'] ?? null;
-                $endTime = $validated['end_time'] ?? null;
-                
-                $calculatedAmount = $this->calculateOrderAmount($partnerId, $scooterIds, $startTime, $endTime);
+            // 一律由後端計算費用，不採用前端傳入的 payment_amount
+            $partnerId = $validated['partner_id'] ?? null;
+            $startTime = $validated['start_time'] ?? null;
+            $endTime = $validated['end_time'] ?? null;
+            $calculatedAmount = $this->amountCalculator->calculate($partnerId, $scooterIds, $startTime, $endTime);
+            if ($calculatedAmount > 0) {
                 $validated['payment_amount'] = $calculatedAmount;
             }
-            
+            // 若計算結果為 0（費率資料不完整），保留前端傳入值或預設 0
+
             // 如果沒有提供 store_id，但提供了 partner_id，則從 partner 獲取 store_id
             if (empty($validated['store_id']) && !empty($validated['partner_id'])) {
                 $partner = Partner::find($validated['partner_id']);
@@ -205,7 +215,7 @@ class OrderController extends Controller
             'end_time' => 'nullable|date',
             'expected_return_time' => 'nullable|date',
             'phone' => 'nullable|string|max:20',
-            'shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船',
+            'shipping_company' => 'nullable|string|max:100',
             'ship_arrival_time' => 'nullable|date',
             'ship_return_time' => 'nullable|date',
             'payment_method' => 'nullable|in:現金,月結,日結,匯款,刷卡,行動支付',
@@ -238,20 +248,23 @@ class OrderController extends Controller
             $oldScooterIds = $order->scooters->pluck('id')->toArray();
 
             $validated = $validator->validated();
+
+            // 將日期欄位標準化為含時分秒格式，避免不同環境對純日期字串解析不一致
+            $validated = $this->normalizeOrderDateTimeFields($validated);
             
-            // 如果沒有提供 payment_amount 或為 0，自動計算費用
-            if (empty($validated['payment_amount']) || $validated['payment_amount'] == 0) {
-                $partnerId = $validated['partner_id'] ?? $order->partner_id;
-                $startTime = $validated['start_time'] ?? $order->start_time;
-                $endTime = $validated['end_time'] ?? $order->end_time;
-                
-                // 如果更新了機車，使用新的機車 ID，否則使用原有的
-                $scooterIdsForCalculation = $request->has('scooter_ids') 
-                    ? $request->get('scooter_ids') 
-                    : $oldScooterIds;
-                
-                $calculatedAmount = $this->calculateOrderAmount($partnerId, $scooterIdsForCalculation, $startTime, $endTime);
+            // 一律由後端重新計算 payment_amount，不採用前端傳入值
+            $partnerId = $validated['partner_id'] ?? $order->partner_id;
+            $startTime = $validated['start_time'] ?? $order->start_time;
+            $endTime = $validated['end_time'] ?? $order->end_time;
+            $scooterIdsForCalculation = $request->has('scooter_ids')
+                ? $request->get('scooter_ids')
+                : $oldScooterIds;
+            $calculatedAmount = $this->amountCalculator->calculate($partnerId, $scooterIdsForCalculation, $startTime, $endTime);
+            if ($calculatedAmount > 0) {
                 $validated['payment_amount'] = $calculatedAmount;
+            } else {
+                // 費率資料不完整，保留原有金額
+                unset($validated['payment_amount']);
             }
             
             $order->update($validated);
@@ -306,10 +319,14 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return response()->json([
+            $response = [
                 'message' => 'Order updated successfully',
                 'data' => new OrderResource($order->load(['partner', 'scooters'])),
-            ]);
+            ];
+            if ($calculatedAmount === 0.0) {
+                $response['warning'] = '費率資料不完整，金額維持原值';
+            }
+            return response()->json($response);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -419,7 +436,8 @@ class OrderController extends Controller
 
         // Get orders for the month
         $query = Order::with(['partner', 'scooters', 'store'])
-            ->whereBetween('appointment_date', [$startDate, $endDate]);
+            ->whereBetween('appointment_date', [$startDate, $endDate])
+            ->whereNotIn('status', ['已預訂', '已預約']);
         
         // Filter by store_id if provided
         if ($request->has('store_id')) {
@@ -442,6 +460,7 @@ class OrderController extends Controller
             if (!isset($partnerStats[$partnerName])) {
                 $partnerStats[$partnerName] = [
                     'partner_id' => $partnerId,
+                    'tax_id' => $order->partner?->tax_id,
                     'count' => 0,
                     'amount' => 0,
                 ];
@@ -936,6 +955,7 @@ class OrderController extends Controller
         $orders = Order::whereNotNull('start_time')
             ->whereNotNull('end_time')
             ->whereNotNull('partner_id')
+            ->whereNotIn('status', ['已預訂', '已預約'])
             ->whereBetween('start_time', [$monthStartDate, $monthEndDate])
             ->when($request->has('store_id'), fn($q) => $q->where('store_id', $request->get('store_id')))
             ->get();
@@ -1181,78 +1201,44 @@ class OrderController extends Controller
      * @param string|null $endTime 結束時間
      * @return float 計算出的總金額
      */
-    private function calculateOrderAmount($partnerId, $scooterIds, $startTime, $endTime): float
+    // calculateOrderAmount 已移至 App\Services\OrderAmountCalculator::calculate()
+
+    /**
+     * 標準化訂單相關日期時間欄位。
+     * - YYYY-MM-DD 會補成 YYYY-MM-DD 00:00:00
+     * - YYYY-MM-DDTHH:mm 會轉為 YYYY-MM-DD HH:mm:00
+     * - 其他可解析格式會統一為 YYYY-MM-DD HH:mm:ss
+     */
+    private function normalizeOrderDateTimeFields(array $data): array
     {
-        // 如果沒有合作商、機車或時間，返回 0
-        if (!$partnerId || empty($scooterIds) || !$startTime || !$endTime) {
-            return 0;
-        }
-
-        // 查詢機車資料
-        $scooters = Scooter::whereIn('id', $scooterIds)->get();
-        if ($scooters->isEmpty()) {
-            return 0;
-        }
-
-        // 計算天數
-        $startTimeCarbon = Carbon::parse($startTime)->timezone('Asia/Taipei');
-        $endTimeCarbon = Carbon::parse($endTime)->timezone('Asia/Taipei');
-        $isSameDay = $startTimeCarbon->isSameDay($endTimeCarbon);
-        
-        if ($isSameDay) {
-            $days = 1; // 當日租
-        } else {
-            $days = $startTimeCarbon->diffInDays($endTimeCarbon); // 跨日租：夜數
-        }
-
-        // 預載入合作商的機車型號費用
-        $transferFeesMap = PartnerScooterModelTransferFee::with('scooterModel')
-            ->where('partner_id', $partnerId)
-            ->get()
-            ->keyBy(function ($fee) {
-                return $fee->scooterModel
-                    ? "{$fee->scooterModel->name} {$fee->scooterModel->type}"
-                    : null;
-            })
-            ->filter();
-
-        $totalAmount = 0;
-
-        // 按機車型號分組
-        $scootersByModel = $scooters->groupBy(function ($scooter) {
-            $model = $scooter->attributes['model'] ?? '';
-            $type = $scooter->attributes['type'] ?? '';
-            if ($model && $type) {
-                return trim("{$model} {$type}");
+        foreach (['start_time', 'end_time', 'expected_return_time', 'ship_arrival_time', 'ship_return_time'] as $field) {
+            if (!isset($data[$field]) || $data[$field] === null || $data[$field] === '') {
+                continue;
             }
-            if ($model) {
-                return $model;
+
+            $value = is_string($data[$field]) ? trim($data[$field]) : (string) $data[$field];
+
+            // date input: yyyy-mm-dd -> yyyy-mm-dd 00:00:00
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $value)) {
+                $data[$field] = $value . ' 00:00:00';
+                continue;
             }
-            if ($type) {
-                return $type;
+
+            // datetime-local input: yyyy-mm-ddTHH:mm -> yyyy-mm-dd HH:mm:00
+            if (preg_match('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/', $value)) {
+                $data[$field] = str_replace('T', ' ', $value) . ':00';
+                continue;
             }
-            // 如果都沒有，使用車牌號作為 fallback
-            return $scooter->plate_number ?? '';
-        })->filter(function ($scooters, $modelString) {
-            return !empty($modelString);
-        });
 
-        // 計算每個機車型號的費用
-        foreach ($scootersByModel as $modelString => $modelScooters) {
-            $scooterCount = $modelScooters->count();
-
-            // 獲取合作商的機車型號單價（當日租或跨日租）
-            $feeKey = $transferFeesMap->get($modelString);
-            $transferFeePerUnit = $feeKey
-                ? ($isSameDay ? ($feeKey->same_day_transfer_fee ?? 0) : ($feeKey->overnight_transfer_fee ?? 0))
-                : 0;
-
-            // 計算費用：金額 × 天數 × 台數
-            $amount = (int) $transferFeePerUnit * $days * $scooterCount;
-            $totalAmount += $amount;
+            // fallback: normalize parseable formats
+            try {
+                $data[$field] = Carbon::parse($value)->format('Y-m-d H:i:s');
+            } catch (\Throwable $e) {
+                // 保留原始值，讓上層驗證或資料庫處理
+            }
         }
 
-        return (float) $totalAmount;
+        return $data;
     }
 }
 

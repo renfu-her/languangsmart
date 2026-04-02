@@ -53,17 +53,22 @@ const LoginPage: React.FC = () => {
 
   const inputClasses = "w-full px-4 py-3 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200";
 
+  const showError = (message: string) => {
+    setError(message);
+    alert(message);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
     if (!captcha) {
-      setError('請先獲取驗證碼');
+      showError('請先獲取驗證碼');
       return;
     }
 
     if (!formData.captchaAnswer || formData.captchaAnswer.length !== 6) {
-      setError('請輸入完整的 6 位驗證碼');
+      showError('請輸入完整的 6 位驗證碼');
       return;
     }
 
@@ -78,7 +83,7 @@ const LoginPage: React.FC = () => {
       );
       navigate('/orders');
     } catch (err: any) {
-      setError(err.message || '登入失敗，請檢查 Email 和密碼');
+      showError(err.message || '登入失敗，請檢查 Email 和密碼');
       // 登入失敗後重新獲取驗證碼
       fetchCaptcha();
     } finally {

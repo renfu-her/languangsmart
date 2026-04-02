@@ -173,9 +173,9 @@ const AdminsPage: React.FC = () => {
   };
 
   const handleDelete = async (id: number, email: string) => {
-    // 禁止刪除 admin@admin.com
-    if (email === 'admin@admin.com') {
-      alert('無法刪除預設管理員帳號');
+    // 禁止刪除 zau1110216@gmail.com
+    if (email === 'zau1110216@gmail.com') {
+      alert('無法刪除此管理員帳號');
       return;
     }
 
@@ -566,7 +566,7 @@ const AdminsPage: React.FC = () => {
                     <Edit3 size={16} className="text-orange-600 dark:text-orange-400" />
                     <span className="text-sm font-medium">編輯</span>
                   </button>
-                  {admin.email !== 'admin@admin.com' && (
+                  {admin.email !== 'zau1110216@gmail.com' && (
                     <button
                       onClick={() => handleDelete(admin.id, admin.email)}
                       className="w-full px-4 py-3 text-left flex items-center space-x-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-gray-700 dark:text-gray-300 transition-colors"

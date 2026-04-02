@@ -39,6 +39,8 @@ const FinesPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [paymentStatusFilter, setPaymentStatusFilter] = useState<string>('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [scooterSearchTerm, setScooterSearchTerm] = useState('');
+  const [showScooterDropdown, setShowScooterDropdown] = useState(false);
   const [formData, setFormData] = useState({
     scooter_id: '',
     tenant: '',
@@ -52,6 +54,7 @@ const FinesPage: React.FC = () => {
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [dropdownPosition, setDropdownPosition] = useState<{ top: number; right: number } | null>(null);
   const buttonRefs = useRef<Record<number, HTMLButtonElement | null>>({});
+  const scooterSearchRef = useRef<HTMLDivElement | null>(null);
   const [imageViewerOpen, setImageViewerOpen] = useState(false);
   const [imageViewerUrl, setImageViewerUrl] = useState<string | null>(null);
 
@@ -115,6 +118,10 @@ const FinesPage: React.FC = () => {
     }
   };
 
+  const filteredScooters = scooters.filter((scooter) =>
+    scooter.plate_number.toLowerCase().includes(scooterSearchTerm.trim().toLowerCase())
+  );
+
   const handleOpenModal = (fine?: Fine) => {
     if (fine) {
       setEditingFine(fine);
@@ -126,6 +133,8 @@ const FinesPage: React.FC = () => {
         fine_amount: String(fine.fine_amount),
         payment_status: fine.payment_status,
       });
+      setScooterSearchTerm(fine.scooter?.plate_number || '');
+      setShowScooterDropdown(false);
       setPhotoPreview(fine.photo_path || null);
     } else {
       setEditingFine(null);
@@ -137,6 +146,8 @@ const FinesPage: React.FC = () => {
         fine_amount: '',
         payment_status: '未繳費',
       });
+      setScooterSearchTerm('');
+      setShowScooterDropdown(false);
       setPhotoPreview(null);
     }
     setPhotoFile(null);
@@ -156,6 +167,8 @@ const FinesPage: React.FC = () => {
     });
     setPhotoFile(null);
     setPhotoPreview(null);
+    setScooterSearchTerm('');
+    setShowScooterDropdown(false);
   };
 
   const handleSubmit = async () => {
@@ -182,7 +195,8 @@ const FinesPage: React.FC = () => {
       } else {
         const response = await finesApi.create(data);
         if (photoFile) {
-          const fineId = editingFine ? editingFine.id : (response.data?.data?.id || response.data?.id);
+          const createdFine = response.data as { data?: { id?: number }; id?: number } | undefined;
+          const fineId = createdFine?.data?.id || createdFine?.id;
           if (fineId) {
             await finesApi.uploadPhoto(fineId, photoFile);
           }
@@ -249,6 +263,19 @@ const FinesPage: React.FC = () => {
       window.removeEventListener('scroll', handleScroll, true);
     };
   }, [openDropdownId]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (scooterSearchRef.current && !scooterSearchRef.current.contains(event.target as Node)) {
+        setShowScooterDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -460,16 +487,54 @@ const FinesPage: React.FC = () => {
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className={labelClasses}>車牌號碼 <span className="text-red-500">*</span></label>
-                  <select
-                    className={inputClasses}
-                    value={formData.scooter_id}
-                    onChange={(e) => setFormData({ ...formData, scooter_id: e.target.value })}
-                  >
-                    <option value="">請選擇</option>
-                    {scooters.map(scooter => (
-                      <option key={scooter.id} value={scooter.id}>{scooter.plate_number}</option>
-                    ))}
-                  </select>
+                  <div className="relative" ref={scooterSearchRef}>
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <input
+                      type="text"
+                      className={`${inputClasses} pl-11`}
+                      placeholder="輸入車牌號碼模糊搜尋"
+                      value={scooterSearchTerm}
+                      onFocus={() => setShowScooterDropdown(true)}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setScooterSearchTerm(value);
+                        setShowScooterDropdown(true);
+
+                        const exactMatch = scooters.find((scooter) => scooter.plate_number === value);
+                        setFormData((prev) => ({
+                          ...prev,
+                          scooter_id: exactMatch ? String(exactMatch.id) : '',
+                        }));
+                      }}
+                    />
+
+                    {showScooterDropdown && (
+                      <div className="absolute top-full left-0 w-full mt-2 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl shadow-xl z-20 max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-2 duration-200">
+                        {filteredScooters.length > 0 ? (
+                          filteredScooters.map((scooter) => (
+                            <button
+                              key={scooter.id}
+                              type="button"
+                              className="w-full px-5 py-3 text-left hover:bg-orange-50 dark:hover:bg-gray-700 transition-colors border-b border-gray-50 dark:border-gray-700 last:border-0"
+                              onClick={() => {
+                                setFormData((prev) => ({ ...prev, scooter_id: String(scooter.id) }));
+                                setScooterSearchTerm(scooter.plate_number);
+                                setShowScooterDropdown(false);
+                              }}
+                            >
+                              <span className="text-sm font-bold text-gray-900 dark:text-gray-100">
+                                {scooter.plate_number}
+                              </span>
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-5 py-3 text-sm text-gray-500 dark:text-gray-400">
+                            查無符合車牌，請調整搜尋關鍵字。
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
                 <div>
                   <label className={labelClasses}>承租人 <span className="text-red-500">*</span></label>

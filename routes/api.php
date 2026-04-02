@@ -26,6 +26,7 @@ use App\Http\Controllers\Api\HomeImageController;
 use App\Http\Controllers\Api\EnvironmentImageController;
 use App\Http\Controllers\Api\ShuttleImageController;
 use App\Http\Controllers\Api\ContactInfoController;
+use App\Http\Controllers\Api\ShippingCompanyController;
 
 // Auth Routes (Public)
 Route::post('/login', [AuthController::class, 'login']);
@@ -81,10 +82,21 @@ Route::prefix('orders')->group(function () {
     Route::delete('/{order}', [OrderController::class, 'destroy'])->where('order', '[0-9]+');
 });
 
+// Shipping Companies API (船運管理)
+Route::prefix('shipping-companies')->group(function () {
+    Route::get('/', [ShippingCompanyController::class, 'index']);
+    Route::post('/', [ShippingCompanyController::class, 'store']);
+    Route::post('/reorder', [ShippingCompanyController::class, 'reorder']);
+    Route::get('/{shippingCompany}', [ShippingCompanyController::class, 'show']);
+    Route::put('/{shippingCompany}', [ShippingCompanyController::class, 'update']);
+    Route::delete('/{shippingCompany}', [ShippingCompanyController::class, 'destroy']);
+});
+
 // Partners API
 Route::prefix('partners')->group(function () {
     Route::get('/', [PartnerController::class, 'index']);
     Route::post('/', [PartnerController::class, 'store']);
+    Route::post('/reorder', [PartnerController::class, 'reorder']);
     Route::get('/{partner}', [PartnerController::class, 'show']);
     Route::put('/{partner}', [PartnerController::class, 'update']);
     Route::delete('/{partner}', [PartnerController::class, 'destroy']);

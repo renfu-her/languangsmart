@@ -50,8 +50,8 @@ class OrderResource extends JsonResource
             'tenant' => $this->tenant,
             'appointment_date' => $this->appointment_date ? $this->appointment_date->format('Y-m-d') : null,
             'sort_order' => $this->sort_order ?? 0,
-            'start_time' => $this->start_time ? $this->start_time->format('Y-m-d') : null, // 只顯示日期，不顯示時間
-            'end_time' => $this->end_time ? $this->end_time->format('Y-m-d') : null, // 只顯示日期，不顯示時間
+            'start_time' => $this->start_time ? $this->start_time->format('Y-m-d H:i') : null,
+            'end_time' => $this->end_time ? $this->end_time->format('Y-m-d H:i') : null,
             'expected_return_time' => $this->expected_return_time ? $this->expected_return_time->format('Y-m-d H:i:s') : null,
             'phone' => $this->phone,
             'shipping_company' => $this->shipping_company,

@@ -34,7 +34,7 @@ class BookingController extends Controller
             'storeId' => 'required|exists:stores,id',
             'appointmentDate' => 'required|date',
             'endDate' => 'required|date|after_or_equal:appointmentDate',
-            'shippingCompany' => 'nullable|in:泰富,藍白,聯營,大福,公船', // 改為可選，如果沒有提供會使用預設值
+            'shippingCompany' => 'nullable|string|max:100',
             'shipArrivalTime' => 'required|date',
             'adults' => 'nullable|integer|min:0',
             'children' => 'nullable|integer|min:0',
@@ -255,7 +255,7 @@ class BookingController extends Controller
             'booking_date' => 'sometimes|required|date',
             'end_date' => 'nullable|date|after_or_equal:booking_date',
             'rental_days' => 'nullable|string|max:20',
-            'shipping_company' => 'nullable|in:泰富,藍白,聯營,大福,公船',
+            'shipping_company' => 'nullable|string|max:100',
             'ship_arrival_time' => 'nullable|date',
             'adults' => 'nullable|integer|min:0',
             'children' => 'nullable|integer|min:0',
@@ -528,9 +528,9 @@ class BookingController extends Controller
                 : $booking->end_date)
             : null;
 
-        // 開始時間和結束時間只使用日期格式（預約日期 = 租借開始）
-        $startTime = $bookingDate;
-        $endTime = $endDate ? $endDate : $bookingDate;
+        // 開始時間和結束時間固定補上 00:00:00（預約日期 = 租借開始）
+        $startTime = $bookingDate . ' 00:00:00';
+        $endTime = ($endDate ? $endDate : $bookingDate) . ' 00:00:00';
 
         // 如果沒有提供機車 ID，自動選擇可用機車
         if (!$scooterIds || count($scooterIds) === 0) {

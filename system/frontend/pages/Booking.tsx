@@ -27,19 +27,19 @@ const Booking: React.FC = () => {
     return `${year}-${month}-${day}`;
   };
 
-  // 獲取今天的日期時間（格式：YYYY-MM-DDTHH:mm）
-  const getTodayDateTime = () => {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
-    const hours = String(today.getHours()).padStart(2, '0');
-    const minutes = String(today.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  // 獲取明天的日期（格式：YYYY-MM-DD）
+  const getTomorrowDate = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const year = tomorrow.getFullYear();
+    const month = String(tomorrow.getMonth() + 1).padStart(2, '0');
+    const day = String(tomorrow.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const todayDate = getTodayDate();
-  const todayDateTime = getTodayDateTime();
+  const tomorrowDate = getTomorrowDate();
+  const getStartOfDayDateTime = (dateValue: string) => `${dateValue}T00:00`;
 
   const [formData, setFormData] = useState({
     name: '',
@@ -56,28 +56,33 @@ const Booking: React.FC = () => {
     note: '',
   });
   const [stores, setStores] = useState<Array<{ id: number; name: string }>>([]);
+  const [shippingCompanies, setShippingCompanies] = useState<Array<{ id: number; name: string }>>([]);
   const [scooterItems, setScooterItems] = useState<ScooterItem[]>([
     { id: '1', model: '', type: '', count: 1 }
   ]);
   const [submitting, setSubmitting] = useState(false);
   const [scooterModels, setScooterModels] = useState<ScooterModel[]>([]);
   const [isLoadingModels, setIsLoadingModels] = useState(false);
+  const minArrivalDateTime = formData.appointmentDate
+    ? getStartOfDayDateTime(formData.appointmentDate)
+    : getStartOfDayDateTime(tomorrowDate);
 
   useEffect(() => {
     fetchDefaultShippingCompany();
     fetchStores();
   }, []);
 
-  // 當選擇商店時，重新獲取該商店的機車型號和預設合作商
+  // 當選擇商店時，重新獲取該商店的機車型號、船運公司與預設合作商
   useEffect(() => {
     if (formData.storeId) {
       fetchScooterModels();
+      fetchShippingCompanies();
       fetchDefaultShippingCompany();
-      // 清空已選擇的機車項目（因為不同商店可能有不同的機車型號）
       setScooterItems([{ id: '1', model: '', type: '', count: 1 }]);
     } else {
-      // 如果沒有選擇商店，獲取所有機車型號
       fetchScooterModels();
+      setShippingCompanies([]);
+      setFormData(prev => ({ ...prev, shippingCompany: '' }));
     }
   }, [formData.storeId]);
 
@@ -91,27 +96,31 @@ const Booking: React.FC = () => {
     }
   };
 
+  const fetchShippingCompanies = async () => {
+    if (!formData.storeId) return;
+    try {
+      const response = await publicApi.shippingCompanies.list({ store_id: parseInt(formData.storeId) });
+      const list = (response.data || []).slice().sort((a: { sort_order?: number }, b: { sort_order?: number }) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      setShippingCompanies(list);
+    } catch (error) {
+      console.error('Failed to fetch shipping companies:', error);
+      setShippingCompanies([]);
+    }
+  };
+
   const fetchDefaultShippingCompany = async () => {
     try {
-      // 根據選擇的商店獲取該商店的合作商列表
       const params = formData.storeId ? { store_id: parseInt(formData.storeId) } : undefined;
       const response = await publicApi.partners.list(params);
       const partners = response.data || [];
-      
-      // 查找該商店的預設合作商（is_default_for_booking = true）
       const defaultPartner = partners.find((p: any) => p.is_default_for_booking === true);
-      
       if (defaultPartner && defaultPartner.default_shipping_company) {
         setFormData(prev => ({
           ...prev,
           shippingCompany: defaultPartner.default_shipping_company,
         }));
       } else if (!formData.shippingCompany) {
-        // 如果沒有找到預設合作商，且目前沒有設置船運公司，清空
-        setFormData(prev => ({
-          ...prev,
-          shippingCompany: '',
-        }));
+        setFormData(prev => ({ ...prev, shippingCompany: '' }));
       }
     } catch (error) {
       console.error('Failed to fetch default shipping company:', error);
@@ -169,7 +178,7 @@ const Booking: React.FC = () => {
 
     // 驗證商店選擇
     if (!formData.storeId) {
-      alert('請選擇商店');
+      alert('請選擇欲前往之店家');
       return;
     }
 
@@ -267,8 +276,8 @@ const Booking: React.FC = () => {
             <h3 className="text-base sm:text-lg font-bold text-gray-800 mb-3 sm:mb-4">注意事項</h3>
             <ol className="space-y-2 text-xs sm:text-sm text-gray-700 leading-relaxed">
               <li>1. 歡迎透過下列表單向店家確認租賃日期</li>
-              <li>2. 填寫表單後<span className="text-red-600 font-bold text-base">不代表預約成功</span>，店家將再透過email或電話與您聯絡</li>
-              <li>3. 若<span className="text-red-600 font-bold text-base">24小時內</span>未接到我們的回傳mail或聯絡電話，請主動與我們聯絡，不便之處敬請見諒！</li>
+              <li>2. 填寫表單後<span className="text-red-600 font-bold text-base">不代表預約成功</span>，<span className="text-red-600 font-bold text-base">店家將再透過email或電話與您聯絡</span></li>
+              <li>3. 若<span className="text-red-600 font-bold text-base">24小時內</span>未接到我們的回傳mail或聯絡電話，<span className="text-red-600 font-bold text-base">請主動與我們聯絡</span>，不便之處敬請見諒！</li>
               <li>4. 如需直接訂購，請參閱「<span className="text-red-600 font-bold">聯絡我們</span>」頁面，並撥打您欲前往之店面電話進行訂車</li>
               <li>5. ID搜尋<span className="text-red-600 font-bold text-base">@623czmsm</span>加入官方LINE更能快速確認訂單</li>
             </ol>
@@ -277,6 +286,25 @@ const Booking: React.FC = () => {
           <form onSubmit={handleSubmit} className="grid md:grid-cols-2 gap-6 sm:gap-8">
             {/* 左欄 */}
             <div className="space-y-4 sm:space-y-6">
+              <div>
+                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
+                  選擇欲前往之店家 <span className="text-red-500">*</span>
+                </label>
+                <select 
+                  required
+                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base"
+                  value={formData.storeId}
+                  onChange={e => setFormData({...formData, storeId: e.target.value})}
+                >
+                  <option value="">請選擇欲前往之店家</option>
+                  {stores.map((store) => (
+                    <option key={store.id} value={store.id}>
+                      {store.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   承租人姓名 <span className="text-red-500">*</span>
@@ -337,31 +365,12 @@ const Booking: React.FC = () => {
 
               <div>
                 <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
-                  選擇商店 <span className="text-red-500">*</span>
-                </label>
-                <select 
-                  required
-                  className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all text-sm sm:text-base"
-                  value={formData.storeId}
-                  onChange={e => setFormData({...formData, storeId: e.target.value})}
-                >
-                  <option value="">請選擇商店</option>
-                  {stores.map((store) => (
-                    <option key={store.id} value={store.id}>
-                      {store.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-bold text-gray-700 mb-2">
                   預約日期 <span className="text-red-500">*</span>
                 </label>
                 <input 
                   type="date" 
                   required
-                  min={todayDate}
+                  min={tomorrowDate}
                   onKeyDown={(e) => e.preventDefault()}
                   onPaste={(e) => e.preventDefault()}
                   className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all cursor-pointer text-sm sm:text-base"
@@ -382,7 +391,7 @@ const Booking: React.FC = () => {
                   className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all cursor-pointer text-sm sm:text-base"
                   value={formData.endDate}
                   onChange={e => setFormData({...formData, endDate: e.target.value})}
-                  min={formData.appointmentDate || todayDate}
+                  min={formData.appointmentDate || tomorrowDate}
                 />
               </div>
 
@@ -397,11 +406,9 @@ const Booking: React.FC = () => {
                   onChange={e => setFormData({...formData, shippingCompany: e.target.value})}
                 >
                   <option value="">請選擇船運公司</option>
-                  <option value="泰富">泰富</option>
-                  <option value="藍白">藍白</option>
-                  <option value="聯營">聯營</option>
-                  <option value="大福">大福</option>
-                  <option value="公船">公船</option>
+                  {shippingCompanies.map((sc) => (
+                    <option key={sc.id} value={sc.name}>{sc.name}</option>
+                  ))}
                 </select>
               </div>
 
@@ -412,7 +419,7 @@ const Booking: React.FC = () => {
                 <input 
                   type="datetime-local" 
                   required
-                  min={todayDateTime}
+                  min={minArrivalDateTime}
                   onKeyDown={(e) => e.preventDefault()}
                   onPaste={(e) => e.preventDefault()}
                   className="w-full px-3 py-2.5 sm:px-4 sm:py-3 rounded-xl border border-gray-200 focus:border-black focus:ring-0 transition-all cursor-pointer text-sm sm:text-base"

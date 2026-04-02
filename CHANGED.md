@@ -1,5 +1,834 @@
 # 變更記錄 (Change Log)
 
+## 2026-03-29 16:45:46 (Asia/Taipei) - OpenSpec change: audit-fe-be-risks (frontend/backend integration audit)
+
+### 變更內容
+
+- **OpenSpec** (`openspec/changes/audit-fe-be-risks/`)
+  - 新增 `proposal.md`、`design.md`、`tasks.md`
+  - 新增規格 `specs/fe-be-integration/spec.md`（API 基底 URL、管理端認證、公開端 API 使用、錯誤 JSON、CORS/Sanctum 對齊）
+  - 內容為專案前後端整合風險盤點與可驗證檢查清單，實作請依 `tasks.md` 執行或執行 `/opsx:apply`
+
+### 說明
+
+- 此變更為規劃與規格文件，不直接修改執行程式碼；後續依檢查結果可另開修復變更。
+
+---
+
+## 2026-03-29 13:25:31 (Asia/Taipei) - 訂單管理搜尋欄新增車牌號碼搜尋
+
+### 變更內容
+
+- **後端訂單列表 API** (`app/Http/Controllers/Api/OrderController.php`)
+  - 搜尋條件新增 `orWhereHas('scooters', ...)`，透過 `order_scooter` 關聯表比對 `scooters.plate_number`
+  - 輸入車牌如 `ERV-1234`，即可找出該月份有租到此車牌的所有訂單
+- **前端搜尋欄** (`system/backend/pages/OrdersPage.tsx`)
+  - 搜尋欄 placeholder 更新為「搜尋承租人、電話、訂單號或車牌號碼...」
+
+### 說明
+- 搜尋欄現支援承租人、電話、訂單號與車牌號碼四種模糊搜尋
+- 車牌搜尋會自動配合當月篩選，僅顯示該月有租到該車牌的訂單
+
+---
+
+## 2026-03-24 21:48:44 (Asia/Taipei) - 罰單管理新增單一輸入框車牌模糊搜尋
+
+### 變更內容
+
+- **罰單管理新增表單** (`system/backend/pages/FinesPage.tsx`)  
+  將「登記違規罰單 / 編輯違規罰單」視窗的車牌欄位改為單一輸入框搜尋模式，可直接輸入車牌號碼進行模糊搜尋，並於同一欄位下方顯示符合結果供點選。
+
+### 說明
+
+- 新增與編輯罰單時都可直接輸入部分車牌關鍵字快速篩選
+- 改為單一搜尋輸入框，不再同時顯示額外的下拉選單欄位
+- 編輯既有罰單時，會自動帶入目前車牌作為搜尋文字
+- 若沒有符合的車牌，會顯示提示訊息
+
+---
+
+## 2026-03-08 16:04:06 (Asia/Taipei) - 修正資料匯出時合作商統編遺失
+
+### 變更內容
+
+- **後端統計 API** (`app/Http/Controllers/Api/OrderController.php`)
+  - `statistics()` 回傳的 `partner_stats` 新增 `tax_id` 欄位
+  - 統編直接從訂單關聯的合作商取得，不再依名稱比對
+- **訂單管理匯出 Excel** (`system/backend/pages/OrdersPage.tsx`)
+  - 匯出時優先使用統計資料中的 `tax_id`
+  - 若無則沿用既有邏輯以合作商名稱匹配統編
+
+### 說明
+- 先前匯出「單月總結」時，統編是以合作商名稱比對合作商列表取得，可能因 store 篩選或名稱差異導致統編為空
+- 現改由後端在統計 API 直接帶出每個合作商的 `tax_id`，匯出時直接使用，確保有使用合作商的訂單能正確顯示統編
+
+---
+
+## 2026-03-02 08:46:45 (Asia/Taipei) - 編輯訂單保留原合作商不套用預設值
+
+### 變更內容
+
+- **後台訂單編輯合作商邏輯 (system/backend/components/AddOrderModal.tsx)**  
+  修正合作商自動帶入規則：僅在「新增訂單」且尚未選擇合作商時才套用預設合作商；「編輯訂單」會保留資料本身的合作商，不再被預設值覆蓋。
+
+---
+
+## 2026-03-02 08:41:34 (Asia/Taipei) - 訂單管理排序改升序與統計排除已預訂
+
+### 變更內容
+
+- **訂單管理列表排序 (system/backend/pages/OrdersPage.tsx)**  
+  預約日期、租借開始、租借結束、預計還車時間四個欄位的表頭排序改為由小到大（1 號到 31 號）；狀態排序維持原規則不變：進行中 → 待接送 → 在合作商 → 已預訂 → 已完成。
+- **單月統計排除已預訂 (app/Http/Controllers/Api/OrderController.php)**  
+  訂單管理頁相關統計（合作商單月統計、單月總台數、單月總金額）改為不納入狀態為 `已預訂`（並兼容 `已預約`）的訂單資料計算。
+
+---
+
+## 2026-03-01 11:12:33 (Asia/Taipei) - 新增訂單時結束時間預設跟隨開始時間
+
+### 變更內容
+
+- **後台訂單表單互動 (system/backend/components/AddOrderModal.tsx)**  
+  在「新增訂單」模式下，當使用者第一次選擇開始日期時間且結束時間尚未填寫時，系統會自動將結束時間帶入與開始時間相同；之後仍可手動調整結束日期時間。
+
+---
+
+## 2026-03-01 09:28:46 (Asia/Taipei) - 訂單表單開始時間變更時同步結束時間時分
+
+### 變更內容
+
+- **後台訂單表單互動 (system/backend/components/AddOrderModal.tsx)**  
+  當使用者調整「開始時間」後，若「結束時間」已有值，會自動同步結束時間的「時:分」與開始時間一致，僅改時間不改結束日期，符合租借日期獨立與時分同步需求。
+
+---
+
+## 2026-03-01 03:32:13 (Asia/Taipei) - 訂單新增視窗開始/結束改為分行全寬顯示
+
+### 變更內容
+
+- **後台訂單表單版面 (system/backend/components/AddOrderModal.tsx)**  
+  將「開始時間」與「結束時間」由同一行雙欄並排，改為各自獨立一行的全寬欄位（full width），提升可讀性與操作空間。
+
+---
+
+## 2026-03-01 03:28:45 (Asia/Taipei) - 訂單新增視窗開始/結束改為日期時間輸入
+
+### 變更內容
+
+- **後台訂單表單 (system/backend/components/AddOrderModal.tsx)**  
+  「開始時間」與「結束時間」欄位由 `date` 改為 `datetime-local`，顯示樣式改為含時分（如 `yyyy-mm-dd --:--`），符合日期時間輸入需求。
+- **編輯回填與計算相容性**  
+  編輯訂單時，`start_time`/`end_time` 回填改用日期時間格式；同時調整費用計算的日期解析，支援日期與日期時間字串，並以日期維度計算天數避免時分造成誤差。
+
+---
+
+## 2026-03-01 03:23:05 (Asia/Taipei) - 訂單開始/結束時間補上時分格式
+
+### 變更內容
+
+- **訂單後端寫入標準化 (app/Http/Controllers/Api/OrderController.php)**  
+  新增日期時間正規化：`start_time`、`end_time`（以及相關 datetime 欄位）若為 `YYYY-MM-DD` 會補為 `YYYY-MM-DD 00:00:00`，若為 `YYYY-MM-DDTHH:mm` 會轉為 `YYYY-MM-DD HH:mm:00`，確保後端資料一致含時間。
+- **訂單 API 回傳格式 (app/Http/Resources/OrderResource.php)**  
+  `start_time`、`end_time` 回傳格式改為 `Y-m-d H:i`，讓後端資料可直接帶出「時:分」資訊。
+
+---
+
+## 2026-03-01 03:18:39 (Asia/Taipei) - 線上預約轉訂單的租借時間固定為 00:00
+
+### 變更內容
+
+- **預約轉訂單後端流程 (app/Http/Controllers/Api/BookingController.php)**  
+  當前台線上預約轉為後台訂單時，`start_time` 與 `end_time` 改為明確寫入 `YYYY-MM-DD 00:00:00`，確保訂單管理中的「租借開始 / 租借結束」都有固定時間，不受資料庫或環境對純日期字串轉換差異影響。
+
+---
+
+## 2026-03-01 02:45:30 (Asia/Taipei) - 新增 GitHub Actions production 部署流程
+
+### 變更內容
+
+- **CI/CD Workflow (.github/workflows/deploy.yml)**  
+  新增 `Deploy to Production` 工作流程：當 `main` 分支有新 commit 時，透過 `appleboy/ssh-action` 連線伺服器，切換到 `/home/codeartisanstudio/htdocs/languangsmart.com`，並執行 `./build.sh production` 完成部署。
+
+---
+
+## 2026-02-09 14:00:00 (Asia/Taipei) - 後台民宿推薦刪除圖片 422 修正
+
+### 變更內容
+
+- **後台 API 呼叫 (system/backend/lib/api.ts)**  
+  民宿刪除單張圖片時，後端回傳 422「The image path field is required」：axios 的 `delete(url, config)` 第二參數為 config，`image_path` 須以 body 或 query 傳送。改為以 **query 參數** `params: { image_path: imagePath }` 傳送，避免部分伺服器/代理不轉發 DELETE body；Laravel 的 `$request->get('image_path')` 會從 query 取得，刪除多張圖片區的圖片可正常完成。
+
+---
+
+## 2026-02-06 16:30:00 (Asia/Taipei) - 前台預約與後台訂單的船運選單依排序顯示
+
+### 變更內容
+
+- **前台線上預約 (Booking.tsx)**  
+  取得該商店船運公司列表後，依 `sort_order` 排序再填入下拉選單，與船運管理中的順序一致。
+- **後台訂單管理－新增/編輯 (AddOrderModal.tsx)**  
+  取得該商店船運公司列表後，依 `sort_order` 排序再填入航運公司下拉選單，與船運管理中的順序一致。
+
+---
+
+## 2026-02-06 16:00:00 (Asia/Taipei) - 船運管理排序與所屬商店必選
+
+### 變更內容
+
+#### 後端
+
+- **資料庫**
+  - `shipping_companies` 表新增 `sort_order` 欄位；既有資料依 store_id + id 寫入預設排序
+- **API**
+  - 船運列表改為依 `store_id`、`sort_order`、`name` 排序
+  - 新增 `POST /shipping-companies/reorder`，傳入 `ids` 陣列更新排序
+  - 新增船班時自動將該商店的 `sort_order` 設為目前最大值 + 1
+
+#### 後台 (船運管理)
+
+- **所屬商店**
+  - 篩選改為必選，移除「全部」選項；進入頁面時預設選第一個商店
+  - 若尚無商店，顯示「請先至商店管理建立商店，再新增船班」
+- **排序**
+  - 與合作商管理相同：列表操作欄加入上移／下移箭頭（未搜尋且筆數 > 1 時顯示），可調整該商店內船班顯示順序
+
+---
+
+## 2026-02-06 15:00:00 (Asia/Taipei) - 船運管理新增顏色、訂單管理依船運設定顯示
+
+### 變更內容
+
+#### 後端
+
+- **資料庫**
+  - `shipping_companies` 表新增欄位 `color`（nullable，hex 如 #7DD3FC）
+- **Model / API**
+  - `ShippingCompany` 的 `fillable`、Resource、Controller 的 store/update 驗證新增 `color`（nullable，hex 格式）
+
+#### 後台
+
+- **船運管理 (ShipmentsPage)**
+  - 新增/編輯表單新增「顏色」欄位：色塊選擇器 + hex 輸入（同機車類型管理）
+  - 列表新增「顏色」欄，顯示色塊與 hex 值
+- **訂單管理 (OrdersPage)**
+  - 訂單列表的「航運公司」改為依「船運管理」設定的顏色顯示
+  - 進入頁面時載入船運列表並建立 `store_id:name` → 顏色映射，訂單顯示時依該訂單的商店與船運名稱套用對應顏色；無設定時顯示灰色
+
+---
+
+## 2026-02-06 14:00:00 (Asia/Taipei) - 新增船運管理（合作商與商店管理之間）
+
+### 變更內容
+
+#### 後端
+
+- **資料庫**
+  - 新增 `shipping_companies` 表：`id`, `name`, `store_id`（所屬商店）, `timestamps`，同一商店下船班名稱唯一
+  - `orders.shipping_company`、`bookings.shipping_company`、`partners.default_shipping_company` 由 ENUM 改為 `VARCHAR(100)`，以支援依商店設定的船班名稱
+- **Model / API**
+  - 新增 `ShippingCompany` Model、`ShippingCompanyResource`、`ShippingCompanyController`
+  - 新增 API：`GET/POST /shipping-companies`，`GET/PUT/DELETE /shipping-companies/{id}`；列表支援 `store_id`、`search` 篩選
+  - 訂單、預約、合作商之船運/預設船運驗證改為 `nullable|string|max:100`
+- **Store**：新增 `shippingCompanies()` 關聯
+
+#### 後台 (Backend)
+
+- **導覽**
+  - 在「合作商管理」與「商店管理」之間新增「船運管理」（路徑 `/shipping-companies`），圖示為 Ship
+- **船運管理頁 (ShipmentsPage)**
+  - 介面同機車類型管理：列表（船班名稱、所屬商店、操作）、搜尋、依所屬商店篩選
+  - 新增/編輯時必選「所屬商店」；編輯時不可變更所屬商店
+- **新增訂單 (AddOrderModal)**
+  - 航運公司下拉改為依「所選商店」從 API 取得該商店的船班名稱；僅顯示該商店的船運選項
+- **預約管理 (BookingsPage)**
+  - 編輯預約時，船運公司下拉改為依該預約的 `store_id` 載入該商店的船班名稱選項
+
+#### 前台 (Frontend 線上預約)
+
+- **Booking.tsx**
+  - 客人選擇店家後，船運公司下拉改為只顯示「該商店」的船班名稱（呼叫 `GET /shipping-companies?store_id=...`）
+  - 仍會依預設合作商帶入預設船運公司（若該名稱在該商店船班列表中）
+- **publicApi**
+  - 新增 `shippingCompanies.list({ store_id })` 供前台使用
+
+---
+
+## 2026-01-24 20:39:14 (Asia/Taipei) - 後台登入錯誤改為彈出提示
+
+### 變更內容
+
+#### 後台變更
+
+- **LoginPage.tsx** (`system/backend/pages/LoginPage.tsx`)
+  - 登入錯誤與驗證碼未填寫時改用 alert 彈窗提示
+
+---
+
+## 2026-01-24 20:38:08 (Asia/Taipei) - 修正後台登入頁面控制台錯誤提示
+
+### 變更內容
+
+#### 後台變更
+
+- **index.html** (`system/backend/index.html`)
+  - 移除不存在的 `index.css` 連結，避免 404 錯誤
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 僅在非預期錯誤或 5xx 時輸出 API 錯誤到控制台
+
+---
+
+## 2026-01-24 20:26:31 (Asia/Taipei) - 後台登入錯誤訊息依驗證結果調整
+
+### 變更內容
+
+#### 後端變更
+
+- **AuthController.php** (`app/Http/Controllers/Api/AuthController.php`)
+  - 驗證碼錯誤時回覆「驗證碼不正確，請再試一次」
+  - Email/密碼錯誤時回覆「Email 以及密碼不符合，請再試一次」
+
+---
+
+## 2026-01-24 20:18:09 (Asia/Taipei) - 後台預約管理移至租借管理並調整權限
+
+### 變更內容
+
+#### 後台變更
+
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 將「預約管理」從「網站內容管理」移至「租借管理」且排序在「訂單管理」之後
+  - 「預約管理」權限改為與租借管理一致，路由權限設為所有角色可使用
+
+---
+
+## 2026-01-24 20:07:02 (Asia/Taipei) - 線上預約船班時間改為隔日限制
+
+### 變更內容
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 船班時間（來）最早可選時間改為隔日 00:00，且若已選預約日期則以該日期 00:00 為最低
+
+---
+
+## 2026-01-24 19:50:39 (Asia/Taipei) - 更新前臺線上預約欄位與提醒文字
+
+### 變更內容
+
+#### 前端變更
+
+- **Booking.tsx** (`system/frontend/pages/Booking.tsx`)
+  - 「選擇商店」欄位移至承租人姓名上方，並更名為「選擇欲前往之店家」
+  - 預約日期改為從隔日開始可選，結束日期在未選擇時以隔日為最低
+  - 注意事項新增紅字強調「店家將再透過email或電話與您聯絡」與「請主動與我們聯絡」
+
+---
+
+## 2026-01-23 14:34:48 (Asia/Taipei) - 訂單新增/編輯 modal 的取消和確認按鈕皆觸發 reload
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `AddOrderModal` 的 `onClose` 回調，取消和確認按鈕皆觸發 `window.location.reload()`
+  - 簡化 `onClose` 邏輯，移除所有 state 清理和 DOM 清理代碼，直接使用 reload 確保狀態重置
+  - 使用 `setTimeout` 延遲 100ms 再 reload，確保 modal 先關閉
+
+### 問題說明
+
+- **畫面卡住問題（最終解決方案）**：
+  - 原因：雖然已經添加了清理邏輯，但可能還有其他未知的 state 或 DOM 元素導致畫面卡住
+  - 解決：使用 `window.location.reload()` 重新載入頁面，確保所有狀態都被重置，這是最可靠的方式
+
+### 功能說明
+
+- **Modal 關閉流程**：
+  1. 用戶點擊「取消」或「確認完成」（新增/更新訂單）
+  2. 關閉 modal：`setIsAddModalOpen(false)`, `setEditingOrder(null)`
+  3. 延遲 100ms 後執行 `window.location.reload()`
+  4. 頁面重新載入，所有狀態都被重置
+
+- **改進效果**：
+  - 確保所有狀態都被重置，不會有殘留的 state 或 DOM 元素
+  - 簡單可靠，不會有遺漏的問題
+  - 取消和確認按鈕都會觸發 reload
+
+---
+
+## 2026-01-23 14:31:54 (Asia/Taipei) - 修復 BrowserRouter basename 配置解決白屏問題
+
+### 變更內容
+
+#### 前端變更
+
+- **App.tsx** (`system/backend/App.tsx`)
+  - 在 `BrowserRouter` 中添加 `basename="/backend"` 屬性
+  - 因為應用部署在 `/backend/` 路徑下（vite.config.ts 中設置了 `base: '/backend/'`），需要設置 basename 才能正確工作
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 將所有重定向路徑從 `/login` 改為 `/backend/login`
+  - 將所有路徑檢查從 `window.location.pathname !== '/login'` 改為 `window.location.pathname !== '/backend/login'`
+  - 共更新 8 處（第 68, 127, 164, 228, 296, 331, 576, 613 行）
+
+### 問題說明
+
+- **白屏問題**：
+  - 原因：將 `HashRouter` 改為 `BrowserRouter` 後，沒有設置 `basename` 屬性，導致路由無法正確匹配
+  - 因為應用部署在 `/backend/` 路徑下（vite.config.ts 中設置了 `base: '/backend/'`），BrowserRouter 需要知道基礎路徑
+  - 解決：在 `BrowserRouter` 中添加 `basename="/backend"`，並更新所有路由檢查和重定向路徑
+
+### 功能說明
+
+- **BrowserRouter basename**：
+  - 設置 `basename="/backend"` 後，所有路由都會自動加上 `/backend` 前綴
+  - `/login` 會變成 `/backend/login`
+  - `/orders` 會變成 `/backend/orders`
+  - 與 vite.config.ts 中的 `base: '/backend/'` 配置一致
+
+- **改進效果**：
+  - 修復白屏問題，應用可以正常顯示
+  - URL 格式為 `/backend/orders` 而不是 `/#/orders`
+  - 所有路由和重定向都正確工作
+
+---
+
+## 2026-01-23 14:27:58 (Asia/Taipei) - 修復所有 Modal 殘留問題並將 HashRouter 改為 BrowserRouter
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 創建共用的 `cleanupAllModals` 函數，統一處理所有 modal 關閉時的 DOM 清理
+  - 在 `StatsModal` 的 `onClose` 中調用清理函數
+  - 在 `ChartModal` 的 `onClose` 中調用清理函數
+  - 在 `ConvertBookingModal` 的 `onClose` 中調用清理函數
+  - 在備註內容彈窗的關閉處理中調用清理函數
+  - 簡化 `AddOrderModal` 的 `onClose`，使用共用的清理函數
+
+- **App.tsx** (`system/backend/App.tsx`)
+  - 將 `HashRouter` 改為 `BrowserRouter`
+  - URL 格式從 `/#/orders` 改為 `/orders`
+
+- **api.ts** (`system/backend/lib/api.ts`)
+  - 將所有 `window.location.hash !== '#/login'` 改為 `window.location.pathname !== '/login'`
+  - 將所有 `window.location.hash = '/login'` 改為 `window.location.href = '/login'`
+  - 共更新 8 處路由檢查（第 68, 127, 164, 228, 296, 331, 576, 613 行）
+
+### 問題說明
+
+- **所有 Modal 殘留問題**：
+  - 原因：除了 `AddOrderModal` 外，其他 modal（`StatsModal`, `ChartModal`, `ConvertBookingModal`, 備註內容彈窗）關閉時沒有清理殘留的 DOM 元素
+  - 解決：創建共用的 `cleanupAllModals` 函數，在所有 modal 關閉時統一調用，確保所有殘留元素都被清理
+
+- **URL 路由問題**：
+  - 原因：使用 `HashRouter` 導致 URL 格式為 `/#/orders`，不夠美觀
+  - 解決：改為 `BrowserRouter`，URL 格式改為 `/orders`，需要更新 nginx 配置支持 SPA 路由（配置已存在）
+
+### 功能說明
+
+- **共用清理函數**：
+  - `cleanupAllModals()` 函數會查找所有 `fixed inset-0` 且 z-index >= 40 的元素
+  - 強制設置 `display: none` 和 `pointer-events: none`
+  - 確保 body 沒有被鎖定
+
+- **BrowserRouter 改進**：
+  - URL 更簡潔，從 `/#/orders` 改為 `/orders`
+  - 需要 nginx 配置支持（`try_files $uri $uri/ /backend/index.html`），配置已存在
+  - 所有路由檢查已更新為使用 `pathname` 而不是 `hash`
+
+- **改進效果**：
+  - 所有 modal 關閉後，殘留的 DOM 元素都會被清理
+  - URL 更簡潔美觀
+  - 不會因為殘留的 modal 元素導致畫面卡住
+
+---
+
+## 2026-01-23 14:18:29 (Asia/Taipei) - 強制清理殘留 DOM 元素解決畫面卡住問題
+
+### 變更內容
+
+#### 前端變更
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 改進 `useEffect` 清理邏輯，當 modal 關閉時強制清理所有殘留的 DOM 元素
+  - 使用 `requestAnimationFrame` 和 `setTimeout` 確保在 React 渲染完成後執行清理
+  - 查找所有 `fixed inset-0` 且 z-index >= 40 的元素，強制設置 `display: none` 和 `pointer-events: none`
+  - 特別處理 backdrop 元素（包含 `bg-black` 或 `backdrop-blur` 類別）
+  - 確保 `document.body` 的 `overflow` 和 `pointer-events` 沒有被鎖定
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 在 `AddOrderModal` 的 `onClose` 回調中添加 DOM 清理邏輯
+  - 使用 `requestAnimationFrame` 和 `setTimeout` 延遲執行清理，確保 modal 完全關閉後再清理
+  - 查找所有 `fixed inset-0` 且 z-index >= 40 的 overlay 元素，強制移除
+  - 確保 `document.body` 沒有被鎖定
+
+### 問題說明
+
+- **畫面卡住問題（進一步修復）**：
+  - 原因：雖然已經清空了所有相關 state，但可能還有殘留的 DOM 元素（backdrop、overlay）在 DOM 中，即使不可見也可能攔截點擊事件
+  - 解決：在 modal 關閉時，強制清理所有可能的殘留 DOM 元素，包括：
+    - 所有 `fixed inset-0` 且 z-index >= 40 的元素
+    - 所有 backdrop 元素
+    - 確保 body 沒有被鎖定
+
+### 功能說明
+
+- **DOM 清理流程**：
+  1. Modal 關閉時，清空所有相關 state
+  2. 使用 `requestAnimationFrame` 確保在 React 渲染完成後執行
+  3. 查找所有可能的殘留 overlay 元素
+  4. 強制設置 `display: none` 和 `pointer-events: none`
+  5. 確保 body 沒有被鎖定
+
+- **改進效果**：
+  - Modal 關閉後，所有殘留的 DOM 元素都會被強制清理
+  - 不會因為殘留的 backdrop 或 overlay 導致畫面卡住
+  - 確保頁面可以正常交互，其他連結可以立即使用
+
+---
+
+## 2026-01-23 14:11:21 (Asia/Taipei) - 改用清空 state 替代 reload 解決訂單管理 modal 關閉後連結失效問題
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 移除 `window.location.reload()`，改用清空所有相關 state 的方式
+  - 在 `AddOrderModal` 的 `onClose` 回調中，清空所有 UI 交互相關的 state：
+    - `openDropdownId`, `dropdownPosition` - 下拉菜單相關
+    - `openStatusDropdownId`, `statusDropdownPosition` - 狀態下拉菜單相關
+    - `expandedRemarkId` - 備註展開狀態
+    - `showPendingBookings` - 待處理預約顯示狀態
+    - `draggedOrderId`, `draggedOverOrderId`, `temporaryOrder` - 拖拽相關
+    - `prevModalOpenRef.current` - Modal 前一個狀態的 ref
+  - 保留 `pendingAppointmentDate` 的設置，讓 useEffect 正常處理數據刷新和月份跳轉
+
+### 問題說明
+
+- **連結失效問題（最終解決方案）**：
+  - 原因：使用 `window.location.reload()` 會重新載入整個頁面，丟失用戶當前的篩選條件，且體驗不佳
+  - 解決：改用清空所有可能影響連結的 state，確保 modal 關閉後可以立即點擊其他連結（罰單管理、機車清單等）
+  - 優點：保留用戶當前的篩選條件（年份、月份、搜尋關鍵字等），體驗更流暢
+
+### 功能說明
+
+- **Modal 關閉流程**：
+  1. 用戶點擊「取消」或「確認完成」（新增/更新訂單）
+  2. 關閉 modal：`setIsAddModalOpen(false)`, `setEditingOrder(null)`
+  3. 清空所有 UI 交互相關的 state，確保不會阻擋其他連結
+  4. 設置 `pendingAppointmentDate`，觸發 useEffect 處理數據刷新和月份跳轉
+  5. 用戶可以立即點擊其他連結，不會被阻擋
+
+- **改進效果**：
+  - Modal 關閉後，其他連結可以立即正常使用
+  - 不會因為殘留的 state 或 DOM 元素導致連結失效
+  - 保留用戶當前的篩選條件，體驗更流暢
+  - 不需要重新載入整個頁面，性能更好
+
+---
+
+## 2026-01-23 11:38:28 (Asia/Taipei) - 訂單管理 modal 取消與確認完成皆觸發 reload
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `AddOrderModal` 的 `onClose`：不論點擊「取消」或「確認完成」（新增/更新訂單），關閉 modal 後一律執行 `window.location.reload()`
+  - 使用 `setTimeout` 延遲 100ms 再 reload，確保 modal 先關閉
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 為「新增訂單/更新訂單」按鈕加上 `type="button"`，避免誤觸表單送出
+
+### 功能說明
+
+- 取消、X 關閉、點擊 backdrop、以及確認完成（新增/更新訂單）時，都會關閉 modal 後重新載入頁面
+- 透過 reload 重置畫面狀態，避免連結失效或殘留 modal 影響操作
+
+---
+
+## 2026-01-23 09:53:14 (Asia/Taipei) - 在 modal 成功關閉後重新載入頁面以解決連結失效問題
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `onClose` 回調函數，在 modal 成功提交（新增或編輯）後重新載入頁面
+  - 只有在成功提交時（有 `appointmentDate` 參數）才重新載入頁面
+  - 取消操作不會觸發重新載入，保持原有行為
+  - 使用 `setTimeout` 確保 modal 完全關閉後再重新載入，避免視覺上的閃爍
+
+### 問題說明
+
+- **連結失效問題（最終解決方案）**：
+  - 原因：當完成編輯或新增 modal 的動作後，畫面會被鎖在訂單管理頁面，點選其他連結都沒有用
+  - 解決：在 modal 成功關閉後（成功提交新增或編輯），重新載入頁面（`window.location.reload()`），確保所有狀態都被重置，不會有殘留的 modal 元素或事件監聽器阻擋其他連結
+  - 取消操作不會觸發重新載入，保持用戶體驗
+
+### 功能說明
+
+- **Modal 關閉流程**：
+  1. 用戶點擊「取消」或 X 按鈕：只關閉 modal，不重新載入頁面
+  2. 用戶成功提交（新增或編輯訂單）：關閉 modal 後，延遲 100ms 重新載入頁面
+  3. 重新載入頁面會重置所有狀態，確保不會有殘留的 modal 元素或事件監聽器
+
+- **改進效果**：
+  - 完成編輯或新增訂單後，頁面會自動重新載入，確保所有連結都可以正常使用
+  - 不會因為殘留的 modal 元素或事件監聽器導致連結失效
+  - 取消操作不會觸發重新載入，保持流暢的用戶體驗
+
+---
+
+## 2026-01-23 09:48:10 (Asia/Taipei) - 修復 constants.tsx 語法錯誤
+
+### 變更內容
+
+#### 前端變更
+
+- **constants.tsx** (`system/backend/constants.tsx`)
+  - 修復第 59 行的語法錯誤，移除意外插入的 `image.png` 文本
+  - 修正 `children` 陣列的語法，確保正確的 JavaScript/TypeScript 語法
+
+### 問題說明
+
+- **構建錯誤**：
+  - 原因：在 `constants.tsx` 文件的第 59 行，`children: [` 後面意外插入了 `image.png` 文本，導致語法錯誤
+  - 錯誤訊息：`Expected "]" but found "{"`
+  - 解決：移除 `image.png` 文本，恢復正確的語法
+
+### 功能說明
+
+- **修復後的代碼**：
+  ```typescript
+  children: [
+    { name: '系統管理者管理', path: '/admins' }
+  ]
+  ```
+
+- **改進效果**：
+  - 修復構建錯誤，後端可以正常構建
+  - 恢復正確的語法結構
+
+---
+
+## 2026-01-23 09:45:19 (Asia/Taipei) - 進一步修復完成編輯或新增 modal 動作後其他連結失效的問題
+
+### 變更內容
+
+#### 前端變更
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 添加 `modalRef` 用於追蹤 modal 容器
+  - 添加 `useEffect` 來確保當 modal 關閉時，立即移除任何可能殘留的 backdrop 或 overlay
+  - 改進所有關閉按鈕的事件處理，添加 `e.preventDefault()` 和 `e.stopPropagation()` 確保事件正確處理
+  - 改進關閉按鈕（X 按鈕）的事件處理
+  - 改進取消按鈕的事件處理
+  - 確保 `handleSubmit` 完成後立即調用 `onClose`，不會延遲
+
+### 問題說明
+
+- **其他連結失效問題（持續修復）**：
+  - 原因：雖然之前已經修復了 backdrop 的點擊處理，但在某些情況下，關閉按鈕或取消按鈕的點擊事件可能沒有正確處理，導致 modal 沒有立即關閉
+  - 解決：改進所有關閉相關按鈕的事件處理，添加 `preventDefault()` 和 `stopPropagation()`，並添加 `useEffect` 來清理任何可能殘留的元素
+
+### 功能說明
+
+- **Modal 關閉流程進一步改進**：
+  1. 所有關閉按鈕（X 按鈕、取消按鈕）都添加了 `preventDefault()` 和 `stopPropagation()`
+  2. 添加 `useEffect` 來監控 modal 的關閉狀態，確保任何殘留的元素都被清理
+  3. 確保 `handleSubmit` 完成後立即調用 `onClose`，不會有任何延遲
+  4. 使用 `modalRef` 來追蹤 modal 容器，方便清理
+
+- **改進效果**：
+  - Modal 關閉後，其他連結可以立即正常使用
+  - 不會因為事件處理問題導致連結失效
+  - 不會因為殘留的 backdrop 或 overlay 導致連結失效
+
+---
+
+## 2026-01-23 09:29:43 (Asia/Taipei) - 修復完成編輯或新增 modal 動作後其他連結失效的問題
+
+### 變更內容
+
+#### 前端變更
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 改進 `handleBackdropClick` 函數，添加 `e.preventDefault()` 和 `e.stopPropagation()` 確保點擊事件正確處理
+  - 確保當 `isOpen` 為 false 時，組件立即返回 null，完全移除 DOM 元素
+  - 移除不必要的 `onMouseDown` 處理器，簡化事件處理邏輯
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 確保 `onClose` 回調函數同步執行，立即關閉 Modal
+  - 保持使用 `pendingAppointmentDate` 和 `useEffect` 來處理 Modal 關閉後的異步操作
+
+### 問題說明
+
+- **其他連結失效問題**：
+  - 原因：Modal 關閉時，backdrop 的點擊事件處理可能在某些情況下沒有正確阻止事件傳播，導致 backdrop 在關閉過程中仍然攔截點擊事件
+  - 解決：改進 `handleBackdropClick` 函數，添加 `preventDefault()` 和 `stopPropagation()` 確保點擊事件正確處理，並確保當 `isOpen` 為 false 時，組件立即返回 null，完全移除 DOM 元素
+
+### 功能說明
+
+- **Modal 關閉流程改進**：
+  1. 用戶點擊關閉或提交訂單後，`onClose` 立即執行，同步關閉 Modal
+  2. 當 `isOpen` 變為 false 時，組件立即返回 null，完全移除 DOM 元素
+  3. Backdrop 的點擊處理添加了 `preventDefault()` 和 `stopPropagation()`，確保事件正確處理
+  4. `useEffect` 在 Modal 完全關閉後執行異步操作（重新獲取年份、刷新訂單列表等）
+
+- **改進效果**：
+  - Modal 關閉後，其他連結可以立即正常使用
+  - 不會因為 backdrop 或事件處理問題導致連結失效
+  - 訂單列表和統計資料仍會正確刷新
+
+---
+
+## 2026-01-23 09:06:58 (Asia/Taipei) - 修復完成新增/編輯訂單後切換頁面仍停留在訂單畫面的問題
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 導入 `useLocation` hook 來追蹤當前路由
+  - 在 `useEffect` 處理 Modal 關閉後的異步操作時，加入路由檢查
+  - 只有在當前路由為 `/orders` 時才執行異步操作（重新獲取年份、刷新訂單列表等）
+  - 在異步操作的關鍵點再次檢查路由，如果已離開訂單頁面則取消操作
+  - 添加清理函數（cleanup），當組件卸載或路由改變時取消未完成的異步操作
+  - 新增 `useEffect` 監聽路由變化，當離開訂單頁面時清除 pending 狀態並關閉 Modal
+
+### 問題說明
+
+- **路由切換問題**：
+  - 原因：Modal 關閉後的 `useEffect` 會執行異步操作（如 `fetchYears()`、`ordersApi.list()`），這些操作在路由切換後仍在執行，導致狀態更新影響新頁面的顯示
+  - 解決：加入路由檢查，只有在當前路由為 `/orders` 時才執行異步操作，並在關鍵點再次檢查，如果已離開則取消操作
+  - 使用清理函數確保路由改變時取消未完成的異步操作
+
+### 功能說明
+
+- **路由保護機制**：
+  - 在執行異步操作前檢查 `location.pathname === '/orders'`
+  - 在異步操作過程中多次檢查路由，確保仍在訂單頁面
+  - 使用 `isCancelled` 標記和清理函數來取消未完成的操作
+  - 當路由改變時，自動清除 pending 狀態並關閉 Modal
+
+- **改進效果**：
+  - 完成新增/編輯訂單後，可以正常切換到其他頁面（如罰單管理）
+  - 不會因為異步操作導致頁面停留在訂單管理畫面
+  - 訂單列表和統計資料仍會在訂單頁面正確刷新
+
+---
+
+## 2026-01-23 08:53:45 (Asia/Taipei) - 修復新增/修改訂單後其他連結失效的問題
+
+### 變更內容
+
+#### 前端變更
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 修改 `onClose` 回調函數，改為同步函數，立即關閉 Modal
+  - 使用 `pendingAppointmentDate` state 和 `prevModalOpenRef` 來追蹤 Modal 狀態
+  - 新增 `useEffect` 來處理 Modal 關閉後的異步操作（重新獲取年份、刷新訂單列表等）
+  - 確保 Modal 完全關閉後再執行異步操作，避免影響其他連結的點擊
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 改進 backdrop 點擊處理，使用 `handleBackdropClick` 函數確保正確處理點擊事件
+  - 確保點擊的是 backdrop 本身才關閉 Modal
+
+### 問題說明
+
+- **其他連結失效問題**：
+  - 原因：Modal 關閉時的 `onClose` 是 async 函數，會立即執行異步操作（如 `fetchYears()`），這些操作可能會阻塞或影響頁面的交互
+  - 解決：將 `onClose` 改為同步函數，立即關閉 Modal，然後使用 `useEffect` 在 Modal 完全關閉後再執行異步操作
+  - 使用 `setTimeout` 確保 DOM 更新完成，Modal 完全移除後再執行後續操作
+
+### 功能說明
+
+- **Modal 關閉流程**：
+  1. 用戶點擊關閉或提交訂單後，`onClose` 立即執行，關閉 Modal
+  2. 保存 `appointmentDate` 到 `pendingAppointmentDate` state
+  3. `useEffect` 偵測到 Modal 關閉後，延遲 100ms 執行異步操作
+  4. 執行完成後清除 `pendingAppointmentDate`，避免重複執行
+
+- **改進效果**：
+  - Modal 關閉後，其他連結可以立即正常使用
+  - 不會因為異步操作阻塞頁面交互
+  - 訂單列表和統計資料仍會正確刷新
+
+---
+
+## 2026-01-23 08:43:34 (Asia/Taipei) - 修復編輯訂單時機車無法載入和 t.split 錯誤
+
+### 變更內容
+
+#### 前端變更
+
+- **AddOrderModal.tsx** (`system/backend/components/AddOrderModal.tsx`)
+  - 更新 `Order` 介面，加入 `scooter_ids` 欄位
+  - 修改編輯模式下載入機車的邏輯，改用 `scooter_ids` 欄位而不是從 `scooters` 陣列中提取 `id`
+  - `scooters` 陣列只包含 `{model, type, count}`，沒有 `id` 欄位
+  - 加入錯誤處理，即使載入失敗也會設置選中的 ID
+
+- **OrdersPage.tsx** (`system/backend/pages/OrdersPage.tsx`)
+  - 更新 `Order` 介面，加入 `scooter_ids` 和 `store` 欄位
+  - 修復 `t.split is not a function` 錯誤，在調用 `split` 前檢查 `appointmentDate` 是否為字串類型
+  - 加入類型檢查：`if (appointmentDate && typeof appointmentDate === 'string')`
+
+### 問題說明
+
+- **機車無法載入問題**：
+  - 原因：`OrderResource` 返回的 `scooters` 陣列格式為 `[{model, type, count}]`，沒有 `id` 欄位
+  - 解決：使用 `OrderResource` 提供的 `scooter_ids` 欄位（機車 ID 列表）來載入機車
+
+- **t.split 錯誤**：
+  - 原因：`onClose` 函數中，`appointmentDate` 參數可能不是字串類型（可能是 `undefined` 或其他類型）
+  - 解決：在調用 `split` 前加入類型檢查，確保是字串才處理
+
+### 功能說明
+
+- **編輯訂單時**：
+  - 系統會使用 `scooter_ids` 欄位載入訂單中的機車
+  - 如果 `scooter_ids` 不存在，會嘗試從其他來源獲取
+  - 即使部分機車載入失敗，也會顯示已選中的機車 ID
+
+- **關閉訂單 Modal 時**：
+  - 只有在 `appointmentDate` 是字串時才會進行日期解析和月份跳轉
+  - 避免 `TypeError: t.split is not a function` 錯誤
+
+---
+
+## 2026-01-22 11:54:48 (Asia/Taipei) - 修改 User 刪除保護邏輯，只保護 zau1110216@gmail.com
+
+### 變更內容
+
+#### 後端變更
+
+- **UserController** (`app/Http/Controllers/Api/UserController.php`)
+  - 修改 `destroy()` 方法的刪除保護邏輯
+  - 從保護 `admin@admin.com` 改為保護 `zau1110216@gmail.com`
+  - `admin@admin.com` 現在可以刪除
+  - 只有 `zau1110216@gmail.com` 無法刪除
+
+#### 前端變更
+
+- **AdminsPage** (`system/backend/pages/AdminsPage.tsx`)
+  - 修改 `handleDelete()` 函數的檢查邏輯
+  - 從檢查 `admin@admin.com` 改為檢查 `zau1110216@gmail.com`
+  - 修改刪除按鈕的顯示條件，只有 `zau1110216@gmail.com` 不顯示刪除按鈕
+
+### 功能說明
+
+- **User 刪除保護**：
+  - 只有 `zau1110216@gmail.com` 這個帳號無法刪除
+  - 其他所有帳號（包括 `admin@admin.com`）都可以刪除
+  - 前端和後端都有雙重保護，確保 `zau1110216@gmail.com` 無法被刪除
+
+---
+
 ## 2026-01-22 11:30:31 (Asia/Taipei) - 實作路由權限保護，隱藏的選單 URL 無法訪問
 
 ### 變更內容
@@ -12833,4 +13662,21 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 移除未使用的導入可以減少打包大小
 - 刪除未使用的組件可以保持代碼庫整潔
 - 所有功能仍然正常運作
+
+---
+
+## 2026-03-02 20:50:43 - 調整訂單管理狀態排序時的日期順序
+
+### 變更內容
+
+#### 後端管理界面
+- **OrdersPage** (`system/backend/pages/OrdersPage.tsx`)
+  - 更新 `status` 排序邏輯
+  - 當狀態相同時，新增以 `appointment_date` 進行次排序
+  - 日期排序改為由小到大（由早到晚）
+
+### 功能說明
+- 進入訂單管理並以狀態排序時：
+  - 先依狀態順序排列（進行中、待接送、在合作商、已預訂、已完成）
+  - 同一個狀態內，訂單會依預約日期由早到晚顯示
 

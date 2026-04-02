@@ -152,10 +152,10 @@ class UserController extends Controller
      */
     public function destroy(User $user): JsonResponse
     {
-        // 禁止刪除 admin@admin.com 的管理者
-        if ($user->email === 'admin@admin.com') {
+        // 禁止刪除 zau1110216@gmail.com 的管理者
+        if ($user->email === 'zau1110216@gmail.com') {
             return response()->json([
-                'message' => '無法刪除預設管理員帳號',
+                'message' => '無法刪除此管理員帳號',
             ], 403);
         }
 

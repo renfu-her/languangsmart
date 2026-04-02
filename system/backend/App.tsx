@@ -1,6 +1,6 @@
 
 import React, { Suspense } from 'react';
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { StoreProvider } from './contexts/StoreContext';
 import DashboardLayout from './components/DashboardLayout';
@@ -10,6 +10,7 @@ import { ROUTE_PERMISSIONS } from './constants';
 // Lazy load page components for code-splitting
 const OrdersPage = React.lazy(() => import('./pages/OrdersPage'));
 const PartnersPage = React.lazy(() => import('./pages/PartnersPage'));
+const ShipmentsPage = React.lazy(() => import('./pages/ShipmentsPage'));
 const StoresPage = React.lazy(() => import('./pages/StoresPage'));
 const ScootersPage = React.lazy(() => import('./pages/ScootersPage'));
 const ScooterModelsPage = React.lazy(() => import('./pages/ScooterModelsPage'));
@@ -119,7 +120,7 @@ const App: React.FC = () => {
   return (
     <AuthProvider>
       <StoreProvider>
-        <HashRouter>
+        <BrowserRouter basename="/backend">
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={
@@ -136,6 +137,11 @@ const App: React.FC = () => {
             <Route path="partners" element={
               <Suspense fallback={<LoadingFallback />}>
                 <PartnersPage />
+              </Suspense>
+            } />
+            <Route path="shipping-companies" element={
+              <Suspense fallback={<LoadingFallback />}>
+                <ShipmentsPage />
               </Suspense>
             } />
             <Route path="stores" element={
@@ -249,7 +255,7 @@ const App: React.FC = () => {
             } />
           </Route>
         </Routes>
-      </HashRouter>
+      </BrowserRouter>
       </StoreProvider>
     </AuthProvider>
   );

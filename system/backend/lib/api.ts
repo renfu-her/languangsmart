@@ -65,8 +65,8 @@ class ApiClient {
         // 如果是 401 未授權錯誤，清除 token 並跳轉到登入頁面
         if (response.status === 401) {
           localStorage.removeItem('auth_token');
-          if (window.location.hash !== '#/login') {
-            window.location.hash = '/login';
+          if (window.location.pathname !== '/backend/login') {
+            window.location.href = '/backend/login';
           }
         }
         
@@ -81,18 +81,16 @@ class ApiClient {
       }
 
       return data;
-    } catch (error) {
-      console.error('API request error:', error);
+    } catch (error: any) {
+      const status = error?.response?.status;
+      if (!status || status >= 500) {
+        console.error('API request error:', error);
+      }
       throw error;
     }
   }
 
-  async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
-    if (!params) {
-      return this.request<T>(endpoint, { method: 'GET' });
-    }
-    
-    // 過濾掉 undefined 和 null 值
+  private buildQueryString(params: Record<string, any>): string {
     const filteredParams: Record<string, string> = {};
     Object.keys(params).forEach(key => {
       const value = params[key];
@@ -101,9 +99,13 @@ class ApiClient {
       }
     });
     
-    const queryString = Object.keys(filteredParams).length > 0
+    return Object.keys(filteredParams).length > 0
       ? '?' + new URLSearchParams(filteredParams).toString()
       : '';
+  }
+
+  async get<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
+    const queryString = params ? this.buildQueryString(params) : '';
     return this.request<T>(endpoint + queryString, { method: 'GET' });
   }
 
@@ -124,8 +126,8 @@ class ApiClient {
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem('auth_token');
-          if (window.location.hash !== '#/login') {
-            window.location.hash = '/login';
+          if (window.location.pathname !== '/backend/login') {
+            window.location.href = '/backend/login';
           }
         }
         const error: any = new Error(responseData.message || 'API request failed');
@@ -161,8 +163,8 @@ class ApiClient {
       if (!response.ok) {
         if (response.status === 401) {
           localStorage.removeItem('auth_token');
-          if (window.location.hash !== '#/login') {
-            window.location.hash = '/login';
+          if (window.location.pathname !== '/backend/login') {
+            window.location.href = '/backend/login';
           }
         }
         const error: any = new Error(responseData.message || 'API request failed');
@@ -188,8 +190,9 @@ class ApiClient {
     });
   }
 
-  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'DELETE' });
+  async delete<T>(endpoint: string, params?: Record<string, any>): Promise<ApiResponse<T>> {
+    const queryString = params ? this.buildQueryString(params) : '';
+    return this.request<T>(endpoint + queryString, { method: 'DELETE' });
   }
 
   async downloadFile(
@@ -201,19 +204,8 @@ class ApiClient {
     const token = localStorage.getItem('auth_token');
     
     // 構建查詢字符串
-    let queryString = '';
-    if (params) {
-      const filteredParams: Record<string, string> = {};
-      Object.keys(params).forEach(key => {
-        const value = params[key];
-        if (value !== undefined && value !== null && value !== '') {
-          filteredParams[key] = String(value);
-        }
-      });
-      if (Object.keys(filteredParams).length > 0) {
-        queryString = '?' + new URLSearchParams(filteredParams).toString();
-      }
-    }
+    // 構建查詢字符串
+    const queryString = params ? this.buildQueryString(params) : '';
     
     const response = await fetch(url + queryString, {
       method: 'GET',
@@ -343,7 +335,7 @@ export const api = new ApiClient(API_BASE_URL);
 
 // API endpoints
 export const ordersApi = {
-  list: (params?: { month?: string; search?: string; page?: number; store_id?: number }) =>
+  list: (params?: { month?: string; search?: string; keywords?: string; page?: number; store_id?: number }) =>
     api.get('/orders', params),
   get: (id: string | number) => api.get(`/orders/${id}`),
   create: (data: any) => api.post('/orders', data),
@@ -362,14 +354,24 @@ export const ordersApi = {
   getMonthsByYear: (year: number) => api.get<number[]>('/orders/months', { year }),
 };
 
+export const shippingCompaniesApi = {
+  list: (params?: { search?: string; store_id?: number }) => api.get('/shipping-companies', params),
+  get: (id: string | number) => api.get(`/shipping-companies/${id}`),
+  create: (data: { name: string; store_id: number; color?: string | null }) => api.post('/shipping-companies', data),
+  update: (id: string | number, data: { name?: string; store_id?: number; color?: string | null }) => api.put(`/shipping-companies/${id}`, data),
+  delete: (id: string | number) => api.delete(`/shipping-companies/${id}`),
+  reorder: (ids: number[]) => api.post('/shipping-companies/reorder', { ids }),
+};
+
 export const partnersApi = {
   list: (params?: { search?: string; store_id?: number }) => api.get('/partners', params),
   get: (id: string | number) => api.get(`/partners/${id}`),
-  create: (data: any) => api.post('/partners', data),
+  create: (data: any) => api.post<any>('/partners', data),
   update: (id: string | number, data: any) => api.put(`/partners/${id}`, data),
   delete: (id: string | number) => api.delete(`/partners/${id}`),
   uploadPhoto: (id: string | number, file: File) =>
     api.uploadFile(`/partners/${id}/upload-photo`, file),
+  reorder: (ids: number[]) => api.post('/partners/reorder', { ids }),
 };
 
 export const storesApi = {

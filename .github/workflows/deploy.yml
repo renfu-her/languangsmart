@@ -1,0 +1,60 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main # 當 main 分支有 commit 進入時，觸發部署
+      - staging # 當 staging 分支有 commit 進入時，觸發部署
+
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }} # 伺服器 IP 或網域
+          username: ${{ secrets.SERVER_USER }} # 伺服器登入帳號
+          port: ${{ secrets.SERVER_PORT }} # 預設 22
+          key: ${{ secrets.SERVER_SSH_KEY }} # 私鑰內容
+          passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }} # 私鑰密碼（若有）
+          script: |
+            # 切換到 languangsmart 專案目錄
+            cd /home/languangsmart/htdocs/languangsmart.com
+
+            # 確保部署腳本可執行
+            chmod +x build.sh
+
+            # 執行 production 部署
+            ./build.sh production
+
+  deploy-staging:
+    if: github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_HOST }} # 伺服器 IP 或網域
+          username: ${{ secrets.STAGING_USER }} # 伺服器登入帳號
+          port: ${{ secrets.STAGING_PORT }} # 預設 22
+          key: ${{ secrets.STAGING_SSH_KEY }} # 私鑰內容
+          passphrase: ${{ secrets.STAGING_SSH_PASSPHRASE }} # 私鑰密碼（若有）
+          script: |
+            # 切換到 staging 專案目錄
+            cd /home/ai-tracks-scooter-rental/htdocs/scooter-rental.ai-tracks.com
+
+            # 確保部署腳本可執行
+            chmod +x build.sh
+
+            # 執行 staging 部署
+            ./build.sh staging

@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown, ChevronUp, Download, Bell, XCircle } from 'lucide-react';
 import AddOrderModal from '../components/AddOrderModal';
 import ConvertBookingModal from '../components/ConvertBookingModal';
-import { ordersApi, partnersApi, bookingsApi, rentalPlansApi, scooterModelsApi } from '../lib/api';
+import { ordersApi, partnersApi, bookingsApi, rentalPlansApi, scooterModelsApi, shippingCompaniesApi } from '../lib/api';
 import { useStore } from '../contexts/StoreContext';
 import * as XLSX from 'xlsx';
 import ExcelJS from 'exceljs';
@@ -25,18 +25,21 @@ interface Order {
   end_time: string;
   expected_return_time: string | null;
   scooters: Array<{ model: string; type?: string; count: number }>;
+  scooter_ids?: number[]; // 機車 ID 列表（用於編輯）
   shipping_company: string | null;
   ship_arrival_time: string | null;
   ship_return_time: string | null;
   phone: string | null;
   partner: { id: number; name: string } | null;
+  store?: { id: number; name: string } | null;
+  store_id?: number | null;
   payment_method: string | null;
   payment_amount: number;
   remark: string | null;
 }
 
 interface Statistics {
-  partner_stats: Record<string, { count: number; amount: number }>;
+  partner_stats: Record<string, { partner_id?: number; tax_id?: string | null; count: number; amount: number }>;
   total_count: number;
   total_amount: number;
   month: string;
@@ -1230,6 +1233,8 @@ const ChartModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
 
 const OrdersPage: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { currentStore } = useStore();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isStatsModalOpen, setIsStatsModalOpen] = useState(false);
@@ -1238,6 +1243,7 @@ const OrdersPage: React.FC = () => {
   const [isPartnerCategoryModalOpen, setIsPartnerCategoryModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<any>(null);
   const [editingOrder, setEditingOrder] = useState<Order | null>(null);
+  const [pendingAppointmentDate, setPendingAppointmentDate] = useState<string | undefined>(undefined);
   const [selectedYear, setSelectedYear] = useState(() => {
     const now = new Date();
     return now.getFullYear();
@@ -1249,7 +1255,7 @@ const OrdersPage: React.FC = () => {
   
   // 計算 selectedMonth 字符串（用於 API）
   const selectedMonthString = `${selectedYear}-${String(selectedMonth).padStart(2, '0')}`;
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(() => searchParams.get('keywords') ?? '');
   const [orders, setOrders] = useState<Order[]>([]);
   const [stats, setStats] = useState<Statistics | null>(null);
   const [loading, setLoading] = useState(false);
@@ -1259,6 +1265,7 @@ const OrdersPage: React.FC = () => {
   const [availableYears, setAvailableYears] = useState<number[]>([]);
   const [monthsWithOrders, setMonthsWithOrders] = useState<number[]>([]);
   const [partnerColorMap, setPartnerColorMap] = useState<Record<string, string>>({});
+  const [shippingCompanyColorMap, setShippingCompanyColorMap] = useState<Record<string, string>>({});
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null);
   const [pendingBookingsCount, setPendingBookingsCount] = useState(0);
   const [pendingBookings, setPendingBookings] = useState<any[]>([]);
@@ -1268,6 +1275,7 @@ const OrdersPage: React.FC = () => {
   const [bookingPartners, setBookingPartners] = useState<Record<number, number | null>>({});
   const [bookingPrices, setBookingPrices] = useState<Record<number, Record<string, number>>>({});
   const [expandedBookings, setExpandedBookings] = useState<Record<number, boolean>>({});
+  const prevModalOpenRef = useRef<boolean>(false);
 
   // 車款類型對應的顏色（與機車管理頁面一致）
   const typeColorMap: Record<string, string> = {
@@ -1299,6 +1307,28 @@ const OrdersPage: React.FC = () => {
   // 備註展開狀態（顯示彈窗的訂單ID）
   const [expandedRemarkId, setExpandedRemarkId] = useState<number | null>(null);
 
+  // 共用的 Modal 清理函數，確保所有殘留的 DOM 元素都被清理
+  const cleanupAllModals = () => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        // 查找所有 fixed overlay 元素
+        const fixedOverlays = document.querySelectorAll('[class*="fixed inset-0"]');
+        fixedOverlays.forEach((element) => {
+          const el = element as HTMLElement;
+          const zIndex = window.getComputedStyle(el).zIndex;
+          const computedZIndex = zIndex ? parseInt(zIndex) : 0;
+          if (computedZIndex >= 40) {
+            el.style.display = 'none';
+            el.style.pointerEvents = 'none';
+          }
+        });
+        
+        // 確保 body 沒有被鎖定
+        document.body.style.overflow = '';
+        document.body.style.pointerEvents = '';
+      }, 50);
+    });
+  };
 
   // Fetch available years from API
   const fetchYears = async () => {
@@ -1405,7 +1435,7 @@ const OrdersPage: React.FC = () => {
       try {
         const response = await ordersApi.list({
           month: selectedMonthString,
-          search: searchTerm || undefined,
+          keywords: searchTerm || undefined,
           page: currentPage,
           store_id: currentStore?.id,
         });
@@ -1465,6 +1495,92 @@ const OrdersPage: React.FC = () => {
     fetchStatistics();
   }, [selectedYear, selectedMonth, currentStore]);
 
+  // 當路由改變時，清除 pending 狀態，避免影響其他頁面
+  useEffect(() => {
+    if (location.pathname !== '/orders') {
+      setPendingAppointmentDate(undefined);
+      setIsAddModalOpen(false);
+      setEditingOrder(null);
+    }
+  }, [location.pathname]);
+
+  // 處理 Modal 關閉後的異步操作（避免影響其他連結）
+  useEffect(() => {
+    // 只在 Modal 從開啟變為關閉時執行，且確保當前在訂單頁面
+    if (prevModalOpenRef.current && !isAddModalOpen && pendingAppointmentDate !== undefined && location.pathname === '/orders') {
+      let isCancelled = false;
+      
+      const processAfterClose = async () => {
+        // 再次檢查是否還在訂單頁面
+        if (location.pathname !== '/orders' || isCancelled) {
+          setPendingAppointmentDate(undefined);
+          return;
+        }
+        
+        // 重新獲取年份列表（因為可能有新的年份）
+        await fetchYears();
+        
+        // 再次檢查是否還在訂單頁面
+        if (location.pathname !== '/orders' || isCancelled) {
+          setPendingAppointmentDate(undefined);
+          return;
+        }
+        
+        // 如果有預約日期，跳轉到該月份
+        let monthChanged = false;
+        if (pendingAppointmentDate && typeof pendingAppointmentDate === 'string') {
+          const [year, month] = pendingAppointmentDate.split('-').map(Number);
+          if (year && month) {
+            if (year !== selectedYear || month !== selectedMonth) {
+              setSelectedYear(year);
+              setSelectedMonth(month);
+              setCurrentPage(1);
+              fetchMonthsWithOrders(year);
+              monthChanged = true;
+            }
+          }
+        }
+        
+        // 如果月份沒有改變，手動刷新訂單列表和統計
+        if (!monthChanged && location.pathname === '/orders' && !isCancelled) {
+          try {
+            const response = await ordersApi.list({
+              month: selectedMonthString,
+              keywords: searchTerm || undefined,
+              page: currentPage,
+              store_id: currentStore?.id,
+            });
+            const ordersData = response.data || [];
+            setOrders(Array.isArray(ordersData) ? ordersData : []);
+            if (response.meta) {
+              setTotalPages(response.meta.last_page);
+            }
+            fetchStatistics();
+          } catch (error) {
+            console.error('Failed to refresh orders:', error);
+          }
+        }
+        
+        // 清除 pending 狀態
+        setPendingAppointmentDate(undefined);
+      };
+      
+      // 使用 setTimeout 確保 DOM 更新完成，Modal 完全移除
+      const timeoutId = setTimeout(() => {
+        processAfterClose();
+      }, 100);
+      
+      // 清理函數：如果組件卸載或路由改變，取消操作
+      return () => {
+        isCancelled = true;
+        clearTimeout(timeoutId);
+      };
+    }
+    
+    // 更新前一個狀態
+    prevModalOpenRef.current = isAddModalOpen;
+  }, [isAddModalOpen, pendingAppointmentDate, location.pathname, selectedYear, selectedMonth, selectedMonthString, searchTerm, currentPage, currentStore]);
+
   // 點擊外部關閉下拉菜單（現在通過遮罩層處理）
   // 滾動時關閉下拉菜單
   useEffect(() => {
@@ -1499,7 +1615,7 @@ const OrdersPage: React.FC = () => {
     }
 
     try {
-      // 獲取合作商列表以匹配統編
+      // 統編優先從 stats.partner_stats 取得（後端直接帶出），找不到時再以名稱匹配合作商列表
       const partnersResponse = await partnersApi.list();
       const partners = (partnersResponse.data || []) as Array<{ name: string; tax_id: string | null }>;
       const partnerMap = new Map<string, string>();
@@ -1529,14 +1645,18 @@ const OrdersPage: React.FC = () => {
       // 第6行：表頭
       XLSX.utils.sheet_add_aoa(ws, [['合作商名稱', '統編', '台數', '金額']], { origin: 'A6' });
       
-      // 準備合作商統計數據
+      // 準備合作商統計數據（統編優先使用 stats 中的 tax_id，否則以名稱匹配）
       const partnerData = Object.entries(stats.partner_stats || {})
-        .map(([partnerName, data]) => [
-          partnerName,
-          partnerMap.get(partnerName) || '',
-          (data as { count: number; amount: number }).count || 0,
-          (data as { count: number; amount: number }).amount || 0
-        ])
+        .map(([partnerName, data]) => {
+          const d = data as { tax_id?: string | null; count: number; amount: number };
+          const taxId = (d.tax_id != null && d.tax_id !== '') ? d.tax_id : (partnerMap.get(partnerName) || '');
+          return [
+            partnerName,
+            taxId,
+            d.count || 0,
+            d.amount || 0
+          ];
+        })
         .sort((a, b) => (b[3] as number) - (a[3] as number)); // 按金額降序排列
       
       // 添加數據行（從第7行開始）
@@ -1631,22 +1751,32 @@ const OrdersPage: React.FC = () => {
     fetchRentalPlans();
   }, []);
 
+  // 獲取船運列表並建立顏色映射（key: store_id:name -> hex）
+  useEffect(() => {
+    const fetchShippingCompanies = async () => {
+      try {
+        const response = await shippingCompaniesApi.list();
+        const list = response.data || [];
+        const colorMap: Record<string, string> = {};
+        list.forEach((item: { store_id: number; name: string; color: string | null }) => {
+          if (item.color) {
+            colorMap[`${item.store_id}:${item.name}`] = item.color;
+          }
+        });
+        setShippingCompanyColorMap(colorMap);
+      } catch (error) {
+        console.error('Failed to fetch shipping companies:', error);
+      }
+    };
+    fetchShippingCompanies();
+  }, []);
 
-  // 獲取航運別顏色
-  const getShippingCompanyColor = (company: string | null | undefined): string => {
-    if (!company) return 'text-gray-500 dark:text-gray-400';
-    
-    const companyLower = company.toLowerCase();
-    if (companyLower.includes('藍白')) {
-      return 'text-blue-600 dark:text-blue-400';
-    } else if (companyLower.includes('泰富')) {
-      return 'text-red-600 dark:text-red-400';
-    } else if (companyLower.includes('聯營')) {
-      return 'text-green-600 dark:text-green-400';
-    } else if (companyLower.includes('大福')) {
-      return 'text-yellow-700 dark:text-yellow-500';
-    }
-    return 'text-gray-600 dark:text-gray-400';
+  // 獲取航運別顏色（依船運管理設定的顏色，回傳 hex 或 null）
+  const getShippingCompanyColor = (company: string | null | undefined, storeId?: number | null): string | null => {
+    if (!company) return null;
+    const sid = storeId ?? currentStore?.id;
+    if (sid == null) return null;
+    return shippingCompanyColorMap[`${sid}:${company}`] ?? null;
   };
 
   // 獲取付款方式顏色
@@ -1699,7 +1829,7 @@ const OrdersPage: React.FC = () => {
       // 重新載入訂單列表
       const response = await ordersApi.list({
         month: selectedMonthString,
-        search: searchTerm || undefined,
+        keywords: searchTerm || undefined,
         page: currentPage,
         store_id: currentStore?.id,
       });
@@ -1758,6 +1888,11 @@ const OrdersPage: React.FC = () => {
     const index = statusOrder.indexOf(status);
     return index === -1 ? 999 : index;
   };
+  const getDateTimeForAscendingSort = (value: string | null | undefined) => {
+    if (!value) return Number.MAX_SAFE_INTEGER;
+    const timestamp = new Date(value).getTime();
+    return Number.isNaN(timestamp) ? Number.MAX_SAFE_INTEGER : timestamp;
+  };
 
   // 點擊表頭排序後的訂單列表（支持臨時拖拽排序）
   const sortedOrders = useMemo(() => {
@@ -1768,42 +1903,50 @@ const OrdersPage: React.FC = () => {
       switch (activeSortColumn) {
         case 'status':
           // 狀態排序：進行中、待接送、在合作商、已預訂、已完成
-          sorted.sort((a, b) => getStatusOrder(a.status) - getStatusOrder(b.status));
+          sorted.sort((a, b) => {
+            const statusDiff = getStatusOrder(a.status) - getStatusOrder(b.status);
+            if (statusDiff !== 0) return statusDiff;
+
+            // 同狀態時以預約日期由早到晚排序
+            const dateA = getDateTimeForAscendingSort(a.appointment_date);
+            const dateB = getDateTimeForAscendingSort(b.appointment_date);
+            return dateA - dateB;
+          });
           break;
         
         case 'appointment_date':
-          // 預約日期排序：由近而遠（降序）
+          // 預約日期排序：由早到晚（升序）
           sorted.sort((a, b) => {
-            const dateA = a.appointment_date ? new Date(a.appointment_date).getTime() : 0;
-            const dateB = b.appointment_date ? new Date(b.appointment_date).getTime() : 0;
-            return dateB - dateA;
+            const dateA = getDateTimeForAscendingSort(a.appointment_date);
+            const dateB = getDateTimeForAscendingSort(b.appointment_date);
+            return dateA - dateB;
           });
           break;
         
         case 'start_time':
-          // 租借開始時間排序：由近而遠（降序）
+          // 租借開始時間排序：由早到晚（升序）
           sorted.sort((a, b) => {
-            const dateA = a.start_time ? new Date(a.start_time).getTime() : 0;
-            const dateB = b.start_time ? new Date(b.start_time).getTime() : 0;
-            return dateB - dateA;
+            const dateA = getDateTimeForAscendingSort(a.start_time);
+            const dateB = getDateTimeForAscendingSort(b.start_time);
+            return dateA - dateB;
           });
           break;
         
         case 'end_time':
-          // 租借結束時間排序：由近而遠（降序）
+          // 租借結束時間排序：由早到晚（升序）
           sorted.sort((a, b) => {
-            const dateA = a.end_time ? new Date(a.end_time).getTime() : 0;
-            const dateB = b.end_time ? new Date(b.end_time).getTime() : 0;
-            return dateB - dateA;
+            const dateA = getDateTimeForAscendingSort(a.end_time);
+            const dateB = getDateTimeForAscendingSort(b.end_time);
+            return dateA - dateB;
           });
           break;
         
         case 'expected_return_time':
-          // 預計還車時間排序：由近而遠（降序）
+          // 預計還車時間排序：由早到晚（升序）
           sorted.sort((a, b) => {
-            const dateA = a.expected_return_time ? new Date(a.expected_return_time).getTime() : 0;
-            const dateB = b.expected_return_time ? new Date(b.expected_return_time).getTime() : 0;
-            return dateB - dateA;
+            const dateA = getDateTimeForAscendingSort(a.expected_return_time);
+            const dateB = getDateTimeForAscendingSort(b.expected_return_time);
+            return dateA - dateB;
           });
           break;
       }
@@ -1914,7 +2057,7 @@ const OrdersPage: React.FC = () => {
     await fetchPendingBookings();
     const response = await ordersApi.list({
       month: selectedMonthString,
-      search: searchTerm || undefined,
+      keywords: searchTerm || undefined,
       page: currentPage,
       store_id: currentStore?.id,
     });
@@ -1927,6 +2070,21 @@ const OrdersPage: React.FC = () => {
     } else if (selectedBooking) {
       navigate(`/bookings?detail=${selectedBooking.id}`);
     }
+  };
+
+  // 訂單儲存後即時更新列表 state，避免顯示過時金額
+  const handleOrderSaved = (savedOrder: Order) => {
+    setOrders(prev => {
+      const exists = prev.some(o => o.id === savedOrder.id);
+      if (exists) {
+        // 更新現有訂單（編輯）
+        return prev.map(o => o.id === savedOrder.id ? savedOrder : o);
+      }
+      // 新增訂單（新增至列表頂端）
+      return [savedOrder, ...prev];
+    });
+    // 統計數字可能受影響，重新 fetch
+    fetchStatistics();
   };
 
   // 處理拒絕預約
@@ -2251,12 +2409,20 @@ const OrdersPage: React.FC = () => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
               <input 
                 type="text" 
-                placeholder="搜尋承租人、電話或訂單號..." 
+                placeholder="搜尋承租人、電話、訂單號或車牌號碼..." 
                 className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 dark:text-gray-200"
                 value={searchTerm}
                 onChange={(e) => {
                   setSearchTerm(e.target.value);
                   setCurrentPage(1);
+                  setSearchParams((prev) => {
+                    if (e.target.value) {
+                      prev.set('keywords', e.target.value);
+                    } else {
+                      prev.delete('keywords');
+                    }
+                    return prev;
+                  }, { replace: true });
                 }}
               />
             </div>
@@ -2465,17 +2631,24 @@ const OrdersPage: React.FC = () => {
                       </div>
                     </td>
                     <td className="px-4 py-4 w-[160px] text-xs leading-tight">
-                      {order.shipping_company && (
-                        <>
-                          <div className={`font-bold mb-1 ${getShippingCompanyColor(order.shipping_company)}`}>{order.shipping_company}</div>
+                      {order.shipping_company && (() => {
+                        const shipColor = getShippingCompanyColor(order.shipping_company, order.store_id ?? order.store?.id);
+                        return (
+                          <>
+                            <div className="font-bold mb-1" style={shipColor ? { color: shipColor } : undefined}>
+                              <span className={!shipColor ? 'text-gray-600 dark:text-gray-400' : ''}>
+                                {order.shipping_company}
+                              </span>
+                            </div>
                           {order.ship_arrival_time && (
                             <div className="text-gray-400">來: {formatDateTime(order.ship_arrival_time)}</div>
                           )}
                           {order.ship_return_time && (
                             <div className="text-gray-400">回: {formatDateTime(order.ship_return_time)}</div>
                           )}
-                        </>
-                      )}
+                          </>
+                        );
+                      })()}
                       {!order.shipping_company && '-'}
                     </td>
                     <td className="px-4 py-4 w-[120px] text-gray-500 dark:text-gray-400 font-medium">{order.phone || '-'}</td>
@@ -2566,6 +2739,7 @@ const OrdersPage: React.FC = () => {
         onClose={() => {
           setIsConvertModalOpen(false);
           setSelectedBooking(null);
+          cleanupAllModals();
         }}
         booking={selectedBooking}
         onSuccess={handleConvertSuccess}
@@ -2574,54 +2748,23 @@ const OrdersPage: React.FC = () => {
       <AddOrderModal
         isOpen={isAddModalOpen}
         editingOrder={editingOrder}
+        onSaved={handleOrderSaved}
         onYearChange={(year) => {
           if (year && year !== selectedYear) {
             setSelectedYear(year);
           }
         }}
-        onClose={async (appointmentDate) => {
+        onClose={(appointmentDate) => {
+          // 關閉 modal
           setIsAddModalOpen(false);
           setEditingOrder(null);
-          
-          // 重新獲取年份列表（因為可能有新的年份）
-          await fetchYears();
-          
-          // 如果有預約日期，跳轉到該月份
-          let monthChanged = false;
-          if (appointmentDate) {
-            const [year, month] = appointmentDate.split('-').map(Number);
-            if (year && month) {
-              if (year !== selectedYear || month !== selectedMonth) {
-                setSelectedYear(year);
-                setSelectedMonth(month);
-                setCurrentPage(1);
-                fetchMonthsWithOrders(year);
-                monthChanged = true;
-              }
-            }
-          }
-          
-          // 如果月份沒有改變，手動刷新訂單列表和統計
-          if (!monthChanged) {
-            try {
-              const response = await ordersApi.list({
-                month: selectedMonthString,
-                search: searchTerm || undefined,
-                page: currentPage,
-                store_id: currentStore?.id,
-              });
-              const ordersData = response.data || [];
-              setOrders(Array.isArray(ordersData) ? ordersData : []);
-              if (response.meta) {
-                setTotalPages(response.meta.last_page);
-              }
-              fetchStatistics();
-            } catch (error) {
-              console.error('Failed to refresh orders:', error);
-            }
-          }
-          // 如果月份改變了，useEffect 會自動觸發刷新
-        }} 
+          setPendingAppointmentDate(appointmentDate);
+
+          // 取消、確認按鈕皆觸發 reload
+          setTimeout(() => {
+            window.location.reload();
+          }, 100);
+        }}
       />
       {/* 備註內容彈窗 */}
       {expandedRemarkId !== null && (() => {
@@ -2629,7 +2772,10 @@ const OrdersPage: React.FC = () => {
         return order?.remark ? (
           <div 
             className="fixed inset-0 z-[70] flex items-center justify-center p-4"
-            onClick={() => setExpandedRemarkId(null)}
+            onClick={() => {
+              setExpandedRemarkId(null);
+              cleanupAllModals();
+            }}
           >
             <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
             <div 
@@ -2641,7 +2787,10 @@ const OrdersPage: React.FC = () => {
                   備註內容
                 </h2>
                 <button 
-                  onClick={() => setExpandedRemarkId(null)} 
+                  onClick={() => {
+                    setExpandedRemarkId(null);
+                    cleanupAllModals();
+                  }} 
                   className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 dark:text-gray-500 transition-colors"
                 >
                   <X size={20} />
@@ -2662,9 +2811,24 @@ const OrdersPage: React.FC = () => {
         ) : null;
       })()}
 
-      <StatsModal isOpen={isStatsModalOpen} onClose={() => setIsStatsModalOpen(false)} stats={stats} currentStore={currentStore} />
+      <StatsModal 
+        isOpen={isStatsModalOpen} 
+        onClose={() => {
+          setIsStatsModalOpen(false);
+          cleanupAllModals();
+        }} 
+        stats={stats} 
+        currentStore={currentStore} 
+      />
       
-      <ChartModal isOpen={isChartModalOpen} onClose={() => setIsChartModalOpen(false)} stats={stats} />
+      <ChartModal 
+        isOpen={isChartModalOpen} 
+        onClose={() => {
+          setIsChartModalOpen(false);
+          cleanupAllModals();
+        }} 
+        stats={stats} 
+      />
 
       {/* 合作商分類 Modal 已隱藏 */}
       {/* <PartnerCategoryModal 
@@ -2707,7 +2871,7 @@ const OrdersPage: React.FC = () => {
                             // 重新載入訂單列表
                             const response = await ordersApi.list({
                               month: selectedMonthString,
-                              search: searchTerm || undefined,
+                              keywords: searchTerm || undefined,
                               page: currentPage,
                               store_id: currentStore?.id,
                             });

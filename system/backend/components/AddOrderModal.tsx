@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Search, Calendar, Clock, Phone, FileText, Loader2, ChevronDown } from 'lucide-react';
-import { ordersApi, scootersApi, partnersApi, storesApi } from '../lib/api';
+import { ordersApi, scootersApi, partnersApi, storesApi, shippingCompaniesApi } from '../lib/api';
 import { useStore } from '../contexts/StoreContext';
 import { inputClasses as sharedInputClasses, selectClasses as sharedSelectClasses, labelClasses, chevronDownClasses } from '../styles';
 
@@ -14,7 +14,8 @@ interface Order {
   start_time: string;
   end_time: string;
   expected_return_time: string | null;
-  scooters: Array<{ id: number; model: string; count: number }>;
+  scooters: Array<{ model: string; type?: string; count: number }>;
+  scooter_ids?: number[]; // 機車 ID 列表（用於編輯）
   shipping_company: string | null;
   ship_arrival_time: string | null;
   ship_return_time: string | null;
@@ -30,6 +31,7 @@ interface Order {
 interface AddOrderModalProps {
   isOpen: boolean;
   onClose: (appointmentDate?: string) => void;
+  onSaved?: (updatedOrder: Order) => void;
   editingOrder?: Order | null;
   onYearChange?: (year: number) => void;
 }
@@ -62,16 +64,59 @@ interface Store {
   name: string;
 }
 
-const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingOrder, onYearChange }) => {
+const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved, editingOrder, onYearChange }) => {
   const { currentStore } = useStore();
   const [availableScooters, setAvailableScooters] = useState<Scooter[]>([]);
   const [partners, setPartners] = useState<Partner[]>([]);
+  const [shippingCompanies, setShippingCompanies] = useState<Array<{ id: number; name: string }>>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [selectedScooterIds, setSelectedScooterIds] = useState<number[]>([]);
   const [searchPlate, setSearchPlate] = useState('');
   const [showPlateDropdown, setShowPlateDropdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAmountManuallyEdited, setIsAmountManuallyEdited] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  // 確保當 modal 關閉時，立即移除任何可能阻擋的元素
+  useEffect(() => {
+    if (!isOpen) {
+      // 使用 requestAnimationFrame 確保在 React 渲染完成後執行
+      const cleanup = () => {
+        // 查找所有可能的 modal 相關元素
+        const allFixedOverlays = document.querySelectorAll('[class*="fixed inset-0"]');
+        allFixedOverlays.forEach((element) => {
+          const el = element as HTMLElement;
+          // 檢查是否是 modal 相關元素（z-50 或 z-[50-70]）
+          const zIndex = window.getComputedStyle(el).zIndex;
+          const computedZIndex = zIndex ? parseInt(zIndex) : 0;
+          if (computedZIndex >= 40 || el.classList.contains('z-50') || el.classList.contains('z-[50]') || el.classList.contains('z-[60]') || el.classList.contains('z-[70]')) {
+            // 強制移除或禁用
+            el.style.display = 'none';
+            el.style.pointerEvents = 'none';
+          }
+        });
+        
+        // 特別處理 backdrop 元素
+        const backdrops = document.querySelectorAll('[class*="backdrop"]');
+        backdrops.forEach((backdrop) => {
+          const el = backdrop as HTMLElement;
+          if (el.classList.contains('bg-black') || el.classList.contains('backdrop-blur')) {
+            el.style.display = 'none';
+            el.style.pointerEvents = 'none';
+          }
+        });
+        
+        // 確保 body 沒有被鎖定
+        document.body.style.overflow = '';
+        document.body.style.pointerEvents = '';
+      };
+      
+      // 使用雙重延遲確保清理
+      requestAnimationFrame(() => {
+        setTimeout(cleanup, 0);
+      });
+    }
+  }, [isOpen]);
 
   const [formData, setFormData] = useState({
     partner_id: '',
@@ -116,6 +161,10 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(dateTimeStr)) {
       return dateTimeStr;
     }
+    // 如果是 YYYY-MM-DD HH:mm 或 YYYY-MM-DD HH:mm:ss，轉為 datetime-local 格式
+    if (/^\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}(:\d{2})?$/.test(dateTimeStr)) {
+      return dateTimeStr.replace(' ', 'T').slice(0, 16);
+    }
     // 如果是其他格式，嘗試解析
     const date = new Date(dateTimeStr);
     if (isNaN(date.getTime())) return '';
@@ -125,6 +174,23 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  // 將日期或日期時間字串轉為 Date（date 會補 00:00）
+  const parseDateOrDateTime = (value: string): Date | null => {
+    if (!value) return null;
+    const normalized = /^\d{4}-\d{2}-\d{2}$/.test(value) ? `${value}T00:00` : value;
+    const parsed = new Date(normalized);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  // 當開始時間變更時，若已有結束時間，僅同步結束時間的「時:分」
+  const syncEndTimeClockWithStart = (startValue: string, endValue: string): string => {
+    if (!startValue || !endValue) return endValue;
+    const startParts = startValue.split('T');
+    const endParts = endValue.split('T');
+    if (startParts.length !== 2 || endParts.length !== 2) return endValue;
+    return `${endParts[0]}T${startParts[1]}`;
   };
 
   useEffect(() => {
@@ -141,8 +207,8 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
             store_id: orderStoreId ? orderStoreId.toString() : '',
             tenant: editingOrder.tenant,
             appointment_date: formatDateForInput(editingOrder.appointment_date),
-            start_time: formatDateForInput(editingOrder.start_time),
-            end_time: formatDateForInput(editingOrder.end_time),
+            start_time: formatDateTimeForInput(editingOrder.start_time),
+            end_time: formatDateTimeForInput(editingOrder.end_time),
             expected_return_time: formatDateTimeForInput(editingOrder.expected_return_time),
             phone: editingOrder.phone || '',
             shipping_company: editingOrder.shipping_company || '',
@@ -193,16 +259,16 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     ? (editingOrder.store_id || editingOrder.store?.id)
     : (currentStore?.id);
 
-  // 當固定的 store_id 確定後，載入合作商和機車列表
+  // 當固定的 store_id 確定後，載入合作商、船運與機車列表
   useEffect(() => {
     if (isOpen && fixedStoreId) {
-      // 載入該商店的合作商列表
       fetchPartners();
-      // 載入該商店的機車列表
+      fetchShippingCompanies();
       fetchAvailableScooters();
       // 如果是編輯模式，載入訂單中的機車
       if (editingOrder) {
-        const scooterIds = editingOrder.scooters?.map(s => s.id) || [];
+        // 使用 scooter_ids 欄位（如果有的話），否則嘗試從 scooters 中提取（但 scooters 可能沒有 id）
+        const scooterIds = editingOrder.scooter_ids || [];
         if (scooterIds.length > 0) {
           fetchScootersByIds(scooterIds).then(orderScooters => {
             setAvailableScooters(prev => {
@@ -210,6 +276,10 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
               const newScooters = orderScooters.filter((s: Scooter) => !existingIds.has(s.id));
               return [...prev, ...newScooters];
             });
+            setSelectedScooterIds(scooterIds);
+          }).catch(error => {
+            console.error('Failed to fetch scooters by IDs:', error);
+            // 即使載入失敗，也至少設置選中的 ID，讓用戶知道應該有機車
             setSelectedScooterIds(scooterIds);
           });
         }
@@ -268,15 +338,31 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
       }));
       setPartners(partnersWithFees);
       
-      // 如果沒有選擇合作商，自動選擇該商店的預設合作商
-      if (!formData.partner_id && partnersWithFees.length > 0) {
-        const defaultPartner = partnersWithFees.find((p: any) => p.is_default_for_booking);
-        if (defaultPartner) {
-          setFormData(prev => ({ ...prev, partner_id: defaultPartner.id.toString() }));
-        }
+      // 只在「新增模式」且尚未選擇合作商時，才自動帶入預設合作商
+      // 「編輯模式」必須保留該筆訂單原本的合作商，不可被預設值覆蓋
+      if (!editingOrder && partnersWithFees.length > 0) {
+        setFormData(prev => {
+          if (prev.partner_id) return prev;
+          const defaultPartner = partnersWithFees.find((p: any) => p.is_default_for_booking);
+          if (!defaultPartner) return prev;
+          return { ...prev, partner_id: defaultPartner.id.toString() };
+        });
       }
     } catch (error) {
       console.error('Failed to fetch partners:', error);
+    }
+  };
+
+  const fetchShippingCompanies = async () => {
+    if (!fixedStoreId) return;
+    try {
+      const response = await shippingCompaniesApi.list({ store_id: fixedStoreId });
+      const raw = (response.data || []).slice().sort((a: { sort_order?: number }, b: { sort_order?: number }) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+      const list = raw.map((item: { id: number; name: string }) => ({ id: item.id, name: item.name }));
+      setShippingCompanies(list);
+    } catch (error) {
+      console.error('Failed to fetch shipping companies:', error);
+      setShippingCompanies([]);
     }
   };
 
@@ -331,14 +417,18 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     }
 
     // 計算天數（參考後端邏輯）
-    const startDate = new Date(formData.start_time + 'T00:00:00');
-    const endDate = new Date(formData.end_time + 'T00:00:00');
-    const isSameDay = startDate.toDateString() === endDate.toDateString();
+    const startDate = parseDateOrDateTime(formData.start_time);
+    const endDate = parseDateOrDateTime(formData.end_time);
+    if (!startDate || !endDate) return 0;
+
+    const startDay = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    const endDay = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
+    const isSameDay = startDay.getTime() === endDay.getTime();
     
     let days = 1;
     if (!isSameDay) {
       // 跨日租：計算夜數（diffInDays）
-      const diffTime = endDate.getTime() - startDate.getTime();
+      const diffTime = endDay.getTime() - startDay.getTime();
       days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     }
 
@@ -422,11 +512,18 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
       };
 
       if (editingOrder) {
-        await ordersApi.update(editingOrder.id, orderData);
+        const response = await ordersApi.update(editingOrder.id, orderData);
+        // 將後端重算後的完整訂單傳回父層，以便即時更新列表 state
+        if (onSaved && response?.data?.data) {
+          onSaved(response.data.data);
+        }
       } else {
-        await ordersApi.create(orderData);
+        const response = await ordersApi.create(orderData);
+        if (onSaved && response?.data?.data) {
+          onSaved(response.data.data);
+        }
       }
-      // 傳遞預約日期，用於跳轉到對應月份
+      // 傳遞預約日期；關閉後由父層 onClose 觸發 reload
       onClose(formData.appointment_date || undefined);
     } catch (error: any) {
       console.error('Failed to create order:', error);
@@ -483,11 +580,27 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
     return Object.values(modelStats).reduce((sum, stat) => sum + stat.count, 0);
   }, [modelStats]);
 
+  const handleBackdropClick = (e: React.MouseEvent) => {
+    // 確保點擊的是 backdrop 本身，而不是子元素
+    if (e.target === e.currentTarget && isOpen) {
+      e.preventDefault();
+      e.stopPropagation();
+      onClose();
+    }
+  };
+
+  // 如果 modal 未開啟，立即返回 null，確保 DOM 完全移除
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+    <div 
+      ref={modalRef}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+    >
+      <div 
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm" 
+        onClick={handleBackdropClick}
+      />
       <div 
         className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col relative animate-in fade-in zoom-in duration-200"
         onClick={(e) => {
@@ -502,7 +615,15 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
           <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100 flex items-center">
             {editingOrder ? '編輯租借訂單' : '新增租借訂單'}
           </h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 dark:text-gray-500 transition-colors">
+          <button 
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose();
+            }} 
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full text-gray-400 dark:text-gray-500 transition-colors"
+          >
             <X size={20} />
           </button>
         </div>
@@ -578,39 +699,44 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={`${labelClasses} flex items-center`}>
-                    <Clock size={14} className="mr-1.5" /> 開始時間
-                  </label>
-                  <input 
-                    type="date" 
-                    className={inputClasses}
-                    value={formData.start_time}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, start_time: e.target.value }));
-                    }}
-                    onKeyDown={(e) => e.preventDefault()}
-                    onPaste={(e) => e.preventDefault()}
-                    min={formData.appointment_date || undefined}
-                  />
-                </div>
-                <div>
-                  <label className={`${labelClasses} flex items-center`}>
-                    <Clock size={14} className="mr-1.5" /> 結束時間
-                  </label>
-                  <input 
-                    type="date" 
-                    className={inputClasses}
-                    value={formData.end_time}
-                    onChange={(e) => {
-                      setFormData(prev => ({ ...prev, end_time: e.target.value }));
-                    }}
-                    onKeyDown={(e) => e.preventDefault()}
-                    onPaste={(e) => e.preventDefault()}
-                    min={formData.start_time || formData.appointment_date || undefined}
-                  />
-                </div>
+              <div>
+                <label className={`${labelClasses} flex items-center`}>
+                  <Clock size={14} className="mr-1.5" /> 開始時間
+                </label>
+                <input 
+                  type="datetime-local" 
+                  className={inputClasses}
+                  value={formData.start_time}
+                  onChange={(e) => {
+                    const nextStartTime = e.target.value;
+                    setFormData(prev => ({
+                      ...prev,
+                      start_time: nextStartTime,
+                      end_time: prev.end_time
+                        ? syncEndTimeClockWithStart(nextStartTime, prev.end_time)
+                        : (!editingOrder ? nextStartTime : prev.end_time),
+                    }));
+                  }}
+                  onKeyDown={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  min={formData.appointment_date ? `${formData.appointment_date}T00:00` : undefined}
+                />
+              </div>
+              <div>
+                <label className={`${labelClasses} flex items-center`}>
+                  <Clock size={14} className="mr-1.5" /> 結束時間
+                </label>
+                <input 
+                  type="datetime-local" 
+                  className={inputClasses}
+                  value={formData.end_time}
+                  onChange={(e) => {
+                    setFormData(prev => ({ ...prev, end_time: e.target.value }));
+                  }}
+                  onKeyDown={(e) => e.preventDefault()}
+                  onPaste={(e) => e.preventDefault()}
+                  min={formData.start_time || (formData.appointment_date ? `${formData.appointment_date}T00:00` : undefined)}
+                />
               </div>
 
               <div>
@@ -652,11 +778,12 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
                     onChange={(e) => setFormData({ ...formData, shipping_company: e.target.value })}
                   >
                     <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">請選擇</option>
-                    <option value="泰富" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">泰富</option>
-                    <option value="藍白" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">藍白</option>
-                    <option value="聯營" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">聯營</option>
-                    <option value="大福" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">大福</option>
-                    <option value="公船" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">公船</option>
+                    {formData.shipping_company && !shippingCompanies.some(sc => sc.name === formData.shipping_company) && (
+                      <option value={formData.shipping_company} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{formData.shipping_company}</option>
+                    )}
+                    {shippingCompanies.map((sc) => (
+                      <option key={sc.id} value={sc.name} className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">{sc.name}</option>
+                    ))}
                   </select>
                   <ChevronDown size={18} className={chevronDownClasses} />
                 </div>
@@ -872,13 +999,19 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, editingO
 
         <div className="p-6 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 flex items-center justify-end space-x-4 sticky bottom-0 z-10">
           <button 
-            onClick={onClose} 
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onClose(); // 關閉後由父層 onClose 觸發 reload
+            }} 
             className="px-6 py-2.5 rounded-xl text-sm font-bold text-gray-600 dark:text-gray-300 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-600 transition-all"
             disabled={isSubmitting}
           >
             取消
           </button>
           <button 
+            type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
             className="px-10 py-2.5 bg-gray-900 dark:bg-gray-700 rounded-xl text-sm font-black text-white hover:bg-black dark:hover:bg-gray-600 shadow-lg transition-all disabled:opacity-50 flex items-center"

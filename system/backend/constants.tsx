@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { LayoutDashboard, ShoppingCart, Users, Bike, AlertCircle, Image as ImageIcon, Settings, Shield, User, FileText, MapPin, Home } from 'lucide-react';
+import { LayoutDashboard, ShoppingCart, Users, Bike, AlertCircle, Image as ImageIcon, Settings, Shield, User, FileText, MapPin, Home, Ship } from 'lucide-react';
 
 export const NAV_ITEMS = [
   { 
@@ -9,6 +9,7 @@ export const NAV_ITEMS = [
     permission: null, // 所有角色都可以使用
     children: [
       { name: '訂單管理', path: '/orders' },
+      { name: '預約管理', path: '/bookings' },
       { name: '罰單管理', path: '/fines' }
     ]
   },
@@ -30,6 +31,12 @@ export const NAV_ITEMS = [
     path: '/partners'
   },
   { 
+    title: '船運管理', 
+    icon: <Ship size={20} />, 
+    permission: null,
+    path: '/shipping-companies'
+  },
+  { 
     title: '商店管理', 
     icon: <ShoppingCart size={20} />, 
     permission: 'can_manage_stores', // 需要授權商店管理
@@ -48,8 +55,7 @@ export const NAV_ITEMS = [
       { name: '租車須知', path: '/guidelines' },
       { name: '聯絡我們', path: '/contact-infos' },
       { name: '門市據點', path: '/locations' },
-      { name: '民宿推薦', path: '/guesthouses' },
-      { name: '預約管理', path: '/bookings' }
+      { name: '民宿推薦', path: '/guesthouses' }
     ]
   },
   { 
@@ -71,6 +77,7 @@ export const ROUTE_PERMISSIONS: Record<string, string | null> = {
   '/scooter-types': null,
   '/accessories': null,
   '/partners': null,
+  '/shipping-companies': null,
   '/stores': 'can_manage_stores', // 需要授權商店管理
   '/banners': 'can_manage_content', // 需要授權網站內容管理
   '/home-images': 'can_manage_content',
@@ -81,6 +88,6 @@ export const ROUTE_PERMISSIONS: Record<string, string | null> = {
   '/contact-infos': 'can_manage_content',
   '/locations': 'can_manage_content',
   '/guesthouses': 'can_manage_content',
-  '/bookings': 'can_manage_content',
+  '/bookings': null,
   '/admins': 'super_admin', // 只有 super_admin 可以使用
 };
