@@ -258,8 +258,18 @@ class OrderController extends Controller
                 unset($validated['payment_amount']);
             }
             unset($validated['is_manual_amount']); // 不寫入 DB（若前端有傳此欄位）
-            
+
+            \Log::info('[OrderUpdate] order_id=' . $order->id
+                . ' | request_payment_amount=' . $request->input('payment_amount', 'NOT_SENT')
+                . ' | validated_payment_amount=' . ($validated['payment_amount'] ?? 'UNSET')
+                . ' | old_payment_amount=' . $order->payment_amount
+            );
+
             $order->update($validated);
+
+            \Log::info('[OrderUpdate] after update | order_id=' . $order->id
+                . ' | new_payment_amount=' . $order->fresh()->payment_amount
+            );
 
             $newStatus = $request->get('status', $order->status);
             $allScooterIds = [];
