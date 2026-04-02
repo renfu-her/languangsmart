@@ -7,13 +7,25 @@
 - **WHEN** 前端送出建立訂單請求（`POST /api/orders`）
 - **THEN** 系統 SHALL 由後端 `calculateOrderAmount()` 計算 `payment_amount` 並存入 DB
 
-#### Scenario: 更新訂單時未人工覆寫則依規則決定是否重算
-- **WHEN** 前端送出更新訂單請求（`PUT /api/orders/{id}`），且此次更新未標示為人工覆寫金額
-- **THEN** 系統 SHALL 依影響費用的欄位是否變動，決定重新計算 `payment_amount` 或保留原有金額
+#### Scenario: 編輯訂單時機車有變動則重算金額
+- **WHEN** 前端送出更新訂單請求（`PUT /api/orders/{id}`），且此次更新未標示為人工覆寫金額，並且 `scooter_ids` 與原訂單不同
+- **THEN** 系統 SHALL 依新的機車組合與既有時間資料重新計算 `payment_amount`，並將計算結果存入 DB
+
+#### Scenario: 編輯訂單時租借時間有變動則重算金額
+- **WHEN** 前端送出更新訂單請求（`PUT /api/orders/{id}`），且此次更新未標示為人工覆寫金額，並且 `start_time` 或 `end_time` 與原訂單不同
+- **THEN** 系統 SHALL 依新的時間條件與既有機車組合重新計算 `payment_amount`，並將計算結果存入 DB
+
+#### Scenario: 僅修改非費用欄位時保留原金額
+- **WHEN** 前端送出更新訂單請求（`PUT /api/orders/{id}`），且此次更新未標示為人工覆寫金額，並且 `scooter_ids`、`start_time`、`end_time` 皆與原訂單相同，但備註、付款方式、狀態或聯絡資訊有更新
+- **THEN** 系統 SHALL 保留原有的 `payment_amount` 不變
 
 #### Scenario: 更新訂單時人工覆寫金額
 - **WHEN** 前端送出更新訂單請求（`PUT /api/orders/{id}`），明確標示此次更新為人工覆寫總金額，且包含有效的 `payment_amount`
 - **THEN** 系統 SHALL 採用前端提交的 `payment_amount` 作為最終金額
+
+#### Scenario: 相同機車僅順序不同時不得誤判為變更
+- **WHEN** 前端送出更新訂單請求（`PUT /api/orders/{id}`），且此次更新未標示為人工覆寫金額，`scooter_ids` 的集合與原訂單相同，只有陣列順序不同
+- **THEN** 系統 SHALL 將其視為未變更，並保留原有的 `payment_amount`
 
 #### Scenario: 費率資料不完整時的處理
 - **WHEN** 計算訂單金額時，找不到對應車型的費率（`PartnerScooterModelTransferFee`）
