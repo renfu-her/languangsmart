@@ -24,11 +24,8 @@ jobs:
             # 切換到 languangsmart 專案目錄
             cd /home/languangsmart/htdocs/languangsmart.com
 
-            # 確保部署腳本可執行
-            chmod +x build.sh
-
             # 執行 production 部署
-            ./build.sh production
+            bash build.sh production
 
   deploy-staging:
     if: github.ref == 'refs/heads/staging'
@@ -47,8 +44,5 @@ jobs:
             # 切換到 staging 專案目錄
             cd /home/ai-tracks-scooter-rental/htdocs/scooter-rental.ai-tracks.com
 
-            # 確保部署腳本可執行
-            chmod +x build.sh
-
             # 執行 staging 部署
-            ./build.sh staging
+            bash build_develop.sh
