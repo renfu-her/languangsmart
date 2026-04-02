@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { Search, Plus, Filter, FileText, ChevronLeft, ChevronRight, MoreHorizontal, Bike, X, TrendingUp, Loader2, Edit3, Trash2, ChevronDown, ChevronUp, Download, Bell, XCircle } from 'lucide-react';
 import AddOrderModal from '../components/AddOrderModal';
@@ -1428,39 +1428,39 @@ const OrdersPage: React.FC = () => {
     return () => clearInterval(interval);
   }, [partners, rentalPlans, currentStore]);
 
-  // Fetch orders
-  useEffect(() => {
-    const fetchOrders = async () => {
-      setLoading(true);
-      try {
-        const response = await ordersApi.list({
-          month: selectedMonthString,
-          keywords: searchTerm || undefined,
-          page: currentPage,
-          store_id: currentStore?.id,
-        });
-        // API 返回結構: { data: [...], meta: {...} }
-        // response 本身就是 { data: [...], meta: {...} }
-        console.log('API Response:', response);
-        const ordersData = response.data || [];
-        const fetchedOrders = Array.isArray(ordersData) ? ordersData : [];
-        setOrders(fetchedOrders);
-        // 清除臨時拖拽排序
-        setTemporaryOrder([]);
-        if (response.meta) {
-          setTotalPages(response.meta.last_page);
-        }
-      } catch (error) {
-        console.error('Failed to fetch orders:', error);
-        setOrders([]);
-        setTemporaryOrder([]);
-      } finally {
-        setLoading(false);
+  // Fetch orders（提升為 useCallback 以便 onClose 可呼叫）
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    try {
+      const response = await ordersApi.list({
+        month: selectedMonthString,
+        keywords: searchTerm || undefined,
+        page: currentPage,
+        store_id: currentStore?.id,
+      });
+      // API 返回結構: { data: [...], meta: {...} }
+      // response 本身就是 { data: [...], meta: {...} }
+      console.log('API Response:', response);
+      const ordersData = response.data || [];
+      const fetchedOrders = Array.isArray(ordersData) ? ordersData : [];
+      setOrders(fetchedOrders);
+      // 清除臨時拖拽排序
+      setTemporaryOrder([]);
+      if (response.meta) {
+        setTotalPages(response.meta.last_page);
       }
-    };
+    } catch (error) {
+      console.error('Failed to fetch orders:', error);
+      setOrders([]);
+      setTemporaryOrder([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedMonthString, searchTerm, currentPage, currentStore]);
 
+  useEffect(() => {
     fetchOrders();
-  }, [selectedYear, selectedMonth, searchTerm, currentPage, currentStore]);
+  }, [fetchOrders]);
 
 
   // 滾動時關閉狀態下拉選單
@@ -2760,10 +2760,9 @@ const OrdersPage: React.FC = () => {
           setEditingOrder(null);
           setPendingAppointmentDate(appointmentDate);
 
-          // 取消、確認按鈕皆觸發 reload
-          setTimeout(() => {
-            window.location.reload();
-          }, 100);
+          // 重新從後端取得最新訂單列表，不使用 reload
+          fetchOrders();
+          fetchStatistics();
         }}
       />
       {/* 備註內容彈窗 */}

@@ -521,6 +521,7 @@ const ScootersPage: React.FC = () => {
                   <th className="px-6 py-5">車牌號碼</th>
                   <th className="px-6 py-5">機車型號</th>
                   <th className="px-6 py-5">車款類型</th>
+                  <th className="px-6 py-5">顏色</th>
                   <th className="px-6 py-5">所屬商店</th>
                   <th className="px-6 py-5">狀態</th>
                   <th className="px-6 py-5 text-center">操作</th>
@@ -572,6 +573,7 @@ const ScootersPage: React.FC = () => {
                           {scooter.type}
                         </span>
                       </td>
+                      <td className="px-6 py-5 text-gray-700 dark:text-gray-300 font-medium">{scooter.color || '-'}</td>
                       <td className="px-6 py-5 text-gray-500 dark:text-gray-400 font-medium">{scooter.store?.name || '-'}</td>
                       <td className="px-6 py-5">
                          <span 

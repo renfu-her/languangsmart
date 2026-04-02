@@ -842,16 +842,20 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
                 <label className={`${labelClasses} flex items-center`}>
                   <FileText size={14} className="mr-1.5" /> 總金額 <span className="text-red-500 ml-1">*</span>
                 </label>
-                <input 
-                  type="number" 
-                  className={inputClasses}
+                <input
+                  type="number"
+                  className={editingOrder ? `${inputClasses} bg-gray-100 dark:bg-gray-700 cursor-not-allowed opacity-70` : inputClasses}
                   placeholder="NT$"
                   value={formData.payment_amount}
-                  onChange={(e) => {
+                  readOnly={!!editingOrder}
+                  onChange={editingOrder ? undefined : (e) => {
                     setFormData({ ...formData, payment_amount: e.target.value });
                     setIsAmountManuallyEdited(true); // 標記為手動修改
                   }}
                 />
+                {editingOrder && (
+                  <p className="mt-1 text-xs text-gray-400 dark:text-gray-500">金額由系統自動計算，編輯模式下不可修改</p>
+                )}
               </div>
 
               <div>
