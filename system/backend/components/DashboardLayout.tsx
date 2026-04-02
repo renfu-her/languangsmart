@@ -84,6 +84,8 @@ const SidebarItem: React.FC<{ item: any; isOpenByDefault?: boolean; sidebarOpen:
   );
 };
 
+const isStaging = window.location.hostname === 'scooter-rental.ai-tracks.com';
+
 const DashboardLayout: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -152,15 +154,22 @@ const DashboardLayout: React.FC = () => {
         
         {/* Logo 區域 */}
         <div className={`p-4 flex items-center transition-all duration-300 ${sidebarOpen ? 'space-x-3' : 'justify-center'}`}>
-          <img 
-            src="/favicon.png" 
-            alt="蘭光電動機車 Logo" 
+          <img
+            src="/favicon.png"
+            alt="蘭光電動機車 Logo"
             className="w-10 h-10 rounded-xl object-contain flex-shrink-0"
           />
           {sidebarOpen && (
-            <span className={`text-lg font-black whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
-              蘭光電動機車
-            </span>
+            <div className="flex flex-col animate-in fade-in slide-in-from-left-2 duration-300">
+              <span className={`text-lg font-black whitespace-nowrap ${theme === 'dark' ? 'text-gray-100' : 'text-gray-800'}`}>
+                蘭光電動機車
+              </span>
+              {isStaging && (
+                <span className="text-[10px] font-black tracking-widest uppercase px-1.5 py-0.5 rounded bg-yellow-400 text-yellow-900 w-fit">
+                  測試環境
+                </span>
+              )}
+            </div>
           )}
         </div>
         
