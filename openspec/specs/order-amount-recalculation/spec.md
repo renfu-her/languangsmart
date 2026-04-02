@@ -1,15 +1,19 @@
 ## ADDED Requirements
 
-### Requirement: 後端強制重新計算 payment_amount
-在建立或更新訂單時，系統 SHALL 一律由後端 `calculateOrderAmount()` 計算 `payment_amount`，不接受前端傳入的 `payment_amount` 值作為最終金額。
-
-#### Scenario: 更新訂單時後端重算金額
-- **WHEN** 前端送出更新訂單請求（`PUT /api/orders/{id}`），其中包含 `payment_amount` 欄位
-- **THEN** 系統 SHALL 忽略前端傳入的 `payment_amount`，改由後端依目前車輛組合與日期重新計算，並將計算結果存入 DB
+### Requirement: 後端管理 payment_amount 計算與人工覆寫
+在建立訂單時，系統 SHALL 由後端 `calculateOrderAmount()` 計算 `payment_amount`。在更新訂單時，系統 SHALL 以前後端約定的變更規則決定是否重算或保留原金額；若使用者明確執行人工覆寫，系統 SHALL 採用前端提交的 `payment_amount` 作為最終金額。
 
 #### Scenario: 建立訂單時後端計算金額
 - **WHEN** 前端送出建立訂單請求（`POST /api/orders`）
 - **THEN** 系統 SHALL 由後端 `calculateOrderAmount()` 計算 `payment_amount` 並存入 DB
+
+#### Scenario: 更新訂單時未人工覆寫則依規則決定是否重算
+- **WHEN** 前端送出更新訂單請求（`PUT /api/orders/{id}`），且此次更新未標示為人工覆寫金額
+- **THEN** 系統 SHALL 依影響費用的欄位是否變動，決定重新計算 `payment_amount` 或保留原有金額
+
+#### Scenario: 更新訂單時人工覆寫金額
+- **WHEN** 前端送出更新訂單請求（`PUT /api/orders/{id}`），明確標示此次更新為人工覆寫總金額，且包含有效的 `payment_amount`
+- **THEN** 系統 SHALL 採用前端提交的 `payment_amount` 作為最終金額
 
 #### Scenario: 費率資料不完整時的處理
 - **WHEN** 計算訂單金額時，找不到對應車型的費率（`PartnerScooterModelTransferFee`）

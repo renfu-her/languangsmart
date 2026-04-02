@@ -245,39 +245,46 @@ class OrderController extends Controller
         DB::beginTransaction();
         try {
             $oldStatus = $order->status;
+            $order->loadMissing('scooters');
             $oldScooterIds = $order->scooters->pluck('id')->toArray();
+            $warningMessage = null;
 
             $validated = $validator->validated();
 
             // 將日期欄位標準化為含時分秒格式，避免不同環境對純日期字串解析不一致
             $validated = $this->normalizeOrderDateTimeFields($validated);
-            
-            // 使用前端傳入的 payment_amount（前端已有自動計算邏輯，後端直接信任）
-            // 若前端未傳 payment_amount，保留原有金額
-            if (!isset($validated['payment_amount']) || $validated['payment_amount'] === null) {
-                unset($validated['payment_amount']);
-            }
+
+            $manualAmountOverride = filter_var($request->input('is_manual_amount', false), FILTER_VALIDATE_BOOLEAN);
+            $manualPaymentAmount = $validated['payment_amount'] ?? null;
             unset($validated['is_manual_amount']); // 不寫入 DB（若前端有傳此欄位）
 
-            \Log::info('[OrderUpdate] order_id=' . $order->id
-                . ' | request_payment_amount=' . $request->input('payment_amount', 'NOT_SENT')
-                . ' | validated_payment_amount=' . ($validated['payment_amount'] ?? 'UNSET')
-                . ' | old_payment_amount=' . $order->payment_amount
-            );
+            $newScooterIds = $validated['scooter_ids'] ?? $oldScooterIds;
+            $shouldRecalculateAmount = !$manualAmountOverride
+                && $this->shouldRecalculateOrderAmount($order, $validated, $newScooterIds);
 
-            $order->update($validated);
+            if ($manualAmountOverride && $manualPaymentAmount !== null) {
+                $validated['payment_amount'] = $manualPaymentAmount;
+            } elseif ($shouldRecalculateAmount) {
+                $partnerId = $validated['partner_id'] ?? $order->partner_id;
+                $startTime = $validated['start_time'] ?? optional($order->start_time)?->format('Y-m-d H:i:s');
+                $endTime = $validated['end_time'] ?? optional($order->end_time)?->format('Y-m-d H:i:s');
+                $calculatedAmount = $this->amountCalculator->calculate($partnerId, $newScooterIds, $startTime, $endTime);
 
-            \Log::info('[OrderUpdate] after update | order_id=' . $order->id
-                . ' | new_payment_amount=' . $order->fresh()->payment_amount
-            );
+                if ($calculatedAmount > 0) {
+                    $validated['payment_amount'] = $calculatedAmount;
+                } else {
+                    unset($validated['payment_amount']);
+                    $warningMessage = '無法重新計算有效總金額，已保留原訂單金額。請檢查合作商費率、車輛或時間資料是否完整。';
+                }
+            } else {
+                unset($validated['payment_amount']);
+            }
 
             $newStatus = $request->get('status', $order->status);
             $allScooterIds = [];
 
             // Update scooters if provided
             if ($request->has('scooter_ids')) {
-                $newScooterIds = $request->get('scooter_ids');
-
                 // Check if new scooters are available (only check those not already in the order)
                 $unavailableScooters = Scooter::whereIn('id', $newScooterIds)
                     ->where('status', '!=', '待出租')
@@ -319,12 +326,19 @@ class OrderController extends Controller
                 Scooter::whereIn('id', $allScooterIds)->update(['status' => '出租中']);
             }
 
+            $order->update($validated);
+
             DB::commit();
 
             $response = [
                 'message' => 'Order updated successfully',
                 'data' => new OrderResource($order->load(['partner', 'scooters'])),
             ];
+
+            if ($warningMessage) {
+                $response['warning'] = $warningMessage;
+            }
+
             return response()->json($response);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -1239,5 +1253,46 @@ class OrderController extends Controller
 
         return $data;
     }
-}
 
+    private function shouldRecalculateOrderAmount(Order $order, array $validated, array $newScooterIds): bool
+    {
+        $originalScooterIds = $this->normalizeScooterIds($order->scooters->pluck('id')->toArray());
+        $incomingScooterIds = $this->normalizeScooterIds($newScooterIds);
+
+        if ($originalScooterIds !== $incomingScooterIds) {
+            return true;
+        }
+
+        $originalStartTime = $this->normalizeComparableDateTime(optional($order->start_time)?->format('Y-m-d H:i:s'));
+        $incomingStartTime = $this->normalizeComparableDateTime($validated['start_time'] ?? optional($order->start_time)?->format('Y-m-d H:i:s'));
+        if ($originalStartTime !== $incomingStartTime) {
+            return true;
+        }
+
+        $originalEndTime = $this->normalizeComparableDateTime(optional($order->end_time)?->format('Y-m-d H:i:s'));
+        $incomingEndTime = $this->normalizeComparableDateTime($validated['end_time'] ?? optional($order->end_time)?->format('Y-m-d H:i:s'));
+
+        return $originalEndTime !== $incomingEndTime;
+    }
+
+    private function normalizeScooterIds(array $scooterIds): array
+    {
+        $normalized = array_map(static fn ($id) => (int) $id, $scooterIds);
+        sort($normalized);
+
+        return array_values($normalized);
+    }
+
+    private function normalizeComparableDateTime($value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        try {
+            return Carbon::parse($value)->format('Y-m-d H:i:s');
+        } catch (\Throwable $e) {
+            return is_string($value) ? trim($value) : (string) $value;
+        }
+    }
+}

@@ -75,6 +75,11 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
   const [showPlateDropdown, setShowPlateDropdown] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAmountManuallyEdited, setIsAmountManuallyEdited] = useState(false);
+  const [editAmountBaseline, setEditAmountBaseline] = useState<{
+    scooterIds: number[];
+    startTime: string;
+    endTime: string;
+  } | null>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
   // 確保當 modal 關閉時，立即移除任何可能阻擋的元素
@@ -193,6 +198,24 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
     return `${endParts[0]}T${startParts[1]}`;
   };
 
+  const normalizeScooterIds = (ids: number[]): number[] => {
+    return [...ids].map(id => Number(id)).sort((a, b) => a - b);
+  };
+
+  const normalizeComparableDateTime = (value: string): string => {
+    if (!value) return '';
+    const parsed = parseDateOrDateTime(value);
+    if (!parsed) return value.trim();
+
+    const year = parsed.getFullYear();
+    const month = String(parsed.getMonth() + 1).padStart(2, '0');
+    const day = String(parsed.getDate()).padStart(2, '0');
+    const hours = String(parsed.getHours()).padStart(2, '0');
+    const minutes = String(parsed.getMinutes()).padStart(2, '0');
+
+    return `${year}-${month}-${day} ${hours}:${minutes}`;
+  };
+
   useEffect(() => {
     if (isOpen) {
       const initializeModal = async () => {
@@ -202,13 +225,19 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
         if (editingOrder) {
           // 編輯模式：預填表單數據，store_id 固定為訂單的 store_id
           const orderStoreId = editingOrder.store_id || editingOrder.store?.id;
+          const orderScooterIds: number[] = editingOrder?.scooter_ids?.length
+            ? editingOrder.scooter_ids
+            : (editingOrder?.scooters?.map((s: any) => s.id) ?? []);
+          const normalizedStartTime = formatDateTimeForInput(editingOrder.start_time);
+          const normalizedEndTime = formatDateTimeForInput(editingOrder.end_time);
+
           setFormData({
             partner_id: editingOrder.partner?.id.toString() || '',
             store_id: orderStoreId ? orderStoreId.toString() : '',
             tenant: editingOrder.tenant,
             appointment_date: formatDateForInput(editingOrder.appointment_date),
-            start_time: formatDateTimeForInput(editingOrder.start_time),
-            end_time: formatDateTimeForInput(editingOrder.end_time),
+            start_time: normalizedStartTime,
+            end_time: normalizedEndTime,
             expected_return_time: formatDateTimeForInput(editingOrder.expected_return_time),
             phone: editingOrder.phone || '',
             shipping_company: editingOrder.shipping_company || '',
@@ -219,12 +248,12 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
             status: editingOrder.status,
             remark: editingOrder.remark || '',
           });
-          // 編輯模式下，如果金額為 0，標記為未手動修改，以便自動計算
-          if (editingOrder.payment_amount === 0) {
-            setIsAmountManuallyEdited(false);
-          } else {
-            setIsAmountManuallyEdited(true); // 有金額時，標記為已手動修改（避免自動覆蓋）
-          }
+          setEditAmountBaseline({
+            scooterIds: normalizeScooterIds(orderScooterIds),
+            startTime: normalizeComparableDateTime(normalizedStartTime),
+            endTime: normalizeComparableDateTime(normalizedEndTime),
+          });
+          setIsAmountManuallyEdited(false);
         } else {
           // 新增模式：重置表單，store_id 使用 currentStore（固定）
           setFormData({
@@ -245,6 +274,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
             remark: '',
           });
           setSelectedScooterIds([]);
+          setEditAmountBaseline(null);
           setIsAmountManuallyEdited(false); // 新增模式：重置手動修改標記
         }
         setSearchPlate('');
@@ -437,6 +467,16 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
     return totalAmount;
   }, [formData.partner_id, formData.start_time, formData.end_time, selectedScooterIds, partners, modelStats]);
 
+  const hasAmountAffectingChanges = Boolean(
+    editingOrder &&
+    editAmountBaseline &&
+    (
+      normalizeComparableDateTime(formData.start_time) !== editAmountBaseline.startTime ||
+      normalizeComparableDateTime(formData.end_time) !== editAmountBaseline.endTime ||
+      JSON.stringify(normalizeScooterIds(selectedScooterIds)) !== JSON.stringify(editAmountBaseline.scooterIds)
+    )
+  );
+
   const canRestoreCalculatedAmount = Boolean(
     editingOrder &&
     formData.partner_id &&
@@ -462,14 +502,17 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
 
   // 當合作商、機車選擇或時間變更時，自動計算費用
   useEffect(() => {
-    // 只在沒有手動修改過金額時才自動計算
-    if (!isAmountManuallyEdited && formData.partner_id && selectedScooterIds.length > 0 && formData.start_time && formData.end_time) {
+    const shouldAutoCalculate = editingOrder
+      ? (hasAmountAffectingChanges && !isAmountManuallyEdited)
+      : !isAmountManuallyEdited;
+
+    if (shouldAutoCalculate && formData.partner_id && selectedScooterIds.length > 0 && formData.start_time && formData.end_time) {
       const calculatedAmount = calculateAmount();
       if (calculatedAmount > 0) {
         setFormData(prev => ({ ...prev, payment_amount: calculatedAmount.toString() }));
       }
     }
-  }, [formData.partner_id, formData.start_time, formData.end_time, selectedScooterIds, calculateAmount, isAmountManuallyEdited]);
+  }, [editingOrder, hasAmountAffectingChanges, formData.partner_id, formData.start_time, formData.end_time, selectedScooterIds, calculateAmount, isAmountManuallyEdited]);
 
   const handleSubmit = async () => {
     if (!formData.appointment_date) {
@@ -477,15 +520,16 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
       return;
     }
 
-    // 如果沒有提供金額，自動計算
-    if (!formData.payment_amount || formData.payment_amount === '0') {
+    // 新增訂單，或編輯時已有影響金額的條件變動時，先嘗試以目前條件計算預覽金額
+    const shouldRefreshDisplayedAmount = !editingOrder || hasAmountAffectingChanges;
+    if (shouldRefreshDisplayedAmount && (!formData.payment_amount || formData.payment_amount === '0')) {
       const calculatedAmount = calculateAmount();
       if (calculatedAmount > 0) {
         setFormData(prev => ({ ...prev, payment_amount: calculatedAmount.toString() }));
       }
     }
 
-    if (!formData.payment_amount || formData.payment_amount === '0') {
+    if (!editingOrder && (!formData.payment_amount || formData.payment_amount === '0')) {
       alert('請填寫必填欄位（總金額）或選擇合作商、機車和時間以自動計算');
       return;
     }
@@ -510,7 +554,8 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
         ship_arrival_time: formData.ship_arrival_time || null,
         ship_return_time: formData.ship_return_time || null,
         payment_method: formData.payment_method || null,
-        payment_amount: parseFloat(formData.payment_amount),
+        payment_amount: formData.payment_amount ? parseFloat(formData.payment_amount) : null,
+        is_manual_amount: editingOrder ? isAmountManuallyEdited : false,
         status: formData.status,
         remark: formData.remark || null,
         scooter_ids: selectedScooterIds,
@@ -521,6 +566,9 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
         // 將後端重算後的完整訂單傳回父層，以便即時更新列表 state
         if (onSaved && response?.data?.data) {
           onSaved(response.data.data);
+        }
+        if (response?.data?.warning) {
+          alert(response.data.warning);
         }
       } else {
         const response = await ordersApi.create(orderData);
@@ -878,6 +926,9 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
                     </button>
                   )}
                 </div>
+                {editingOrder && (
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">可手動覆寫總金額；若要恢復系統計算，請使用「恢復原計算」。</p>
+                )}
               </div>
 
               <div>

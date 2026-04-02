@@ -19,12 +19,12 @@
 
 ## ADDED Requirements
 
-### Requirement: 編輯模式金額欄位唯讀
-在編輯訂單時，前端 `AddOrderModal` SHALL 將 `payment_amount` 欄位設為唯讀（`readOnly`），防止使用者手動修改金額，並顯示提示說明金額由系統自動計算。
+### Requirement: 編輯模式可手動覆寫金額
+在編輯訂單時，前端 `AddOrderModal` SHALL 保留 `payment_amount` 欄位的手動輸入能力，並顯示提示說明使用者可人工覆寫金額或恢復系統計算。
 
-#### Scenario: 編輯模式金額欄位不可修改
+#### Scenario: 編輯模式金額欄位可修改
 - **WHEN** 使用者開啟編輯訂單 modal（`editingOrder` 不為 null）
-- **THEN** `payment_amount` input SHALL 呈現唯讀狀態（`readOnly` 屬性），套用灰底樣式，且下方 SHALL 顯示說明文字「金額由系統自動計算，編輯模式下不可修改」
+- **THEN** `payment_amount` input SHALL 保持可編輯狀態，且下方 SHALL 顯示說明文字，指出使用者可手動覆寫或恢復系統計算
 
 #### Scenario: 新增模式金額欄位可輸入
 - **WHEN** 使用者開啟新增訂單 modal（`editingOrder` 為 null）
