@@ -138,16 +138,26 @@ class OrderController extends Controller
 
             // 將日期欄位標準化為含時分秒格式，避免不同環境對純日期字串解析不一致
             $validated = $this->normalizeOrderDateTimeFields($validated);
-            
-            // 一律由後端計算費用，不採用前端傳入的 payment_amount
-            $partnerId = $validated['partner_id'] ?? null;
-            $startTime = $validated['start_time'] ?? null;
-            $endTime = $validated['end_time'] ?? null;
-            $calculatedAmount = $this->amountCalculator->calculate($partnerId, $scooterIds, $startTime, $endTime);
-            if ($calculatedAmount > 0) {
-                $validated['payment_amount'] = $calculatedAmount;
+
+            $submittedPaymentAmount = $validated['payment_amount'] ?? null;
+            if ($submittedPaymentAmount === null) {
+                $partnerId = $validated['partner_id'] ?? null;
+                $startTime = $validated['start_time'] ?? null;
+                $endTime = $validated['end_time'] ?? null;
+                $calculatedAmount = $this->amountCalculator->calculate($partnerId, $scooterIds, $startTime, $endTime);
+
+                if ($calculatedAmount > 0) {
+                    $validated['payment_amount'] = $calculatedAmount;
+                } else {
+                    DB::rollBack();
+                    return response()->json([
+                        'message' => '無法決定訂單總金額，請先確認表單中的總金額或補齊合作商費率、車輛與時間資料。',
+                        'errors' => [
+                            'payment_amount' => ['請確認表單中的總金額已正確填寫，或補齊可供系統計算的資料。'],
+                        ],
+                    ], 422);
+                }
             }
-            // 若計算結果為 0（費率資料不完整），保留前端傳入值或預設 0
 
             // 如果沒有提供 store_id，但提供了 partner_id，則從 partner 獲取 store_id
             if (empty($validated['store_id']) && !empty($validated['partner_id'])) {
@@ -247,38 +257,24 @@ class OrderController extends Controller
             $oldStatus = $order->status;
             $order->loadMissing('scooters');
             $oldScooterIds = $order->scooters->pluck('id')->toArray();
-            $warningMessage = null;
 
             $validated = $validator->validated();
 
             // 將日期欄位標準化為含時分秒格式，避免不同環境對純日期字串解析不一致
             $validated = $this->normalizeOrderDateTimeFields($validated);
-
-            $manualAmountOverride = filter_var($request->input('is_manual_amount', false), FILTER_VALIDATE_BOOLEAN);
-            $manualPaymentAmount = $validated['payment_amount'] ?? null;
             unset($validated['is_manual_amount']); // 不寫入 DB（若前端有傳此欄位）
 
-            $newScooterIds = $validated['scooter_ids'] ?? $oldScooterIds;
-            $shouldRecalculateAmount = !$manualAmountOverride
-                && $this->shouldRecalculateOrderAmount($order, $validated, $newScooterIds);
-
-            if ($manualAmountOverride && $manualPaymentAmount !== null) {
-                $validated['payment_amount'] = $manualPaymentAmount;
-            } elseif ($shouldRecalculateAmount) {
-                $partnerId = $validated['partner_id'] ?? $order->partner_id;
-                $startTime = $validated['start_time'] ?? optional($order->start_time)?->format('Y-m-d H:i:s');
-                $endTime = $validated['end_time'] ?? optional($order->end_time)?->format('Y-m-d H:i:s');
-                $calculatedAmount = $this->amountCalculator->calculate($partnerId, $newScooterIds, $startTime, $endTime);
-
-                if ($calculatedAmount > 0) {
-                    $validated['payment_amount'] = $calculatedAmount;
-                } else {
-                    unset($validated['payment_amount']);
-                    $warningMessage = '無法重新計算有效總金額，已保留原訂單金額。請檢查合作商費率、車輛或時間資料是否完整。';
-                }
-            } else {
-                unset($validated['payment_amount']);
+            if (!array_key_exists('payment_amount', $validated) || $validated['payment_amount'] === null) {
+                DB::rollBack();
+                return response()->json([
+                    'message' => '請先確認表單中的總金額，再儲存訂單。',
+                    'errors' => [
+                        'payment_amount' => ['更新訂單時必須提交有效的總金額。'],
+                    ],
+                ], 422);
             }
+
+            $newScooterIds = $validated['scooter_ids'] ?? $oldScooterIds;
 
             $newStatus = $request->get('status', $order->status);
             $allScooterIds = [];
@@ -330,16 +326,10 @@ class OrderController extends Controller
 
             DB::commit();
 
-            $response = [
+            return response()->json([
                 'message' => 'Order updated successfully',
                 'data' => new OrderResource($order->load(['partner', 'scooters'])),
-            ];
-
-            if ($warningMessage) {
-                $response['warning'] = $warningMessage;
-            }
-
-            return response()->json($response);
+            ]);
         } catch (\Exception $e) {
             DB::rollBack();
             return response()->json([
@@ -1252,47 +1242,5 @@ class OrderController extends Controller
         }
 
         return $data;
-    }
-
-    private function shouldRecalculateOrderAmount(Order $order, array $validated, array $newScooterIds): bool
-    {
-        $originalScooterIds = $this->normalizeScooterIds($order->scooters->pluck('id')->toArray());
-        $incomingScooterIds = $this->normalizeScooterIds($newScooterIds);
-
-        if ($originalScooterIds !== $incomingScooterIds) {
-            return true;
-        }
-
-        $originalStartTime = $this->normalizeComparableDateTime(optional($order->start_time)?->format('Y-m-d H:i:s'));
-        $incomingStartTime = $this->normalizeComparableDateTime($validated['start_time'] ?? optional($order->start_time)?->format('Y-m-d H:i:s'));
-        if ($originalStartTime !== $incomingStartTime) {
-            return true;
-        }
-
-        $originalEndTime = $this->normalizeComparableDateTime(optional($order->end_time)?->format('Y-m-d H:i:s'));
-        $incomingEndTime = $this->normalizeComparableDateTime($validated['end_time'] ?? optional($order->end_time)?->format('Y-m-d H:i:s'));
-
-        return $originalEndTime !== $incomingEndTime;
-    }
-
-    private function normalizeScooterIds(array $scooterIds): array
-    {
-        $normalized = array_map(static fn ($id) => (int) $id, $scooterIds);
-        sort($normalized);
-
-        return array_values($normalized);
-    }
-
-    private function normalizeComparableDateTime($value): ?string
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        try {
-            return Carbon::parse($value)->format('Y-m-d H:i:s');
-        } catch (\Throwable $e) {
-            return is_string($value) ? trim($value) : (string) $value;
-        }
     }
 }

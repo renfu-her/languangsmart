@@ -15,9 +15,9 @@ class OrderAmountRecalculationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_store_calculates_payment_amount_on_backend(): void
+    public function test_store_uses_submitted_payment_amount_when_present(): void
     {
-        [$store, $partner, $primaryModel, $secondaryModel] = $this->createBaseFixtures();
+        [$store, $partner, $primaryModel] = $this->createBaseFixtures();
         [$scooterA, $scooterB] = $this->createPrimaryScooters($store, $primaryModel);
         $this->createTransferFee($partner, $primaryModel, 100, 300);
 
@@ -34,40 +34,54 @@ class OrderAmountRecalculationTest extends TestCase
         ]);
 
         $response->assertCreated()
-            ->assertJsonPath('data.payment_amount', 200.0);
+            ->assertJsonPath('data.payment_amount', 9999.0);
 
         $orderId = $response->json('data.id');
-        $this->assertSame(200.0, (float) Order::findOrFail($orderId)->payment_amount);
+        $this->assertSame(9999.0, (float) Order::findOrFail($orderId)->payment_amount);
     }
 
-    public function test_update_keeps_original_amount_when_only_non_fee_fields_change(): void
+    public function test_store_falls_back_to_backend_calculation_when_amount_missing(): void
     {
         [$store, $partner, $primaryModel] = $this->createBaseFixtures();
-        [$scooterA] = $this->createPrimaryScooters($store, $primaryModel, 1);
+        [$scooterA, $scooterB] = $this->createPrimaryScooters($store, $primaryModel);
         $this->createTransferFee($partner, $primaryModel, 100, 300);
-        $order = $this->createOrder($partner, $store, [$scooterA], '2026-04-01 09:00:00', '2026-04-01 18:00:00', 100);
 
-        $response = $this->putJson("/api/orders/{$order->id}", [
+        $response = $this->postJson('/api/orders', [
             'partner_id' => $partner->id,
             'store_id' => $store->id,
             'tenant' => '王小明',
             'appointment_date' => '2026-04-01',
             'start_time' => '2026-04-01T09:00',
             'end_time' => '2026-04-01T18:00',
-            'payment_amount' => 9999,
             'status' => '已預訂',
-            'remark' => '只改備註',
+            'scooter_ids' => [$scooterA->id, $scooterB->id],
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.payment_amount', 200.0);
+    }
+
+    public function test_store_returns_validation_error_when_amount_missing_and_backend_cannot_calculate(): void
+    {
+        [$store, $partner, $primaryModel] = $this->createBaseFixtures();
+        [$scooterA] = $this->createPrimaryScooters($store, $primaryModel, 1);
+
+        $response = $this->postJson('/api/orders', [
+            'partner_id' => $partner->id,
+            'store_id' => $store->id,
+            'tenant' => '王小明',
+            'appointment_date' => '2026-04-01',
+            'start_time' => '2026-04-01T09:00',
+            'end_time' => '2026-04-01T18:00',
+            'status' => '已預訂',
             'scooter_ids' => [$scooterA->id],
         ]);
 
-        $response->assertOk()
-            ->assertJsonMissingPath('warning')
-            ->assertJsonPath('data.payment_amount', 100.0);
-
-        $this->assertSame(100.0, (float) $order->fresh()->payment_amount);
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['payment_amount']);
     }
 
-    public function test_update_accepts_manual_payment_amount_override(): void
+    public function test_update_uses_submitted_payment_amount_even_when_time_changes(): void
     {
         [$store, $partner, $primaryModel] = $this->createBaseFixtures();
         [$scooterA] = $this->createPrimaryScooters($store, $primaryModel, 1);
@@ -82,7 +96,6 @@ class OrderAmountRecalculationTest extends TestCase
             'start_time' => '2026-04-01T09:00',
             'end_time' => '2026-04-02T09:00',
             'payment_amount' => 555,
-            'is_manual_amount' => true,
             'status' => '已預訂',
             'scooter_ids' => [$scooterA->id],
         ]);
@@ -93,31 +106,7 @@ class OrderAmountRecalculationTest extends TestCase
         $this->assertSame(555.0, (float) $order->fresh()->payment_amount);
     }
 
-    public function test_update_recalculates_amount_when_scooters_change(): void
-    {
-        [$store, $partner, $primaryModel] = $this->createBaseFixtures();
-        [$scooterA, $scooterB] = $this->createPrimaryScooters($store, $primaryModel);
-        $this->createTransferFee($partner, $primaryModel, 100, 300);
-        $order = $this->createOrder($partner, $store, [$scooterA], '2026-04-01 09:00:00', '2026-04-01 18:00:00', 100);
-
-        $response = $this->putJson("/api/orders/{$order->id}", [
-            'partner_id' => $partner->id,
-            'store_id' => $store->id,
-            'tenant' => '王小明',
-            'appointment_date' => '2026-04-01',
-            'start_time' => '2026-04-01T09:00',
-            'end_time' => '2026-04-01T18:00',
-            'status' => '已預訂',
-            'scooter_ids' => [$scooterA->id, $scooterB->id],
-        ]);
-
-        $response->assertOk()
-            ->assertJsonPath('data.payment_amount', 200.0);
-
-        $this->assertSame(200.0, (float) $order->fresh()->payment_amount);
-    }
-
-    public function test_update_recalculates_amount_when_time_changes(): void
+    public function test_update_returns_validation_error_when_payment_amount_missing(): void
     {
         [$store, $partner, $primaryModel] = $this->createBaseFixtures();
         [$scooterA] = $this->createPrimaryScooters($store, $primaryModel, 1);
@@ -135,42 +124,14 @@ class OrderAmountRecalculationTest extends TestCase
             'scooter_ids' => [$scooterA->id],
         ]);
 
-        $response->assertOk()
-            ->assertJsonPath('data.payment_amount', 300.0);
-
-        $this->assertSame(300.0, (float) $order->fresh()->payment_amount);
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['payment_amount']);
     }
 
-    public function test_update_keeps_amount_when_same_scooters_are_submitted_in_different_order(): void
+    public function test_update_uses_restored_calculated_amount_as_submitted_value(): void
     {
         [$store, $partner, $primaryModel] = $this->createBaseFixtures();
-        [$scooterA, $scooterB] = $this->createPrimaryScooters($store, $primaryModel);
-        $this->createTransferFee($partner, $primaryModel, 100, 300);
-        $order = $this->createOrder($partner, $store, [$scooterA, $scooterB], '2026-04-01 09:00:00', '2026-04-01 18:00:00', 200);
-
-        $response = $this->putJson("/api/orders/{$order->id}", [
-            'partner_id' => $partner->id,
-            'store_id' => $store->id,
-            'tenant' => '王小明',
-            'appointment_date' => '2026-04-01',
-            'start_time' => '2026-04-01T09:00',
-            'end_time' => '2026-04-01T18:00',
-            'status' => '已預訂',
-            'remark' => '順序交換',
-            'scooter_ids' => [$scooterB->id, $scooterA->id],
-        ]);
-
-        $response->assertOk()
-            ->assertJsonPath('data.payment_amount', 200.0);
-
-        $this->assertSame(200.0, (float) $order->fresh()->payment_amount);
-    }
-
-    public function test_update_returns_warning_and_keeps_old_amount_when_recalculation_fails(): void
-    {
-        [$store, $partner, $primaryModel, $secondaryModel] = $this->createBaseFixtures();
         [$scooterA] = $this->createPrimaryScooters($store, $primaryModel, 1);
-        $scooterWithoutFee = $this->createScooter($store, $secondaryModel, 'TST-003');
         $this->createTransferFee($partner, $primaryModel, 100, 300);
         $order = $this->createOrder($partner, $store, [$scooterA], '2026-04-01 09:00:00', '2026-04-01 18:00:00', 100);
 
@@ -180,16 +141,16 @@ class OrderAmountRecalculationTest extends TestCase
             'tenant' => '王小明',
             'appointment_date' => '2026-04-01',
             'start_time' => '2026-04-01T09:00',
-            'end_time' => '2026-04-01T18:00',
+            'end_time' => '2026-04-02T09:00',
+            'payment_amount' => 300,
             'status' => '已預訂',
-            'scooter_ids' => [$scooterWithoutFee->id],
+            'scooter_ids' => [$scooterA->id],
         ]);
 
         $response->assertOk()
-            ->assertJsonPath('data.payment_amount', 100.0)
-            ->assertJsonPath('warning', '無法重新計算有效總金額，已保留原訂單金額。請檢查合作商費率、車輛或時間資料是否完整。');
+            ->assertJsonPath('data.payment_amount', 300.0);
 
-        $this->assertSame(100.0, (float) $order->fresh()->payment_amount);
+        $this->assertSame(300.0, (float) $order->fresh()->payment_amount);
     }
 
     private function createBaseFixtures(): array
@@ -210,12 +171,7 @@ class OrderAmountRecalculationTest extends TestCase
             'type' => '白牌',
         ]);
 
-        $secondaryModel = ScooterModel::create([
-            'name' => 'MMBCU',
-            'type' => '白牌',
-        ]);
-
-        return [$store, $partner, $primaryModel, $secondaryModel];
+        return [$store, $partner, $primaryModel];
     }
 
     private function createPrimaryScooters(Store $store, ScooterModel $model, int $count = 2): array
