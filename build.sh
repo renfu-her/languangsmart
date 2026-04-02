@@ -8,7 +8,7 @@ if [ "$1" = "production" ]; then
     echo "開始 Production 部署流程..."
     echo "=========================================="
 elif [ "$1" = "develop" ]; then
-    MODE="develop"
+    MODE="staging"
     PROJECT_DIR="$HOME/htdocs/scooter-rental.ai-tracks.com"
     echo "=========================================="
     echo "開始 Develop 部署流程..."
@@ -101,7 +101,7 @@ echo "[7/9] 構建後端 (React)..."
 if [ "$MODE" = "production" ]; then
     export VITE_API_BASE_URL=https://languangsmart.com/api
     echo "  ℹ 使用 Production API: https://languangsmart.com/api"
-elif [ "$MODE" = "develop" ]; then
+elif [ "$MODE" = "staging" ]; then
     export VITE_API_BASE_URL=https://scooter-rental.ai-tracks.com/api
     echo "  ℹ 使用 Develop API: https://scooter-rental.ai-tracks.com/api"
 fi
@@ -136,7 +136,7 @@ echo "[9/9] 構建前端 (React)..."
 if [ "$MODE" = "production" ]; then
     export VITE_API_BASE_URL=https://languangsmart.com/api
     echo "  ℹ 使用 Production API: https://languangsmart.com/api"
-elif [ "$MODE" = "develop" ]; then
+elif [ "$MODE" = "staging" ]; then
     export VITE_API_BASE_URL=https://scooter-rental.ai-tracks.com/api
     echo "  ℹ 使用 Develop API: https://scooter-rental.ai-tracks.com/api"
 fi
