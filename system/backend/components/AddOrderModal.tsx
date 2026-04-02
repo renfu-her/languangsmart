@@ -264,73 +264,49 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
     if (isOpen && fixedStoreId) {
       fetchPartners();
       fetchShippingCompanies();
-      fetchAvailableScooters();
-      // 如果是編輯模式，載入訂單中的機車
-      if (editingOrder) {
-        // 使用 scooter_ids 欄位（如果有的話），否則嘗試從 scooters 中提取（但 scooters 可能沒有 id）
-        const scooterIds = editingOrder.scooter_ids || [];
-        if (scooterIds.length > 0) {
-          fetchScootersByIds(scooterIds).then(orderScooters => {
-            setAvailableScooters(prev => {
-              const existingIds = new Set(prev.map(s => s.id));
-              const newScooters = orderScooters.filter((s: Scooter) => !existingIds.has(s.id));
-              return [...prev, ...newScooters];
-            });
-            setSelectedScooterIds(scooterIds);
-          }).catch(error => {
-            console.error('Failed to fetch scooters by IDs:', error);
-            // 即使載入失敗，也至少設置選中的 ID，讓用戶知道應該有機車
-            setSelectedScooterIds(scooterIds);
-          });
+
+      // 每次開啟都 reset，避免上一次 modal 的 stale state 干擾
+      setAvailableScooters([]);
+      setSelectedScooterIds([]);
+
+      // scooter_ids fallback：若 API 未回傳則從 scooters 陣列取 ID
+      const orderScooterIds: number[] = editingOrder?.scooter_ids?.length
+        ? editingOrder.scooter_ids
+        : (editingOrder?.scooters?.map((s: any) => s.id) ?? []);
+
+      // 依序執行：先取可租借列表，再取訂單機車，最後一次性 merge set state
+      const loadScooters = async () => {
+        try {
+          const availableParams: any = { status: '待出租', store_id: fixedStoreId };
+          const availableRes = await scootersApi.list(availableParams);
+          const availableScooterList: Scooter[] = availableRes.data || [];
+
+          if (editingOrder && orderScooterIds.length > 0) {
+            const allParams: any = { store_id: fixedStoreId };
+            const allRes = await scootersApi.list(allParams);
+            const allScooters: Scooter[] = allRes.data || [];
+            const orderScooters = allScooters.filter(s => orderScooterIds.includes(s.id));
+
+            if (orderScooters.length < orderScooterIds.length) {
+              console.warn(`Some scooters not found: ${orderScooterIds.filter(id => !orderScooters.some(s => s.id === id)).join(', ')}`);
+            }
+
+            // 去重合併：可租借列表 + 訂單機車（可能是出租中）
+            const seen = new Set(availableScooterList.map(s => s.id));
+            const extra = orderScooters.filter(s => !seen.has(s.id));
+            setAvailableScooters([...availableScooterList, ...extra]);
+            setSelectedScooterIds(orderScooterIds);
+          } else {
+            setAvailableScooters(availableScooterList);
+          }
+        } catch (error) {
+          console.error('Failed to fetch scooters:', error);
         }
-      }
+      };
+
+      loadScooters();
     }
   }, [fixedStoreId, isOpen, editingOrder]);
-
-  const fetchAvailableScooters = async () => {
-    try {
-      // 根據固定的 store_id 過濾機車列表（只顯示狀態為「待出租」的機車）
-      const params: any = { status: '待出租' };
-      if (fixedStoreId) {
-        params.store_id = fixedStoreId;
-      }
-      const response = await scootersApi.list(params);
-      const newScooters: Scooter[] = response.data || [];
-      // 合併而非覆蓋：保留已選中的機車（狀態可能是「出租中」），避免 race condition 把它們清掉
-      setAvailableScooters(prev => {
-        const newIds = new Set(newScooters.map(s => s.id));
-        const preservedSelected = prev.filter(s => selectedScooterIds.includes(s.id) && !newIds.has(s.id));
-        return [...newScooters, ...preservedSelected];
-      });
-    } catch (error) {
-      console.error('Failed to fetch available scooters:', error);
-    }
-  };
-
-  const fetchScootersByIds = async (scooterIds: number[]): Promise<Scooter[]> => {
-    try {
-      // 獲取機車列表（包括已租借的），根據固定的 store_id 過濾
-      const params: any = {};
-      if (fixedStoreId) {
-        params.store_id = fixedStoreId;
-      }
-      const response = await scootersApi.list(params);
-      const allScooters = response.data || [];
-      // 過濾出需要的機車
-      const foundScooters = allScooters.filter((s: Scooter) => scooterIds.includes(s.id));
-      
-      // 如果有些機車沒找到，可能是因為它們在訂單中但不在列表中
-      // 這種情況下，我們至少返回找到的機車
-      if (foundScooters.length < scooterIds.length) {
-        console.warn(`Some scooters not found: ${scooterIds.filter(id => !foundScooters.some(s => s.id === id)).join(', ')}`);
-      }
-      
-      return foundScooters;
-    } catch (error) {
-      console.error('Failed to fetch scooters by IDs:', error);
-      return [];
-    }
-  };
 
   const fetchPartners = async () => {
     try {
