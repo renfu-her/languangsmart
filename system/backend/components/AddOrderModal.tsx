@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Search, Calendar, Clock, Phone, FileText, Loader2, ChevronDown } from 'lucide-react';
+import { X, Search, Calendar, Clock, Phone, FileText, Loader2, ChevronDown, RotateCcw } from 'lucide-react';
 import { ordersApi, scootersApi, partnersApi, storesApi, shippingCompaniesApi } from '../lib/api';
 import { useStore } from '../contexts/StoreContext';
 import { inputClasses as sharedInputClasses, selectClasses as sharedSelectClasses, labelClasses, chevronDownClasses } from '../styles';
@@ -437,6 +437,29 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
     return totalAmount;
   }, [formData.partner_id, formData.start_time, formData.end_time, selectedScooterIds, partners, modelStats]);
 
+  const canRestoreCalculatedAmount = Boolean(
+    editingOrder &&
+    formData.partner_id &&
+    selectedScooterIds.length > 0 &&
+    formData.start_time &&
+    formData.end_time
+  );
+
+  const handleRestoreCalculatedAmount = () => {
+    if (!canRestoreCalculatedAmount) {
+      return;
+    }
+
+    const calculatedAmount = calculateAmount();
+    if (calculatedAmount <= 0) {
+      alert('無法恢復原計算總金額，請檢查合作商費率、車輛或時間資料是否完整。');
+      return;
+    }
+
+    setFormData(prev => ({ ...prev, payment_amount: calculatedAmount.toString() }));
+    setIsAmountManuallyEdited(false);
+  };
+
   // 當合作商、機車選擇或時間變更時，自動計算費用
   useEffect(() => {
     // 只在沒有手動修改過金額時才自動計算
@@ -824,19 +847,37 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
                 <label className={`${labelClasses} flex items-center`}>
                   <FileText size={14} className="mr-1.5" /> 總金額 <span className="text-red-500 ml-1">*</span>
                 </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  className={inputClasses}
-                  placeholder="NT$"
-                  value={formData.payment_amount}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/[^0-9]/g, ''); // 只允許數字
-                    setFormData({ ...formData, payment_amount: val });
-                    setIsAmountManuallyEdited(true);
-                  }}
-                />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    className={`${inputClasses} flex-1`}
+                    placeholder="NT$"
+                    value={formData.payment_amount}
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/[^0-9]/g, ''); // 只允許數字
+                      setFormData({ ...formData, payment_amount: val });
+                      setIsAmountManuallyEdited(true);
+                    }}
+                  />
+                  {editingOrder && (
+                    <button
+                      type="button"
+                      onClick={handleRestoreCalculatedAmount}
+                      disabled={!canRestoreCalculatedAmount}
+                      className={`inline-flex items-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-bold transition-all ${
+                        canRestoreCalculatedAmount
+                          ? 'border-orange-200 bg-orange-50 text-orange-700 hover:bg-orange-100 dark:border-orange-800 dark:bg-orange-900/20 dark:text-orange-300 dark:hover:bg-orange-900/30'
+                          : 'cursor-not-allowed border-gray-200 bg-gray-100 text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500'
+                      }`}
+                      title="使用目前訂單條件恢復系統原始計算金額"
+                    >
+                      <RotateCcw size={14} />
+                      <span>恢復原計算</span>
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div>
