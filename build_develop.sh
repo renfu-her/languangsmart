@@ -21,7 +21,8 @@ echo "✓ 目錄切換完成"
 echo ""
 
 echo "[2/9] 更新程式碼 (git pull)..."
-git pull --no-edit
+git fetch origin
+git reset --hard origin/staging
 if [ $? -ne 0 ]; then
     echo "✗ 警告：Git 更新失敗，繼續執行..."
 fi
