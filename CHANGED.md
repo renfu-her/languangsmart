@@ -13690,3 +13690,10 @@ php artisan db:seed --class=ScooterModelColorSeeder
 - 使用者管理 API 改為僅 `super_admin` 可操作。
 - `UserSeeder` 改用 `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD`，避免固定 `admin@admin.com` / `admin123`。
 - 更新 PHP audit 指出的 Composer lock 套件版本，並將前後台 `react-router-dom` 升到 `^7.12.0`。
+
+---
+
+## 2026-04-24 - 月報表新增扣除已結清金額
+
+- 在合作商機車出租月報表底部新增「已結清金額」與「未結金額」。
+- 「未結金額」計算為總金額扣除紅字已結清訂單加總，方便對帳未結餘額。

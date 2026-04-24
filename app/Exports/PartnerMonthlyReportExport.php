@@ -290,6 +290,17 @@ class PartnerMonthlyReportExport
         $col++;
         
         $grandTotalAmount = 0;
+        $settledTotalAmount = 0;
+
+        foreach ($this->dates as $dateItem) {
+            foreach (($dateItem['orders'] ?? []) as $order) {
+                if (($order['status'] ?? null) !== '已結清') {
+                    continue;
+                }
+
+                $settledTotalAmount += $this->calculateOrderAmount($order);
+            }
+        }
         
         foreach ($this->models as $model) {
             $modelSameDayTotalCount = 0;
@@ -458,6 +469,29 @@ class PartnerMonthlyReportExport
         if (count($this->models) > 1) {
             $sheet->mergeCells(Coordinate::stringFromColumnIndex($firstModelOvernightAmountCol) . $row . ':' . Coordinate::stringFromColumnIndex($lastModelOvernightAmountCol) . $row);
         }
+
+        $row++;
+        $this->writeSummaryAmountRow(
+            $sheet,
+            $row,
+            $totalCols,
+            $firstModelOvernightAmountCol,
+            $lastModelOvernightAmountCol,
+            '已結清金額',
+            $settledTotalAmount,
+            'FF0000'
+        );
+
+        $row++;
+        $this->writeSummaryAmountRow(
+            $sheet,
+            $row,
+            $totalCols,
+            $firstModelOvernightAmountCol,
+            $lastModelOvernightAmountCol,
+            '未結金額',
+            $grandTotalAmount - $settledTotalAmount
+        );
         
         // 設置列寬
         $sheet->getColumnDimension('A')->setWidth(15); // 日期列
@@ -487,5 +521,50 @@ class PartnerMonthlyReportExport
     private function setCellValueByColumnAndRow($sheet, int $column, int $row, $value): void
     {
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($column) . $row, $value);
+    }
+
+    private function calculateOrderAmount(array $order): int
+    {
+        $amount = 0;
+
+        foreach (($order['models'] ?? []) as $model) {
+            $amount += is_numeric($model['same_day_amount'] ?? null) ? (int) $model['same_day_amount'] : 0;
+            $amount += is_numeric($model['overnight_amount'] ?? null) ? (int) $model['overnight_amount'] : 0;
+        }
+
+        return $amount;
+    }
+
+    private function writeSummaryAmountRow(
+        $sheet,
+        int $row,
+        int $totalCols,
+        int $firstAmountCol,
+        int $lastAmountCol,
+        string $label,
+        int $amount,
+        ?string $fontColor = null
+    ): void {
+        for ($col = 1; $col <= $totalCols; $col++) {
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
+        }
+
+        $this->setCellValueByColumnAndRow($sheet, 2, $row, $label);
+        $this->setCellValueByColumnAndRow($sheet, $firstAmountCol, $row, $amount);
+
+        if ($lastAmountCol > $firstAmountCol) {
+            $sheet->mergeCells(Coordinate::stringFromColumnIndex($firstAmountCol) . $row . ':' . Coordinate::stringFromColumnIndex($lastAmountCol) . $row);
+        }
+
+        $sheet->getStyle('A' . $row . ':' . Coordinate::stringFromColumnIndex($totalCols) . $row)
+            ->getFont()
+            ->setBold(true);
+
+        if ($fontColor) {
+            $sheet->getStyle('A' . $row . ':' . Coordinate::stringFromColumnIndex($totalCols) . $row)
+                ->getFont()
+                ->getColor()
+                ->setRGB($fontColor);
+        }
     }
 }
