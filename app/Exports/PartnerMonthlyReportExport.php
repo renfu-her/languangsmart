@@ -469,6 +469,10 @@ class PartnerMonthlyReportExport
         if (count($this->models) > 1) {
             $sheet->mergeCells(Coordinate::stringFromColumnIndex($firstModelOvernightAmountCol) . $row . ':' . Coordinate::stringFromColumnIndex($lastModelOvernightAmountCol) . $row);
         }
+        $sheet->getStyle('A' . $row . ':' . Coordinate::stringFromColumnIndex($totalCols) . $row)
+            ->getFont()
+            ->getColor()
+            ->setRGB('000000');
 
         $row++;
         $this->writeSummaryAmountRow(
@@ -489,7 +493,8 @@ class PartnerMonthlyReportExport
             $firstModelOvernightAmountCol,
             $lastModelOvernightAmountCol,
             '需結總金額',
-            $grandTotalAmount - $settledTotalAmount
+            $grandTotalAmount - $settledTotalAmount,
+            'FF0000'
         );
         
         // 設置列寬
