@@ -477,9 +477,8 @@ class PartnerMonthlyReportExport
             $totalCols,
             $firstModelOvernightAmountCol,
             $lastModelOvernightAmountCol,
-            '已結清金額',
-            $settledTotalAmount,
-            'FF0000'
+            '已結金額',
+            $settledTotalAmount
         );
 
         $row++;
@@ -489,7 +488,7 @@ class PartnerMonthlyReportExport
             $totalCols,
             $firstModelOvernightAmountCol,
             $lastModelOvernightAmountCol,
-            '未結金額',
+            '需結總金額',
             $grandTotalAmount - $settledTotalAmount
         );
         
