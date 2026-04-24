@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // 添加「已轉訂單」狀態到 bookings 表的 status enum
         DB::statement("ALTER TABLE `bookings` MODIFY COLUMN `status` ENUM('預約中', '執行中', '已經回覆', '取消', '已轉訂單') DEFAULT '預約中'");
     }
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // 移除「已轉訂單」狀態
         DB::statement("ALTER TABLE `bookings` MODIFY COLUMN `status` ENUM('預約中', '執行中', '已經回覆', '取消') DEFAULT '預約中'");
     }

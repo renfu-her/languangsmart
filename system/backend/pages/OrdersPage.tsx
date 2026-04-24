@@ -180,6 +180,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         border: borderStyle
       };
 
+      const settledRowFont = { color: { argb: 'FFFF0000' } };
+
       // 第一行：標題「合作商機車出租月報表」（合併所有列）
       const titleCell = worksheet.getCell(rowNumber, 1);
       titleCell.value = `${partnerName}機車出租月報表`;
@@ -212,7 +214,25 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         rowNumber++;
       }
 
-      // 第三行：前面兩欄空白，然後機車型號標題（每個型號佔 4 欄）
+      // 第三行：已結清標示說明
+      const settledNoteCell = worksheet.getCell(rowNumber, 1);
+      settledNoteCell.value = '紅字標示為已結清訂單';
+      worksheet.mergeCells(rowNumber, 1, rowNumber, totalCols);
+      settledNoteCell.font = { bold: true, color: { argb: 'FFFF0000' } };
+      settledNoteCell.fill = {
+        type: 'pattern' as const,
+        pattern: 'solid' as const,
+        fgColor: { argb: 'FFFFFFFF' }
+      };
+      settledNoteCell.alignment = { horizontal: 'left' as const, vertical: 'middle' as const };
+      settledNoteCell.border = borderStyle;
+      for (let c = 1; c <= totalCols; c++) {
+        const cell = worksheet.getCell(rowNumber, c);
+        cell.border = borderStyle;
+      }
+      rowNumber++;
+
+      // 接續為機車型號標題（每個型號佔 4 欄）
       const headerRow2 = worksheet.getRow(rowNumber);
       let colIndex = 1;
       // 為前兩欄設置樣式和邊框
@@ -336,7 +356,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       // 凍結表頭行（根據是否有店家名稱決定）
       // 如果有店家名稱：凍結前 5 行（標題、店家名稱、機車型號、當日租/跨日租、日期/星期）
       // 如果沒有店家名稱：凍結前 4 行
-      const frozenRows = storeName ? 5 : 4;
+      const frozenRows = storeName ? 6 : 5;
       worksheet.views = [{ state: 'frozen', ySplit: frozenRows }];
 
       // 數據行開始：日期、星期、數據
@@ -357,7 +377,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
           emptyRow.getCell(1).value = formattedDate;
           emptyRow.getCell(2).value = weekday;
           // 其他欄位為空
-          const dataStartRow = storeName ? 6 : 5; // 數據行開始的行號
+          const dataStartRow = storeName ? 7 : 6; // 數據行開始的行號
           const isAlternate = (rowNumber - dataStartRow) % 2 === 1;
           const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
           for (let c = 1; c <= totalCols; c++) {
@@ -377,10 +397,12 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
             dataRow.getCell(cellIndex++).value = orderIndex === 0 ? formattedDate : '';
             dataRow.getCell(cellIndex++).value = orderIndex === 0 ? weekday : '';
 
-            const dataStartRow = storeName ? 6 : 5; // 數據行開始的行號
+            const dataStartRow = storeName ? 7 : 6; // 數據行開始的行號
             const isAlternate = (rowNumber - dataStartRow) % 2 === 1;
             const rowStyle = isAlternate ? dataRowAlternateStyle : dataRowStyle;
-            
+            const isSettledOrder = order.status === '已結清';
+            const rowFont = isSettledOrder ? { ...rowStyle.font, ...settledRowFont } : rowStyle.font;
+
             allModels.forEach((model: string) => {
               const modelData = order.models?.find((m: any) => `${m.model} ${m.type}` === model) || {
                 same_day_count: '',
@@ -415,7 +437,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
               amountCell.alignment = rowStyle.alignment;
               amountCell.border = rowStyle.border;
               // 所有數據行的金額都設置為黑色字體
-              amountCell.font = rowStyle.font;
+              amountCell.font = rowFont;
             });
 
             // 設置數據行樣式（跳過已設置的金額欄位）
@@ -426,13 +448,13 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
               if (!isAmountColumn) {
                 // 非金額欄位，正常設置樣式
                 cell.fill = rowStyle.fill;
-                cell.font = rowStyle.font;
+                cell.font = rowFont;
                 cell.alignment = rowStyle.alignment;
                 cell.border = rowStyle.border;
               } else {
                 // 金額欄位，設置樣式（字體已在上面設置為黑色）
                 cell.fill = rowStyle.fill;
-                cell.font = rowStyle.font; // 確保為黑色字體
+                cell.font = rowFont; // 確保已結清訂單為紅字
                 cell.alignment = rowStyle.alignment;
                 cell.border = rowStyle.border;
               }
@@ -1788,6 +1810,8 @@ const OrdersPage: React.FC = () => {
       return 'text-emerald-600 dark:text-emerald-400';
     } else if (methodLower.includes('月結')) {
       return 'text-blue-600 dark:text-blue-400';
+    } else if (methodLower.includes('週結')) {
+      return 'text-teal-600 dark:text-teal-400';
     } else if (methodLower.includes('日結')) {
       return 'text-cyan-600 dark:text-cyan-400';
     } else if (methodLower.includes('匯款')) {
@@ -1883,7 +1907,7 @@ const OrdersPage: React.FC = () => {
   };
 
   // 狀態排序順序：進行中、待接送、在合作商、已預訂、已完成
-  const statusOrder = ['進行中', '待接送', '在合作商', '已預訂', '已完成'];
+  const statusOrder = ['進行中', '待接送', '在合作商', '已預訂', '已完成', '已結清'];
   const getStatusOrder = (status: string) => {
     const index = statusOrder.indexOf(status);
     return index === -1 ? 999 : index;
@@ -2585,6 +2609,7 @@ const OrdersPage: React.FC = () => {
                           className={`px-3 py-1.5 rounded-lg text-xs font-bold border transition-all flex items-center space-x-1.5 ${
                             order.status === '進行中' ? 'bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800' :
                             order.status === '已完成' ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800' :
+                            order.status === '已結清' ? 'bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800' :
                             order.status === '已預訂' ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800' :
                             order.status === '待接送' ? 'bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800' :
                             order.status === '在合作商' ? 'bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-900/20 dark:text-purple-400 dark:border-purple-800' :
@@ -2859,7 +2884,7 @@ const OrdersPage: React.FC = () => {
               if (!order) return null;
               return (
                 <>
-                  {['已預訂', '進行中', '待接送', '已完成', '在合作商'].map((status) => (
+                  {['已預訂', '進行中', '待接送', '已完成', '在合作商', '已結清'].map((status) => (
                     <button
                       key={status}
                       onClick={async () => {

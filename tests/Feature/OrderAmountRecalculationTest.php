@@ -7,6 +7,7 @@ use App\Models\Partner;
 use App\Models\PartnerScooterModelTransferFee;
 use App\Models\Scooter;
 use App\Models\ScooterModel;
+use App\Models\ScooterType;
 use App\Models\Store;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -166,8 +167,14 @@ class OrderAmountRecalculationTest extends TestCase
             'store_id' => $store->id,
         ]);
 
+        $scooterType = ScooterType::create([
+            'name' => '白牌',
+            'color' => '#FFFFFF',
+        ]);
+
         $primaryModel = ScooterModel::create([
             'name' => 'JET SL',
+            'scooter_type_id' => $scooterType->id,
             'type' => '白牌',
         ]);
 

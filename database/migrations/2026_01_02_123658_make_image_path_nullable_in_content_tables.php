@@ -10,6 +10,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Make image_path nullable in banners table
         DB::statement('ALTER TABLE `banners` MODIFY `image_path` VARCHAR(255) NULL');
 
@@ -25,6 +29,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Revert image_path to not nullable in banners table
         DB::statement('ALTER TABLE `banners` MODIFY `image_path` VARCHAR(255) NOT NULL');
 

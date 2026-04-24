@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // 步驟 1: 先將 enum 改為包含所有新舊狀態值，這樣才能更新資料
         DB::statement("ALTER TABLE orders MODIFY COLUMN status ENUM('進行中', '已完成', '已取消', '預約中', '已預訂', '待接送', '在合作商') DEFAULT '預約中'");
         
@@ -30,6 +34,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // 先將新的狀態值更新回舊的狀態值
         // 已預訂 -> 預約中
         DB::table('orders')->where('status', '已預訂')->update(['status' => '預約中']);

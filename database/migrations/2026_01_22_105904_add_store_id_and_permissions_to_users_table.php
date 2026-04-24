@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
             // 增加 store_id 欄位
             if (!Schema::hasColumn('users', 'store_id')) {
@@ -46,6 +50,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         Schema::table('users', function (Blueprint $table) {
             // 移除外鍵和欄位
             if (Schema::hasColumn('users', 'store_id')) {

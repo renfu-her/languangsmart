@@ -2,6 +2,7 @@
 export enum OrderStatus {
   IN_PROGRESS = '進行中',
   COMPLETED = '已完成',
+  SETTLED = '已結清',
   CANCELLED = '已取消',
   RESERVED = '預約中'
 }
@@ -16,6 +17,7 @@ export enum ScooterType {
 export enum PaymentMethod {
   CASH = '現金',
   MONTHLY = '月結',
+  WEEKLY = '週結',
   DAILY = '日結',
   TRANSFER = '匯款',
   CARD = '刷卡',

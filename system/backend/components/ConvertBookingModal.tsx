@@ -215,6 +215,7 @@ const ConvertBookingModal: React.FC<ConvertBookingModalProps> = ({ isOpen, onClo
                 >
                   <option value="現金">現金</option>
                   <option value="月結">月結</option>
+                  <option value="週結">週結</option>
                   <option value="日結">日結</option>
                   <option value="匯款">匯款</option>
                   <option value="刷卡">刷卡</option>

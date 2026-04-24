@@ -398,7 +398,7 @@ class BookingController extends Controller
 
         $validator = Validator::make($request->all(), [
             'partner_id' => 'nullable|exists:partners,id',
-            'payment_method' => 'sometimes|required|in:現金,月結,日結,匯款,刷卡,行動支付',
+            'payment_method' => 'sometimes|required|in:現金,月結,週結,日結,匯款,刷卡,行動支付',
             'payment_amount' => 'nullable|numeric|min:0',
             'scooter_ids' => 'sometimes|required|array|min:1',
             'scooter_ids.*' => 'required_with:scooter_ids|exists:scooters,id',

@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // 在 MySQL 中修改 enum 欄位需要使用 ALTER TABLE
         DB::statement("ALTER TABLE `orders` MODIFY COLUMN `payment_method` ENUM('現金', '月結', '日結', '匯款', '刷卡', '行動支付') NULL");
     }
@@ -21,6 +25,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // 還原為原本的三個選項
         DB::statement("ALTER TABLE `orders` MODIFY COLUMN `payment_method` ENUM('現金', '月結', '日結') NULL");
     }

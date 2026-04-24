@@ -92,9 +92,9 @@ class OrderController extends Controller
             'shipping_company' => 'nullable|string|max:100',
             'ship_arrival_time' => 'nullable|date',
             'ship_return_time' => 'nullable|date',
-            'payment_method' => 'nullable|in:現金,月結,日結,匯款,刷卡,行動支付',
+            'payment_method' => 'nullable|in:現金,月結,週結,日結,匯款,刷卡,行動支付',
             'payment_amount' => 'nullable|numeric|min:0',
-            'status' => 'required|in:已預訂,進行中,待接送,已完成,在合作商',
+            'status' => 'required|in:已預訂,進行中,待接送,已完成,在合作商,已結清',
             'remark' => 'nullable|string',
             'scooter_ids' => 'required|array|min:1',
             'scooter_ids.*' => 'exists:scooters,id',
@@ -173,7 +173,7 @@ class OrderController extends Controller
             // 根據訂單狀態更新機車狀態
             $status = $request->get('status', '已預訂');
             // 如果狀態為已預訂、已完成、待接送，機車狀態變為待出租
-            if (in_array($status, ['已預訂', '已完成', '待接送'])) {
+            if (in_array($status, ['已預訂', '已完成', '待接送', '已結清'])) {
                 Scooter::whereIn('id', $scooterIds)->update(['status' => '待出租']);
             } else {
                 // 其他狀態（進行中、在合作商）機車狀態為出租中
@@ -228,9 +228,9 @@ class OrderController extends Controller
             'shipping_company' => 'nullable|string|max:100',
             'ship_arrival_time' => 'nullable|date',
             'ship_return_time' => 'nullable|date',
-            'payment_method' => 'nullable|in:現金,月結,日結,匯款,刷卡,行動支付',
+            'payment_method' => 'nullable|in:現金,月結,週結,日結,匯款,刷卡,行動支付',
             'payment_amount' => 'nullable|numeric|min:0',
-            'status' => 'required|in:已預訂,進行中,待接送,已完成,在合作商',
+            'status' => 'required|in:已預訂,進行中,待接送,已完成,在合作商,已結清',
             'remark' => 'nullable|string',
             'scooter_ids' => 'sometimes|array|min:1',
             'scooter_ids.*' => 'exists:scooters,id',
@@ -315,7 +315,7 @@ class OrderController extends Controller
 
             // 根據訂單狀態更新所有相關機車的狀態
             // 如果狀態為已預訂、已完成、待接送，機車狀態變為待出租
-            if (in_array($newStatus, ['已預訂', '已完成', '待接送'])) {
+            if (in_array($newStatus, ['已預訂', '已完成', '待接送', '已結清'])) {
                 Scooter::whereIn('id', $allScooterIds)->update(['status' => '待出租']);
             } else {
                 // 其他狀態（進行中、在合作商）機車狀態為出租中
@@ -345,7 +345,7 @@ class OrderController extends Controller
     public function updateStatus(Request $request, Order $order): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'status' => 'required|in:已預訂,進行中,待接送,已完成,在合作商',
+            'status' => 'required|in:已預訂,進行中,待接送,已完成,在合作商,已結清',
         ]);
 
         if ($validator->fails()) {
@@ -368,7 +368,7 @@ class OrderController extends Controller
 
             // 根據訂單狀態更新所有相關機車的狀態
             // 如果狀態為已預訂、已完成、待接送，機車狀態變為待出租
-            if (in_array($newStatus, ['已預訂', '已完成', '待接送'])) {
+            if (in_array($newStatus, ['已預訂', '已完成', '待接送', '已結清'])) {
                 Scooter::whereIn('id', $scooterIds)->update(['status' => '待出租']);
             } else {
                 // 其他狀態（進行中、在合作商）機車狀態為出租中
@@ -836,6 +836,7 @@ class OrderController extends Controller
                         
                         $ordersArray[] = [
                             'order_number' => $orderNumber,
+                            'status' => $orderModels->first()['status'] ?? null,
                             'models' => $models,
                         ];
                     }
@@ -1168,6 +1169,7 @@ class OrderController extends Controller
                         'model' => $modelParts[0] ?? '',
                         'type' => $modelParts[1] ?? '',
                         'order_number' => $orderNumber,
+                        'status' => $order->status,
                         'same_day_count' => ($existing['same_day_count'] ?? 0) + ($isSameDay ? $scooterCount : 0),
                         'same_day_days' => ($existing['same_day_days'] ?? 0) + ($isSameDay ? $days : 0),
                         'same_day_amount' => ($existing['same_day_amount'] ?? 0) + ($isSameDay ? $amount : 0),
@@ -1181,6 +1183,7 @@ class OrderController extends Controller
                         'model' => $modelParts[0] ?? '',
                         'type' => $modelParts[1] ?? '',
                         'order_number' => $orderNumber,
+                        'status' => $order->status,
                         'same_day_count' => $isSameDay ? $scooterCount : 0,
                         'same_day_days' => $isSameDay ? $days : 0,
                         'same_day_amount' => $isSameDay ? $amount : 0,

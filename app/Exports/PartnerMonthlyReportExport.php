@@ -85,6 +85,16 @@ class PartnerMonthlyReportExport
         $titleStyle->getFont()->setBold(true);
         $titleStyle->getFont()->setSize(14);
         $row++;
+
+        $settledNoteCell = $sheet->getCell('A' . $row);
+        $settledNoteCell->setValue('紅字標示為已結清訂單');
+        $sheet->mergeCells('A' . $row . ':' . $lastCol . $row);
+        $settledNoteStyle = $sheet->getStyle('A' . $row);
+        $settledNoteStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_LEFT);
+        $settledNoteStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $settledNoteStyle->getFont()->setBold(true);
+        $settledNoteStyle->getFont()->getColor()->setRGB('FF0000');
+        $row++;
         
         // 第二行：各個機車型號（每個型號跨4列）
         $col = 1;
@@ -95,7 +105,7 @@ class PartnerMonthlyReportExport
             $modelStartCol = $col;
             $modelEndCol = $col + 3;
             $sheet->mergeCells(Coordinate::stringFromColumnIndex($modelStartCol) . $row . ':' . Coordinate::stringFromColumnIndex($modelEndCol) . $row);
-            $sheet->setCellValueByColumnAndRow($modelStartCol, $row, $model);
+            $this->setCellValueByColumnAndRow($sheet, $modelStartCol, $row, $model);
             $modelStyle = $sheet->getStyle(Coordinate::stringFromColumnIndex($modelStartCol) . $row);
             $modelStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $modelStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -116,7 +126,7 @@ class PartnerMonthlyReportExport
         foreach ($this->models as $model) {
             // 當日租 (1列)
             $sameDayCol = $col;
-            $sheet->setCellValueByColumnAndRow($sameDayCol, $row, '當日租');
+            $this->setCellValueByColumnAndRow($sheet, $sameDayCol, $row, '當日租');
             $sameDayStyle = $sheet->getStyle(Coordinate::stringFromColumnIndex($sameDayCol) . $row);
             $sameDayStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sameDayStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -130,7 +140,7 @@ class PartnerMonthlyReportExport
             $overnightStartCol = $col;
             $overnightEndCol = $col + 2;
             $sheet->mergeCells(Coordinate::stringFromColumnIndex($overnightStartCol) . $row . ':' . Coordinate::stringFromColumnIndex($overnightEndCol) . $row);
-            $sheet->setCellValueByColumnAndRow($overnightStartCol, $row, '跨日租');
+            $this->setCellValueByColumnAndRow($sheet, $overnightStartCol, $row, '跨日租');
             $overnightStyle = $sheet->getStyle(Coordinate::stringFromColumnIndex($overnightStartCol) . $row);
             $overnightStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $overnightStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -145,7 +155,7 @@ class PartnerMonthlyReportExport
         // 第四行：日期、星期，然後每個型號下：當日租只有「台數」（1列），跨日租有「台數」、「天數」、「金額」（3列）
         $col = 1;
         // 日期
-        $sheet->setCellValueByColumnAndRow($col, $row, '日期');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '日期');
         $dateStyle = $sheet->getStyle(Coordinate::stringFromColumnIndex($col) . $row);
         $dateStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $dateStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -155,7 +165,7 @@ class PartnerMonthlyReportExport
         $dateStyle->getFont()->setBold(true);
         $col++;
         // 星期
-        $sheet->setCellValueByColumnAndRow($col, $row, '星期');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '星期');
         $weekdayStyle = $sheet->getStyle(Coordinate::stringFromColumnIndex($col) . $row);
         $weekdayStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $weekdayStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -167,7 +177,7 @@ class PartnerMonthlyReportExport
         
         foreach ($this->models as $model) {
             // 當日租：台數
-            $sheet->setCellValueByColumnAndRow($col, $row, '台數');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '台數');
             $sameDayHeaderStyle = $sheet->getStyle(Coordinate::stringFromColumnIndex($col) . $row);
             $sameDayHeaderStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sameDayHeaderStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -177,7 +187,7 @@ class PartnerMonthlyReportExport
             $sameDayHeaderStyle->getFont()->setBold(true);
             $col++;
             // 跨日租：台數
-            $sheet->setCellValueByColumnAndRow($col, $row, '台數');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '台數');
             $overnightCountStyle = $sheet->getStyle(Coordinate::stringFromColumnIndex($col) . $row);
             $overnightCountStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $overnightCountStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -187,7 +197,7 @@ class PartnerMonthlyReportExport
             $overnightCountStyle->getFont()->setBold(true);
             $col++;
             // 跨日租：天數
-            $sheet->setCellValueByColumnAndRow($col, $row, '天數');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '天數');
             $overnightDaysStyle = $sheet->getStyle(Coordinate::stringFromColumnIndex($col) . $row);
             $overnightDaysStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $overnightDaysStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -197,7 +207,7 @@ class PartnerMonthlyReportExport
             $overnightDaysStyle->getFont()->setBold(true);
             $col++;
             // 跨日租：金額
-            $sheet->setCellValueByColumnAndRow($col, $row, '金額');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '金額');
             $overnightAmountStyle = $sheet->getStyle(Coordinate::stringFromColumnIndex($col) . $row);
             $overnightAmountStyle->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $overnightAmountStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
@@ -209,87 +219,74 @@ class PartnerMonthlyReportExport
         }
         $row++;
         
-        // 數據行
+        // 數據行（按 order_number 分開顯示，已結清訂單以紅字標示）
         foreach ($this->dates as $dateItem) {
             $dateStr = $dateItem['date'];
             $dateObj = \Carbon\Carbon::parse($dateStr . 'T00:00:00');
             $formattedDate = $dateObj->format('Y年m月d日');
             $weekday = $this->weekdayMap[$dateItem['weekday']] ?? $dateItem['weekday'];
-            
-            $col = 1;
-            $sheet->setCellValueByColumnAndRow($col, $row, $formattedDate);
-            $col++;
-            $sheet->setCellValueByColumnAndRow($col, $row, $weekday);
-            $col++;
-            
-            // 處理數據：如果 dates 中有 orders 數組，需要合併為 models 格式
-            $modelsData = [];
-            if (isset($dateItem['orders']) && is_array($dateItem['orders'])) {
-                // 合併所有訂單中相同型號的數據
-                foreach ($dateItem['orders'] as $order) {
-                    if (isset($order['models']) && is_array($order['models'])) {
-                        foreach ($order['models'] as $modelItem) {
-                            $modelKey = ($modelItem['model'] ?? '') . ' ' . ($modelItem['type'] ?? '');
-                            $modelKey = trim($modelKey);
-                            
-                            if (!isset($modelsData[$modelKey])) {
-                                $modelsData[$modelKey] = [
-                                    'same_day_count' => 0,
-                                    'same_day_days' => 0,
-                                    'same_day_amount' => 0,
-                                    'overnight_count' => 0,
-                                    'overnight_days' => 0,
-                                    'overnight_amount' => 0,
-                                ];
-                            }
-                            
-                            // 累加數據（處理空字符串的情況）
-                            $modelsData[$modelKey]['same_day_count'] += is_numeric($modelItem['same_day_count'] ?? '') ? (int)$modelItem['same_day_count'] : 0;
-                            $modelsData[$modelKey]['same_day_days'] += is_numeric($modelItem['same_day_days'] ?? '') ? (int)$modelItem['same_day_days'] : 0;
-                            $modelsData[$modelKey]['same_day_amount'] += is_numeric($modelItem['same_day_amount'] ?? '') ? (int)$modelItem['same_day_amount'] : 0;
-                            $modelsData[$modelKey]['overnight_count'] += is_numeric($modelItem['overnight_count'] ?? '') ? (int)$modelItem['overnight_count'] : 0;
-                            $modelsData[$modelKey]['overnight_days'] += is_numeric($modelItem['overnight_days'] ?? '') ? (int)$modelItem['overnight_days'] : 0;
-                            $modelsData[$modelKey]['overnight_amount'] += is_numeric($modelItem['overnight_amount'] ?? '') ? (int)$modelItem['overnight_amount'] : 0;
-                        }
-                    }
+
+            $orders = $dateItem['orders'] ?? [];
+
+            if (empty($orders)) {
+                $col = 1;
+                $this->setCellValueByColumnAndRow($sheet, $col, $row, $formattedDate);
+                $col++;
+                $this->setCellValueByColumnAndRow($sheet, $col, $row, $weekday);
+                $row++;
+                continue;
+            }
+
+            foreach ($orders as $orderIndex => $order) {
+                $col = 1;
+                $this->setCellValueByColumnAndRow($sheet, $col, $row, $orderIndex === 0 ? $formattedDate : '');
+                $col++;
+                $this->setCellValueByColumnAndRow($sheet, $col, $row, $orderIndex === 0 ? $weekday : '');
+                $col++;
+
+                foreach ($this->models as $model) {
+                    $modelData = collect($order['models'] ?? [])->first(function ($modelItem) use ($model) {
+                        $modelKey = trim(($modelItem['model'] ?? '') . ' ' . ($modelItem['type'] ?? ''));
+                        return $modelKey === $model;
+                    }) ?? [
+                        'same_day_count' => 0,
+                        'same_day_days' => 0,
+                        'same_day_amount' => 0,
+                        'overnight_count' => 0,
+                        'overnight_days' => 0,
+                        'overnight_amount' => 0,
+                    ];
+
+                    $hasSameDayFee = ($modelData['same_day_amount'] ?? 0) > 0;
+                    $hasOvernightFee = ($modelData['overnight_amount'] ?? 0) > 0;
+                    $amount = $hasSameDayFee
+                        ? ($modelData['same_day_amount'] ?? '')
+                        : ($hasOvernightFee ? ($modelData['overnight_amount'] ?? '') : '');
+
+                    $this->setCellValueByColumnAndRow($sheet, $col, $row, $hasSameDayFee ? ($modelData['same_day_count'] ?? '') : '');
+                    $col++;
+                    $this->setCellValueByColumnAndRow($sheet, $col, $row, $hasOvernightFee ? ($modelData['overnight_count'] ?? '') : '');
+                    $col++;
+                    $this->setCellValueByColumnAndRow($sheet, $col, $row, $hasOvernightFee ? ($modelData['overnight_days'] ?? '') : '');
+                    $col++;
+                    $this->setCellValueByColumnAndRow($sheet, $col, $row, $amount);
+                    $col++;
                 }
-            } elseif (isset($dateItem['models']) && is_array($dateItem['models'])) {
-                // 如果已經是 models 格式，直接使用
-                $modelsData = $dateItem['models'];
+
+                if (($order['status'] ?? null) === '已結清') {
+                    $sheet->getStyle('A' . $row . ':' . $lastCol . $row)->getFont()->getColor()->setRGB('FF0000');
+                }
+
+                $row++;
             }
-            
-            foreach ($this->models as $model) {
-                $modelData = $modelsData[$model] ?? [
-                    'same_day_count' => 0,
-                    'same_day_days' => 0,
-                    'same_day_amount' => 0,
-                    'overnight_count' => 0,
-                    'overnight_days' => 0,
-                    'overnight_amount' => 0,
-                ];
-                
-                $hasSameDayFee = ($modelData['same_day_amount'] ?? 0) > 0;
-                $hasOvernightFee = ($modelData['overnight_amount'] ?? 0) > 0;
-                
-                $sheet->setCellValueByColumnAndRow($col, $row, $hasSameDayFee ? $modelData['same_day_count'] : '');
-                $col++;
-                $sheet->setCellValueByColumnAndRow($col, $row, $hasOvernightFee ? $modelData['overnight_count'] : '');
-                $col++;
-                $sheet->setCellValueByColumnAndRow($col, $row, $hasOvernightFee ? $modelData['overnight_days'] : '');
-                $col++;
-                $sheet->setCellValueByColumnAndRow($col, $row, $hasOvernightFee ? $modelData['overnight_amount'] : '');
-                $col++;
-            }
-            
-            $row++;
         }
         
         // 月結總計
         // 總台數/天數行
         $col = 1;
-        $sheet->setCellValueByColumnAndRow($col, $row, '月結總計');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '月結總計');
         $col++;
-        $sheet->setCellValueByColumnAndRow($col, $row, '總台數/天數');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '總台數/天數');
         $col++;
         
         $grandTotalAmount = 0;
@@ -354,13 +351,13 @@ class PartnerMonthlyReportExport
             
             $grandTotalAmount += $modelSameDayTotalAmount + $modelOvernightTotalAmount;
             
-            $sheet->setCellValueByColumnAndRow($col, $row, $modelSameDayTotalCount > 0 ? $modelSameDayTotalCount : '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, $modelSameDayTotalCount > 0 ? $modelSameDayTotalCount : '');
             $col++;
-            $sheet->setCellValueByColumnAndRow($col, $row, $modelOvernightTotalCount > 0 ? $modelOvernightTotalCount : '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, $modelOvernightTotalCount > 0 ? $modelOvernightTotalCount : '');
             $col++;
-            $sheet->setCellValueByColumnAndRow($col, $row, $modelOvernightTotalDays > 0 ? $modelOvernightTotalDays : '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, $modelOvernightTotalDays > 0 ? $modelOvernightTotalDays : '');
             $col++;
-            $sheet->setCellValueByColumnAndRow($col, $row, $modelOvernightTotalAmount > 0 ? $modelOvernightTotalAmount : '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, $modelOvernightTotalAmount > 0 ? $modelOvernightTotalAmount : '');
             $col++;
         }
         
@@ -368,9 +365,9 @@ class PartnerMonthlyReportExport
         
         // 小計行
         $col = 1;
-        $sheet->setCellValueByColumnAndRow($col, $row, '');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
         $col++;
-        $sheet->setCellValueByColumnAndRow($col, $row, '小計');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '小計');
         $col++;
         
         foreach ($this->models as $model) {
@@ -407,13 +404,13 @@ class PartnerMonthlyReportExport
                 ];
                 $modelTotalAmount += ($modelData['same_day_amount'] ?? 0) + ($modelData['overnight_amount'] ?? 0);
             }
-            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
             $col++;
-            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
             $col++;
-            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
             $col++;
-            $sheet->setCellValueByColumnAndRow($col, $row, $modelTotalAmount > 0 ? $modelTotalAmount : '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, $modelTotalAmount > 0 ? $modelTotalAmount : '');
             $col++;
         }
         
@@ -421,9 +418,9 @@ class PartnerMonthlyReportExport
         
         // 總金額行
         $col = 1;
-        $sheet->setCellValueByColumnAndRow($col, $row, '');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
         $col++;
-        $sheet->setCellValueByColumnAndRow($col, $row, '總金額');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '總金額');
         $col++;
         
         // 第一個型號的跨日租金額欄位位置
@@ -435,25 +432,25 @@ class PartnerMonthlyReportExport
         $lastModelOvernightAmountCol = $firstModelOvernightAmountCol + (count($this->models) - 1) * 4;
         
         // 填充第一個型號的前三列（當日租台數、跨日租台數、跨日租天數）為空白
-        $sheet->setCellValueByColumnAndRow($col, $row, '');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
         $col++;
-        $sheet->setCellValueByColumnAndRow($col, $row, '');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
         $col++;
-        $sheet->setCellValueByColumnAndRow($col, $row, '');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
         $col++;
         // 在第一個型號的「跨日租金額」欄位設置總金額
-        $sheet->setCellValueByColumnAndRow($col, $row, $grandTotalAmount > 0 ? $grandTotalAmount : '');
+        $this->setCellValueByColumnAndRow($sheet, $col, $row, $grandTotalAmount > 0 ? $grandTotalAmount : '');
         $col++;
         
         // 填充其他型號的欄位為空白
         for ($i = 1; $i < count($this->models); $i++) {
-            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
             $col++;
-            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
             $col++;
-            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
             $col++;
-            $sheet->setCellValueByColumnAndRow($col, $row, '');
+            $this->setCellValueByColumnAndRow($sheet, $col, $row, '');
             $col++;
         }
         
@@ -485,5 +482,10 @@ class PartnerMonthlyReportExport
         $sheet->getRowDimension(1)->setRowHeight(40);
         
         return $spreadsheet;
+    }
+
+    private function setCellValueByColumnAndRow($sheet, int $column, int $row, $value): void
+    {
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($column) . $row, $value);
     }
 }

@@ -830,6 +830,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
                     <option value="" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">請選擇</option>
                     <option value="現金" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">現金</option>
                     <option value="月結" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">月結</option>
+                    <option value="週結" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">週結</option>
                     <option value="日結" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">日結</option>
                     <option value="匯款" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">匯款</option>
                     <option value="刷卡" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">刷卡</option>
@@ -893,6 +894,7 @@ const AddOrderModal: React.FC<AddOrderModalProps> = ({ isOpen, onClose, onSaved,
                     <option value="待接送" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">待接送</option>
                     <option value="已完成" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">已完成</option>
                     <option value="在合作商" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">在合作商</option>
+                    <option value="已結清" className="bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100">已結清</option>
                   </select>
                   <ChevronDown size={18} className={chevronDownClasses} />
                 </div>

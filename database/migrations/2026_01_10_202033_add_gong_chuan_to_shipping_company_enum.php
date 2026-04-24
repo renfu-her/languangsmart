@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // 修改 bookings 表的 shipping_company enum
         DB::statement("ALTER TABLE bookings MODIFY COLUMN shipping_company ENUM('泰富', '藍白', '聯營', '大福', '公船') NULL");
         
@@ -24,6 +28,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // 還原 bookings 表的 shipping_company enum
         DB::statement("ALTER TABLE bookings MODIFY COLUMN shipping_company ENUM('泰富', '藍白', '聯營', '大福') NULL");
         

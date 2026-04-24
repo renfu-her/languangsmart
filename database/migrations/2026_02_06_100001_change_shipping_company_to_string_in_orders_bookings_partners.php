@@ -12,6 +12,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // orders: enum -> string
         DB::statement("ALTER TABLE orders MODIFY COLUMN shipping_company VARCHAR(100) NULL");
         // bookings: enum -> string
@@ -25,6 +29,10 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         DB::statement("ALTER TABLE orders MODIFY COLUMN shipping_company ENUM('泰富', '藍白', '聯營', '大福', '公船') NULL");
         DB::statement("ALTER TABLE bookings MODIFY COLUMN shipping_company ENUM('泰富', '藍白', '聯營', '大福', '公船') NULL");
         DB::statement("ALTER TABLE partners MODIFY COLUMN default_shipping_company ENUM('泰富', '藍白', '聯營', '大福', '公船') NULL");
