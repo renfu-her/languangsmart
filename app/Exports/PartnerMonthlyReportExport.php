@@ -563,6 +563,18 @@ class PartnerMonthlyReportExport
         $sheet->getStyle('A' . $row . ':' . Coordinate::stringFromColumnIndex($totalCols) . $row)
             ->getFont()
             ->setBold(true);
+        $sheet->getStyle('A' . $row . ':' . Coordinate::stringFromColumnIndex($totalCols) . $row)
+            ->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER);
+        $sheet->getStyle('A' . $row . ':' . Coordinate::stringFromColumnIndex($totalCols) . $row)
+            ->getAlignment()
+            ->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getStyle('A' . $row . ':' . Coordinate::stringFromColumnIndex($totalCols) . $row)
+            ->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()
+            ->setRGB('FFD966');
+        $sheet->getRowDimension($row)->setRowHeight(22);
 
         if ($fontColor) {
             $sheet->getStyle('A' . $row . ':' . Coordinate::stringFromColumnIndex($totalCols) . $row)
