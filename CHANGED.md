@@ -1,5 +1,21 @@
 # 變更記錄 (Change Log)
 
+## 2026-04-24 18:35:00 (Asia/Taipei) - Staging 訂單統計與合作商報表改用後端最新資料
+
+### 變更內容
+
+- **後台訂單頁** (`system/backend/pages/OrdersPage.tsx`)
+  - 編輯訂單前改為先依訂單 ID 重新向後端取得最新訂單資料，再開啟編輯視窗，避免使用列表中的舊 state。
+  - 開啟「合作商單月詳細統計」前會重新取得後端統計資料。
+  - 匯出合作商明細 xlsx 改為直接呼叫後端 `partner-daily-report?format=excel` 下載，不再用前端已載入的 JSON/cache 重新組檔。
+  - 匯出單月統計 Excel 前會重新取得後端統計資料，避免剛開頁面或重開瀏覽器時匯出舊資料。
+- **後台 API client** (`system/backend/lib/api.ts`)
+  - `downloadPartnerMonthlyReport` 補上 `format=excel` 與 `store_id` 參數，對齊後端 Excel 產生流程。
+- **後台 build 產物** (`public/backend/`)
+  - 重新產生後台前端 assets，讓 staging 載入最新訂單頁程式碼。
+
+---
+
 ## 2026-03-29 16:45:46 (Asia/Taipei) - OpenSpec change: audit-fe-be-risks (frontend/backend integration audit)
 
 ### 變更內容

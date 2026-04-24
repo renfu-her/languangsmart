@@ -348,8 +348,8 @@ export const ordersApi = {
     api.get('/orders/partner-daily-report', { month, partner_id: partnerId, format, store_id: storeId }),
   partnerMonthlyStatistics: (month: string, storeId?: number) =>
     api.get('/orders/partner-monthly-statistics', { month, store_id: storeId }),
-  downloadPartnerMonthlyReport: (month: string, partnerId: number, filename?: string) =>
-    api.downloadFile('/orders/partner-daily-report', { month, partner_id: partnerId }, filename),
+  downloadPartnerMonthlyReport: (month: string, partnerId: number, filename?: string, storeId?: number) =>
+    api.downloadFile('/orders/partner-daily-report', { month, partner_id: partnerId, format: 'excel', store_id: storeId }, filename),
   getYears: () => api.get<number[]>('/orders/years'),
   getMonthsByYear: (year: number) => api.get<number[]>('/orders/months', { year }),
 };
@@ -649,4 +649,3 @@ export const contactsApi = {
     api.patch(`/contacts/${id}/status`, { status }),
   delete: (id: string | number) => api.delete(`/contacts/${id}`),
 };
-

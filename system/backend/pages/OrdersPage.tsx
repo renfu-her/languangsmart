@@ -55,6 +55,14 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
     try {
       const selectedMonthString = stats.month;
       const [year, month] = selectedMonthString.split('-');
+
+      await ordersApi.downloadPartnerMonthlyReport(
+        selectedMonthString,
+        partnerId,
+        `${partnerName}-${year}${String(parseInt(month)).padStart(2, '0')}.xlsx`,
+        currentStore?.id
+      );
+      return;
       
       // 1. 從後端獲取 JSON 數據
       const response = await ordersApi.partnerDailyReport(selectedMonthString, partnerId, 'json', currentStore?.id);
@@ -1692,14 +1700,20 @@ const OrdersPage: React.FC = () => {
   };
 
   const handleExportExcel = async () => {
-    if (!stats) {
-      alert('目前沒有統計資料可匯出');
-      return;
-    }
-
     try {
-      // 統編優先從 stats.partner_stats 取得（後端直接帶出），找不到時再以名稱匹配合作商列表
-      const partnersResponse = await partnersApi.list();
+      const [statisticsResponse, partnersResponse] = await Promise.all([
+        ordersApi.statistics(selectedMonthString, currentStore?.id),
+        partnersApi.list(),
+      ]);
+      const latestStats = statisticsResponse.data as Statistics | null;
+      setStats(latestStats);
+
+      if (!latestStats) {
+        alert('目前沒有統計資料可匯出');
+        return;
+      }
+
+      // 統編優先從後端最新 stats.partner_stats 取得，找不到時再以名稱匹配合作商列表
       const partners = (partnersResponse.data || []) as Array<{ name: string; tax_id: string | null }>;
       const partnerMap = new Map<string, string>();
       partners.forEach((partner) => {
@@ -1718,10 +1732,10 @@ const OrdersPage: React.FC = () => {
       // 空一行（第2行）
       
       // 第3行：單月總台數
-      XLSX.utils.sheet_add_aoa(ws, [['單月總台數', stats.total_count || 0]], { origin: 'A3' });
+      XLSX.utils.sheet_add_aoa(ws, [['單月總台數', latestStats.total_count || 0]], { origin: 'A3' });
       
       // 第4行：單月總金額
-      XLSX.utils.sheet_add_aoa(ws, [['單月總金額', stats.total_amount || 0]], { origin: 'A4' });
+      XLSX.utils.sheet_add_aoa(ws, [['單月總金額', latestStats.total_amount || 0]], { origin: 'A4' });
       
       // 空一行（第5行）
       
@@ -1729,7 +1743,7 @@ const OrdersPage: React.FC = () => {
       XLSX.utils.sheet_add_aoa(ws, [['合作商名稱', '統編', '台數', '金額']], { origin: 'A6' });
       
       // 準備合作商統計數據（統編優先使用 stats 中的 tax_id，否則以名稱匹配）
-      const partnerData = Object.entries(stats.partner_stats || {})
+      const partnerData = Object.entries(latestStats.partner_stats || {})
         .map(([partnerName, data]) => {
           const d = data as { tax_id?: string | null; count: number; amount: number };
           const taxId = (d.tax_id != null && d.tax_id !== '') ? d.tax_id : (partnerMap.get(partnerName) || '');
@@ -1897,8 +1911,14 @@ const OrdersPage: React.FC = () => {
     return { colorClass: 'bg-gray-100 text-gray-900 dark:bg-gray-900/30 dark:text-gray-100', displayColor: null };
   };
 
-  const handleEdit = (order: Order) => {
-    setEditingOrder(order);
+  const handleEdit = async (order: Order) => {
+    try {
+      const response = await ordersApi.get(order.id);
+      setEditingOrder((response.data || order) as Order);
+    } catch (error) {
+      console.error('Failed to fetch latest order before edit:', error);
+      setEditingOrder(order);
+    }
     setIsAddModalOpen(true);
     setOpenDropdownId(null);
     setDropdownPosition(null);
@@ -2446,7 +2466,10 @@ const OrdersPage: React.FC = () => {
               <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">合作商單月統計</p>
               <div className="flex items-center space-x-2">
                 <button 
-                  onClick={() => setIsStatsModalOpen(true)}
+                  onClick={async () => {
+                    await fetchStatistics();
+                    setIsStatsModalOpen(true);
+                  }}
                   className="text-sm font-bold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-500 transition-colors"
                 >
                   點擊彈出詳細視窗
