@@ -513,6 +513,24 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         grandTotalAmount += modelTotals[model].totalAmount;
       });
 
+      const settledTotalAmount = dates.reduce((sum: number, dateItem: any) => {
+        const orders = dateItem.orders || [];
+        return sum + orders.reduce((orderSum: number, order: any) => {
+          if (order.status !== '已結清') {
+            return orderSum;
+          }
+
+          const orderAmount = (order.models || []).reduce((modelSum: number, model: any) => {
+            const sameDayAmount = model.same_day_amount === '' ? 0 : Number(model.same_day_amount) || 0;
+            const overnightAmount = model.overnight_amount === '' ? 0 : Number(model.overnight_amount) || 0;
+            return modelSum + sameDayAmount + overnightAmount;
+          }, 0);
+
+          return orderSum + orderAmount;
+        }, 0);
+      }, 0);
+      const dueTotalAmount = grandTotalAmount - settledTotalAmount;
+
       // 月結總計 - 總台數/天數行
       const totalRow1 = worksheet.getRow(rowNumber);
       totalRow1.getCell(1).value = '月結總計';
@@ -612,10 +630,10 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       totalBlankCell1.alignment = totalRowStyle.alignment;
       totalBlankCell1.border = totalRowStyle.border;
       
-      // 第二欄：「總金額」標籤，設置紅色字體
+      // 第二欄：「總金額」標籤
       const totalLabelCell = totalAmountRow.getCell(2);
       totalLabelCell.value = '總金額';
-      totalLabelCell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
+      totalLabelCell.font = totalRowStyle.font;
       totalLabelCell.fill = totalRowStyle.fill;
       totalLabelCell.alignment = totalRowStyle.alignment;
       totalLabelCell.border = totalRowStyle.border;
@@ -626,13 +644,10 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       const totalAmountStartCol = 3;
       const totalAmountEndCol = totalCols;
       
-      // 設置第一個單元格的值為總金額（紅色字體）
+      // 設置第一個單元格的值為總金額
       const totalAmountCell = totalAmountRow.getCell(totalAmountStartCol);
       totalAmountCell.value = allSubtotalsSum > 0 ? allSubtotalsSum : '';
-      // 直接設置紅色字體，確保總金額數值為紅色
-      if (allSubtotalsSum > 0) {
-        totalAmountCell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
-      }
+      totalAmountCell.font = totalRowStyle.font;
       totalAmountCell.fill = totalRowStyle.fill;
       totalAmountCell.alignment = totalRowStyle.alignment;
       totalAmountCell.border = totalRowStyle.border;
@@ -646,31 +661,71 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         }
       }
       
-      // 合併「月結總計」垂直方向（合併總台數/天數、小計、總金額三行）
-      if (rowNumber >= 3) {
-        try {
-          worksheet.mergeCells(rowNumber - 2, 1, rowNumber, 1);
-        } catch (mergeError) {
-          console.warn('合併月結總計欄位時發生錯誤:', mergeError);
-        }
-      }
-      
-      // 設置總金額行樣式：總金額數值為紅色，其他為黑色
-      // 注意：合併後的單元格使用第一個單元格的樣式，所以只需要確保第一個單元格是紅色即可
+      // 設置總金額行樣式
       for (let c = 3; c <= totalCols; c++) {
         const cell = totalAmountRow.getCell(c);
         cell.fill = totalRowStyle.fill;
         cell.alignment = totalRowStyle.alignment;
         cell.border = totalRowStyle.border;
-        // 如果是總金額數值單元格（合併區域的第一個單元格），設置紅色字體
-        // 其他單元格（如果沒有被合併）設置黑色字體
-        if (c === totalAmountStartCol && allSubtotalsSum > 0) {
-          cell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體
-        } else if (c > totalAmountStartCol && c <= totalAmountEndCol) {
-          // 合併區域內的其他單元格（不會顯示，但為保險起見設置樣式）
-          cell.font = { ...totalRowStyle.font, color: { argb: 'FFFF0000' } }; // 紅色字體（與合併單元格一致）
-        } else {
-          cell.font = totalRowStyle.font; // 黑色字體
+        cell.font = totalRowStyle.font;
+      }
+      rowNumber++;
+
+      const writeAmountSummaryRow = (
+        label: string,
+        amount: number,
+        fontColor?: string
+      ) => {
+        const summaryRow = worksheet.getRow(rowNumber);
+        const blankCell = summaryRow.getCell(1);
+        blankCell.value = '';
+        blankCell.font = totalRowStyle.font;
+        blankCell.fill = totalRowStyle.fill;
+        blankCell.alignment = totalRowStyle.alignment;
+        blankCell.border = totalRowStyle.border;
+
+        const labelCell = summaryRow.getCell(2);
+        labelCell.value = label;
+        labelCell.font = fontColor ? { ...totalRowStyle.font, color: { argb: fontColor } } : totalRowStyle.font;
+        labelCell.fill = totalRowStyle.fill;
+        labelCell.alignment = totalRowStyle.alignment;
+        labelCell.border = totalRowStyle.border;
+
+        const amountCell = summaryRow.getCell(totalAmountStartCol);
+        amountCell.value = amount;
+        amountCell.font = fontColor ? { ...totalRowStyle.font, color: { argb: fontColor } } : totalRowStyle.font;
+        amountCell.fill = totalRowStyle.fill;
+        amountCell.alignment = totalRowStyle.alignment;
+        amountCell.border = totalRowStyle.border;
+
+        if (totalAmountStartCol < totalAmountEndCol) {
+          try {
+            worksheet.mergeCells(rowNumber, totalAmountStartCol, rowNumber, totalAmountEndCol);
+          } catch (mergeError) {
+            console.warn(`合併${label}欄位時發生錯誤:`, mergeError);
+          }
+        }
+
+        for (let c = 3; c <= totalCols; c++) {
+          const cell = summaryRow.getCell(c);
+          cell.fill = totalRowStyle.fill;
+          cell.alignment = totalRowStyle.alignment;
+          cell.border = totalRowStyle.border;
+          cell.font = fontColor ? { ...totalRowStyle.font, color: { argb: fontColor } } : totalRowStyle.font;
+        }
+
+        rowNumber++;
+      };
+
+      writeAmountSummaryRow('已結金額', settledTotalAmount);
+      writeAmountSummaryRow('需結總金額', dueTotalAmount, 'FFFF0000');
+
+      // 合併「月結總計」垂直方向（合併總台數/天數、小計、總金額、已結金額、需結總金額五行）
+      if (rowNumber >= 5) {
+        try {
+          worksheet.mergeCells(rowNumber - 5, 1, rowNumber - 1, 1);
+        } catch (mergeError) {
+          console.warn('合併月結總計欄位時發生錯誤:', mergeError);
         }
       }
 
