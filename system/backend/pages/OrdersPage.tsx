@@ -181,6 +181,12 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       };
 
       const settledRowFont = { color: { argb: 'FFFF0000' } };
+      const toNumber = (value: any): number => value === '' || value === null || value === undefined ? 0 : Number(value) || 0;
+      const toExportInteger = (value: any): number => Math.round(toNumber(value));
+      const toExportValue = (value: any): number | '' => {
+        const roundedValue = toExportInteger(value);
+        return roundedValue > 0 ? roundedValue : '';
+      };
 
       // 第一行：標題「合作商機車出租月報表」（合併所有列）
       const titleCell = worksheet.getCell(rowNumber, 1);
@@ -414,11 +420,11 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
               };
 
               // 將空字符串轉換為數字 0 進行比較
-              const sameDayCount = modelData.same_day_count === '' ? 0 : Number(modelData.same_day_count) || 0;
-              const sameDayAmount = modelData.same_day_amount === '' ? 0 : Number(modelData.same_day_amount) || 0;
-              const overnightCount = modelData.overnight_count === '' ? 0 : Number(modelData.overnight_count) || 0;
-              const overnightDays = modelData.overnight_days === '' ? 0 : Number(modelData.overnight_days) || 0;
-              const overnightAmount = modelData.overnight_amount === '' ? 0 : Number(modelData.overnight_amount) || 0;
+              const sameDayCount = toExportInteger(modelData.same_day_count);
+              const sameDayAmount = toExportInteger(modelData.same_day_amount);
+              const overnightCount = toExportInteger(modelData.overnight_count);
+              const overnightDays = toExportInteger(modelData.overnight_days);
+              const overnightAmount = toExportInteger(modelData.overnight_amount);
 
               const hasSameDay = sameDayCount > 0;
               const hasOvernight = overnightCount > 0;
@@ -500,12 +506,12 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
               overnight_amount: '',
             };
             
-            modelTotals[model].sameDayCount += modelData.same_day_count === '' ? 0 : Number(modelData.same_day_count) || 0;
-            modelTotals[model].sameDayDays += modelData.same_day_days === '' ? 0 : Number(modelData.same_day_days) || 0;
-            modelTotals[model].sameDayAmount += modelData.same_day_amount === '' ? 0 : Number(modelData.same_day_amount) || 0;
-            modelTotals[model].overnightCount += modelData.overnight_count === '' ? 0 : Number(modelData.overnight_count) || 0;
-            modelTotals[model].overnightDays += modelData.overnight_days === '' ? 0 : Number(modelData.overnight_days) || 0;
-            modelTotals[model].overnightAmount += modelData.overnight_amount === '' ? 0 : Number(modelData.overnight_amount) || 0;
+            modelTotals[model].sameDayCount += toExportInteger(modelData.same_day_count);
+            modelTotals[model].sameDayDays += toExportInteger(modelData.same_day_days);
+            modelTotals[model].sameDayAmount += toExportInteger(modelData.same_day_amount);
+            modelTotals[model].overnightCount += toExportInteger(modelData.overnight_count);
+            modelTotals[model].overnightDays += toExportInteger(modelData.overnight_days);
+            modelTotals[model].overnightAmount += toExportInteger(modelData.overnight_amount);
           });
         });
 
@@ -521,8 +527,8 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
           }
 
           const orderAmount = (order.models || []).reduce((modelSum: number, model: any) => {
-            const sameDayAmount = model.same_day_amount === '' ? 0 : Number(model.same_day_amount) || 0;
-            const overnightAmount = model.overnight_amount === '' ? 0 : Number(model.overnight_amount) || 0;
+            const sameDayAmount = toExportInteger(model.same_day_amount);
+            const overnightAmount = toExportInteger(model.overnight_amount);
             return modelSum + sameDayAmount + overnightAmount;
           }, 0);
 
@@ -539,12 +545,12 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       
       allModels.forEach((model: string) => {
         const totals = modelTotals[model];
-        totalRow1.getCell(colIdx++).value = totals.sameDayCount > 0 ? totals.sameDayCount : '';
-        totalRow1.getCell(colIdx++).value = totals.overnightCount > 0 ? totals.overnightCount : '';
-        totalRow1.getCell(colIdx++).value = totals.overnightDays > 0 ? totals.overnightDays : '';
+        totalRow1.getCell(colIdx++).value = toExportValue(totals.sameDayCount);
+        totalRow1.getCell(colIdx++).value = toExportValue(totals.overnightCount);
+        totalRow1.getCell(colIdx++).value = toExportValue(totals.overnightDays);
         // 金額欄位：設置黑色字體（只有總金額行的總金額數值才是紅色）
         const amountCell = totalRow1.getCell(colIdx++);
-        amountCell.value = totals.totalAmount > 0 ? totals.totalAmount : '';
+        amountCell.value = toExportValue(totals.totalAmount);
         // 所有數值都設置為黑色字體
       });
       
@@ -595,7 +601,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         
         // 在合併後的單元格中設置小計金額（黑色字體）
         const subtotalCell = subtotalRow.getCell(modelStartCol);
-        subtotalCell.value = modelSubtotalAmount > 0 ? modelSubtotalAmount : '';
+        subtotalCell.value = toExportValue(modelSubtotalAmount);
         subtotalCell.font = totalRowStyle.font; // 黑色字體
         subtotalCell.fill = totalRowStyle.fill;
         subtotalCell.alignment = totalRowStyle.alignment;
@@ -646,7 +652,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
       
       // 設置第一個單元格的值為總金額
       const totalAmountCell = totalAmountRow.getCell(totalAmountStartCol);
-      totalAmountCell.value = allSubtotalsSum > 0 ? allSubtotalsSum : '';
+      totalAmountCell.value = toExportValue(allSubtotalsSum);
       totalAmountCell.font = totalRowStyle.font;
       totalAmountCell.fill = totalRowStyle.fill;
       totalAmountCell.alignment = totalRowStyle.alignment;
@@ -692,7 +698,7 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
         labelCell.border = totalRowStyle.border;
 
         const amountCell = summaryRow.getCell(totalAmountStartCol);
-        amountCell.value = amount;
+        amountCell.value = toExportInteger(amount);
         amountCell.font = fontColor ? { ...totalRowStyle.font, color: { argb: fontColor } } : totalRowStyle.font;
         amountCell.fill = totalRowStyle.fill;
         amountCell.alignment = totalRowStyle.alignment;

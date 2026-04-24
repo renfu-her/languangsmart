@@ -584,7 +584,7 @@ class OrderController extends Controller
             // 判斷是當日租還是跨日租
             $isSameDay = ($startDate === $endDate);
             // 天數計算：結束日期 - 開始日期（夜數）
-            $nights = $startTime->diffInDays($endTime);
+            $nights = $this->calculateRentalDays($startTime, $endTime, $isSameDay);
 
             // Group scooters by model
             $scootersByModel = $order->scooters->groupBy('model');
@@ -825,12 +825,12 @@ class OrderController extends Controller
                             return [
                                 'model' => $modelData['model'] ?? '',
                                 'type' => $modelData['type'] ?? '',
-                                'same_day_count' => ($modelData['same_day_count'] ?? 0) > 0 ? $modelData['same_day_count'] : '',
-                                'same_day_days' => ($modelData['same_day_days'] ?? 0) > 0 ? $modelData['same_day_days'] : '',
-                                'same_day_amount' => ($modelData['same_day_amount'] ?? 0) > 0 ? $modelData['same_day_amount'] : '',
-                                'overnight_count' => ($modelData['overnight_count'] ?? 0) > 0 ? $modelData['overnight_count'] : '',
-                                'overnight_days' => ($modelData['overnight_days'] ?? 0) > 0 ? $modelData['overnight_days'] : '',
-                                'overnight_amount' => ($modelData['overnight_amount'] ?? 0) > 0 ? $modelData['overnight_amount'] : '',
+                                'same_day_count' => ($modelData['same_day_count'] ?? 0) > 0 ? (int) round($modelData['same_day_count']) : '',
+                                'same_day_days' => ($modelData['same_day_days'] ?? 0) > 0 ? (int) round($modelData['same_day_days']) : '',
+                                'same_day_amount' => ($modelData['same_day_amount'] ?? 0) > 0 ? (int) round($modelData['same_day_amount']) : '',
+                                'overnight_count' => ($modelData['overnight_count'] ?? 0) > 0 ? (int) round($modelData['overnight_count']) : '',
+                                'overnight_days' => ($modelData['overnight_days'] ?? 0) > 0 ? (int) round($modelData['overnight_days']) : '',
+                                'overnight_amount' => ($modelData['overnight_amount'] ?? 0) > 0 ? (int) round($modelData['overnight_amount']) : '',
                             ];
                         })->values()->toArray();
                         
@@ -996,7 +996,7 @@ class OrderController extends Controller
                 if ($isSameDay) {
                     $days = 1;
                 } else {
-                    $days = $startTime->diffInDays($endTime); // 直接使用 diffInDays 作為夜數
+                    $days = $this->calculateRentalDays($startTime, $endTime, $isSameDay);
                 }
 
                 // 查詢該訂單的所有 order_scooter 記錄
@@ -1120,7 +1120,7 @@ class OrderController extends Controller
             $isSameDay = $startTime->isSameDay($endTime);
             
             // 計算天數：當日租 = 1 天，跨日租 = 夜數
-            $days = $isSameDay ? 1 : $startTime->diffInDays($endTime);
+            $days = $this->calculateRentalDays($startTime, $endTime, $isSameDay);
 
             // 查詢該訂單的所有 order_scooter 記錄
             $orderScooters = OrderScooter::where('order_id', $order->id)
@@ -1208,6 +1208,15 @@ class OrderController extends Controller
      * @return float 計算出的總金額
      */
     // calculateOrderAmount 已移至 App\Services\OrderAmountCalculator::calculate()
+
+    private function calculateRentalDays(Carbon $startTime, Carbon $endTime, bool $isSameDay): int
+    {
+        if ($isSameDay) {
+            return 1;
+        }
+
+        return max(1, (int) $startTime->copy()->startOfDay()->diffInDays($endTime->copy()->startOfDay()));
+    }
 
     /**
      * 標準化訂單相關日期時間欄位。
