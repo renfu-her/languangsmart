@@ -55,14 +55,6 @@ const StatsModal: React.FC<{ isOpen: boolean; onClose: () => void; stats: Statis
     try {
       const selectedMonthString = stats.month;
       const [year, month] = selectedMonthString.split('-');
-
-      await ordersApi.downloadPartnerMonthlyReport(
-        selectedMonthString,
-        partnerId,
-        `${partnerName}-${year}${String(parseInt(month)).padStart(2, '0')}.xlsx`,
-        currentStore?.id
-      );
-      return;
       
       // 1. 從後端獲取 JSON 數據
       const response = await ordersApi.partnerDailyReport(selectedMonthString, partnerId, 'json', currentStore?.id);

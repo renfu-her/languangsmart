@@ -7,10 +7,10 @@
 - **後台訂單頁** (`system/backend/pages/OrdersPage.tsx`)
   - 編輯訂單前改為先依訂單 ID 重新向後端取得最新訂單資料，再開啟編輯視窗，避免使用列表中的舊 state。
   - 開啟「合作商單月詳細統計」前會重新取得後端統計資料。
-  - 匯出合作商明細 xlsx 改為直接呼叫後端 `partner-daily-report?format=excel` 下載，不再用前端已載入的 JSON/cache 重新組檔。
+  - 匯出合作商明細 xlsx 會重新呼叫後端 `partner-daily-report?format=json` 取得最新資料，並在前端產生 xlsx，避免使用前端已載入的 JSON/cache。
   - 匯出單月統計 Excel 前會重新取得後端統計資料，避免剛開頁面或重開瀏覽器時匯出舊資料。
 - **後台 API client** (`system/backend/lib/api.ts`)
-  - `downloadPartnerMonthlyReport` 補上 `format=excel` 與 `store_id` 參數，對齊後端 Excel 產生流程。
+  - `partnerDailyReport` 查詢補上 cache-buster，確保每次合作商明細匯出都重新取得後端資料。
 - **後台 build 產物** (`public/backend/`)
   - 重新產生後台前端 assets，讓 staging 載入最新訂單頁程式碼。
 
