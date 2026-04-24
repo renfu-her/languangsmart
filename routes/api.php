@@ -29,17 +29,16 @@ use App\Http\Controllers\Api\ContactInfoController;
 use App\Http\Controllers\Api\ShippingCompanyController;
 
 // Auth Routes (Public)
-Route::post('/login', [AuthController::class, 'login']);
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:5,1');
 Route::get('/me', [AuthController::class, 'me'])->middleware('auth:sanctum');
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 // Captcha Routes (Public)
-Route::get('/captcha/generate', [CaptchaController::class, 'generate']);
-Route::post('/captcha/verify', [CaptchaController::class, 'verify']);
+Route::get('/captcha/generate', [CaptchaController::class, 'generate'])->middleware('throttle:30,1');
+Route::post('/captcha/verify', [CaptchaController::class, 'verify'])->middleware('throttle:10,1');
 
 // Contact Routes (Public)
-Route::post('/contact', [ContactController::class, 'send']);
-Route::post('/contact/test', [ContactController::class, 'test']); // 測試郵件發送
+Route::post('/contact', [ContactController::class, 'send'])->middleware('throttle:5,1');
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/contacts', [ContactController::class, 'index']); // Backend: 列表
     Route::get('/contacts/{contact}', [ContactController::class, 'show'])->where('contact', '[0-9]+'); // Backend: 詳情
@@ -49,7 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Booking Routes
-Route::post('/booking', [BookingController::class, 'send']); // Public: 前端提交預約
+Route::post('/booking', [BookingController::class, 'send'])->middleware('throttle:5,1'); // Public: 前端提交預約
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/bookings', [BookingController::class, 'index']); // Backend: 列表
     Route::get('/bookings/pending', [BookingController::class, 'pending']); // Backend: 未確認預約列表
@@ -67,7 +66,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 
 // Orders API
-Route::prefix('orders')->group(function () {
+Route::prefix('orders')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [OrderController::class, 'index']);
     Route::post('/', [OrderController::class, 'store']);
     Route::get('/statistics', [OrderController::class, 'statistics']);
@@ -85,51 +84,59 @@ Route::prefix('orders')->group(function () {
 // Shipping Companies API (船運管理)
 Route::prefix('shipping-companies')->group(function () {
     Route::get('/', [ShippingCompanyController::class, 'index']);
-    Route::post('/', [ShippingCompanyController::class, 'store']);
-    Route::post('/reorder', [ShippingCompanyController::class, 'reorder']);
-    Route::get('/{shippingCompany}', [ShippingCompanyController::class, 'show']);
-    Route::put('/{shippingCompany}', [ShippingCompanyController::class, 'update']);
-    Route::delete('/{shippingCompany}', [ShippingCompanyController::class, 'destroy']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [ShippingCompanyController::class, 'store']);
+        Route::post('/reorder', [ShippingCompanyController::class, 'reorder']);
+        Route::get('/{shippingCompany}', [ShippingCompanyController::class, 'show']);
+        Route::put('/{shippingCompany}', [ShippingCompanyController::class, 'update']);
+        Route::delete('/{shippingCompany}', [ShippingCompanyController::class, 'destroy']);
+    });
 });
 
 // Partners API
 Route::prefix('partners')->group(function () {
     Route::get('/', [PartnerController::class, 'index']);
-    Route::post('/', [PartnerController::class, 'store']);
-    Route::post('/reorder', [PartnerController::class, 'reorder']);
-    Route::get('/{partner}', [PartnerController::class, 'show']);
-    Route::put('/{partner}', [PartnerController::class, 'update']);
-    Route::delete('/{partner}', [PartnerController::class, 'destroy']);
-    Route::post('/{partner}/upload-photo', [PartnerController::class, 'uploadPhoto']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [PartnerController::class, 'store']);
+        Route::post('/reorder', [PartnerController::class, 'reorder']);
+        Route::get('/{partner}', [PartnerController::class, 'show']);
+        Route::put('/{partner}', [PartnerController::class, 'update']);
+        Route::delete('/{partner}', [PartnerController::class, 'destroy']);
+        Route::post('/{partner}/upload-photo', [PartnerController::class, 'uploadPhoto']);
+    });
 });
 
 // Stores API
 Route::prefix('stores')->group(function () {
     Route::get('/', [StoreController::class, 'index']);
-    Route::post('/', [StoreController::class, 'store']);
-    Route::get('/{store}', [StoreController::class, 'show']);
-    Route::put('/{store}', [StoreController::class, 'update']);
-    Route::delete('/{store}', [StoreController::class, 'destroy']);
-    Route::post('/{store}/upload-photo', [StoreController::class, 'uploadPhoto']);
-    Route::post('/{store}/upload-environment-image', [StoreController::class, 'uploadEnvironmentImage']);
-    Route::delete('/{store}/environment-images/{environmentImage}', [StoreController::class, 'deleteEnvironmentImage']);
-    Route::put('/{store}/environment-images/{environmentImage}/order', [StoreController::class, 'updateEnvironmentImageOrder']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [StoreController::class, 'store']);
+        Route::get('/{store}', [StoreController::class, 'show']);
+        Route::put('/{store}', [StoreController::class, 'update']);
+        Route::delete('/{store}', [StoreController::class, 'destroy']);
+        Route::post('/{store}/upload-photo', [StoreController::class, 'uploadPhoto']);
+        Route::post('/{store}/upload-environment-image', [StoreController::class, 'uploadEnvironmentImage']);
+        Route::delete('/{store}/environment-images/{environmentImage}', [StoreController::class, 'deleteEnvironmentImage']);
+        Route::put('/{store}/environment-images/{environmentImage}/order', [StoreController::class, 'updateEnvironmentImageOrder']);
+    });
 });
 
 // Scooters API
 Route::prefix('scooters')->group(function () {
     Route::get('/models', [ScooterController::class, 'models']); // Public: 獲取機車型號列表（供預約表單使用）
-    Route::get('/', [ScooterController::class, 'index']);
-    Route::get('/available', [ScooterController::class, 'available']);
-    Route::post('/', [ScooterController::class, 'store']);
-    Route::get('/{scooter}', [ScooterController::class, 'show']);
-    Route::put('/{scooter}', [ScooterController::class, 'update']);
-    Route::delete('/{scooter}', [ScooterController::class, 'destroy']);
-    Route::post('/{scooter}/upload-photo', [ScooterController::class, 'uploadPhoto']);
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::get('/', [ScooterController::class, 'index']);
+        Route::get('/available', [ScooterController::class, 'available']);
+        Route::post('/', [ScooterController::class, 'store']);
+        Route::get('/{scooter}', [ScooterController::class, 'show']);
+        Route::put('/{scooter}', [ScooterController::class, 'update']);
+        Route::delete('/{scooter}', [ScooterController::class, 'destroy']);
+        Route::post('/{scooter}/upload-photo', [ScooterController::class, 'uploadPhoto']);
+    });
 });
 
 // Scooter Types API
-Route::prefix('scooter-types')->group(function () {
+Route::prefix('scooter-types')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [ScooterTypeController::class, 'index']);
     Route::post('/', [ScooterTypeController::class, 'store']);
     Route::get('/{scooterType}', [ScooterTypeController::class, 'show']);
@@ -138,7 +145,7 @@ Route::prefix('scooter-types')->group(function () {
 });
 
 // Scooter Models API
-Route::prefix('scooter-models')->group(function () {
+Route::prefix('scooter-models')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [ScooterModelController::class, 'index']);
     Route::post('/', [ScooterModelController::class, 'store']);
     Route::get('/{scooterModel}', [ScooterModelController::class, 'show']);
@@ -148,7 +155,7 @@ Route::prefix('scooter-models')->group(function () {
 });
 
 // Scooter Model Colors API
-Route::prefix('scooter-model-colors')->group(function () {
+Route::prefix('scooter-model-colors')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [ScooterModelColorController::class, 'index']);
     Route::post('/get-colors', [ScooterModelColorController::class, 'getColors']);
     Route::get('/{model}', [ScooterModelColorController::class, 'show']);
@@ -157,7 +164,7 @@ Route::prefix('scooter-model-colors')->group(function () {
 });
 
 // Fines API
-Route::prefix('fines')->group(function () {
+Route::prefix('fines')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [FineController::class, 'index']);
     Route::post('/', [FineController::class, 'store']);
     Route::get('/{fine}', [FineController::class, 'show']);
@@ -167,7 +174,7 @@ Route::prefix('fines')->group(function () {
 });
 
 // Accessories API
-Route::prefix('accessories')->group(function () {
+Route::prefix('accessories')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [AccessoryController::class, 'index']);
     Route::get('/statistics', [AccessoryController::class, 'statistics']);
     Route::post('/', [AccessoryController::class, 'store']);
@@ -177,7 +184,7 @@ Route::prefix('accessories')->group(function () {
 });
 
 // Users API
-Route::prefix('users')->group(function () {
+Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [UserController::class, 'index']);
     Route::post('/', [UserController::class, 'store']);
     Route::get('/{user}', [UserController::class, 'show']);

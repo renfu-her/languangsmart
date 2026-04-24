@@ -12,11 +12,26 @@ use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
+    private function denyUnlessSuperAdmin(Request $request): ?JsonResponse
+    {
+        if (!$request->user()?->isSuperAdmin()) {
+            return response()->json([
+                'message' => 'Forbidden',
+            ], 403);
+        }
+
+        return null;
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request): JsonResponse
     {
+        if ($response = $this->denyUnlessSuperAdmin($request)) {
+            return $response;
+        }
+
         $query = User::query();
 
         // Filter by role
@@ -51,6 +66,10 @@ class UserController extends Controller
      */
     public function store(Request $request): JsonResponse
     {
+        if ($response = $this->denyUnlessSuperAdmin($request)) {
+            return $response;
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
@@ -91,8 +110,12 @@ class UserController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $user): JsonResponse
+    public function show(Request $request, User $user): JsonResponse
     {
+        if ($response = $this->denyUnlessSuperAdmin($request)) {
+            return $response;
+        }
+
         $user->load('store');
         
         return response()->json([
@@ -105,6 +128,10 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user): JsonResponse
     {
+        if ($response = $this->denyUnlessSuperAdmin($request)) {
+            return $response;
+        }
+
         $validator = Validator::make($request->all(), [
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
@@ -150,8 +177,12 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(User $user): JsonResponse
+    public function destroy(Request $request, User $user): JsonResponse
     {
+        if ($response = $this->denyUnlessSuperAdmin($request)) {
+            return $response;
+        }
+
         // 禁止刪除 zau1110216@gmail.com 的管理者
         if ($user->email === 'zau1110216@gmail.com') {
             return response()->json([

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use RuntimeException;
 
 class UserSeeder extends Seeder
 {
@@ -13,13 +14,24 @@ class UserSeeder extends Seeder
      */
     public function run(): void
     {
-        // 創建系統管理員（super_admin）
+        $email = env('INITIAL_ADMIN_EMAIL');
+        $password = env('INITIAL_ADMIN_PASSWORD');
+
+        if (!$email || !$password) {
+            if (app()->environment('production')) {
+                throw new RuntimeException('INITIAL_ADMIN_EMAIL and INITIAL_ADMIN_PASSWORD must be set before seeding production.');
+            }
+
+            $this->command?->warn('Skipping super admin seed because INITIAL_ADMIN_EMAIL or INITIAL_ADMIN_PASSWORD is not set.');
+            return;
+        }
+
         User::updateOrCreate(
-            ['email' => 'admin@admin.com'],
+            ['email' => $email],
             [
-                'name' => 'admin',
-                'email' => 'admin@admin.com',
-                'password' => Hash::make('admin123'),
+                'name' => env('INITIAL_ADMIN_NAME', 'admin'),
+                'email' => $email,
+                'password' => Hash::make($password),
                 'role' => 'super_admin',
                 'status' => 'active',
                 'store_id' => 3, // super_admin 預設 store_id 為 3

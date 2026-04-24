@@ -13680,3 +13680,13 @@ php artisan db:seed --class=ScooterModelColorSeeder
   - 先依狀態順序排列（進行中、待接送、在合作商、已預訂、已完成）
   - 同一個狀態內，訂單會依預約日期由早到晚顯示
 
+---
+
+## 2026-04-24 - 修補 API 授權與依賴安全風險
+
+- 在 `routes/api.php` 為登入、驗證碼、聯絡與預約公開端點加上節流限制。
+- 移除公開的 `/api/contact/test` 測試寄信路由與控制器 action。
+- 將訂單、使用者、車輛、罰單、配件、車型與後台管理型寫入/上傳/刪除路由納入 `auth:sanctum` 保護。
+- 使用者管理 API 改為僅 `super_admin` 可操作。
+- `UserSeeder` 改用 `INITIAL_ADMIN_EMAIL` / `INITIAL_ADMIN_PASSWORD`，避免固定 `admin@admin.com` / `admin123`。
+- 更新 PHP audit 指出的 Composer lock 套件版本，並將前後台 `react-router-dom` 升到 `^7.12.0`。

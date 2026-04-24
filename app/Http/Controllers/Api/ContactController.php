@@ -87,36 +87,6 @@ class ContactController extends Controller
     }
 
     /**
-     * Test email sending
-     */
-    public function test(Request $request): JsonResponse
-    {
-        try {
-            $testData = [
-                'name' => $request->input('name', '測試使用者'),
-                'lineId' => $request->input('lineId', '@623czmsm'),
-                'phone' => $request->input('phone', '0912345678'),
-                'message' => $request->input('message', '這是一封測試郵件，用於測試郵件發送功能是否正常運作。'),
-            ];
-
-            // 發送測試郵件到指定信箱
-            Mail::to('renfu.her@gmail.com')->send(new ContactMail($testData));
-
-            return response()->json([
-                'message' => '測試郵件已成功發送！',
-                'data' => $testData,
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Test email error: ' . $e->getMessage());
-            
-            return response()->json([
-                'message' => '發送測試郵件時發生錯誤',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
      * Display a listing of contacts (for backend admin)
      */
     public function index(Request $request): JsonResponse
